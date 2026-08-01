@@ -1,0 +1,9 @@
+{
+  "name": "ETOOS247 대구수성 2026 재수정규",
+  "short_name": "247 재수정규",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#071b1d",
+  "theme_color": "#071b1d",
+  "lang": "ko"
+}
