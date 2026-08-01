@@ -29,7 +29,7 @@ const isConfigured = Boolean(
 const toast = document.getElementById("toast");
 const loginButtons = [
   "googleLoginBtn", "heroLoginBtn", "sectionLoginBtn",
-  "programLoginBtn", "mobileLoginBtn"
+  "programLoginBtn", "mobileLoginBtn", "qaLoginBtn"
 ].map(id => document.getElementById(id)).filter(Boolean);
 
 const profileButton = document.getElementById("profileButton");

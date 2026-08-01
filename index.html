@@ -22,6 +22,7 @@
     </a>
 
     <nav class="desktop-nav" aria-label="주요 메뉴">
+      <a href="#qa">1:1 질의응답</a>
       <a href="#system">관리 시스템</a>
       <a href="#space">학습 공간</a>
       <a href="#program">모집 안내</a>
@@ -123,6 +124,123 @@
           <span>2027학년도 반수성공반 안내</span>
           <span>재학생 학습관리 프로그램</span>
         </div>
+      </div>
+    </section>
+
+    <section class="qa-section" id="qa" aria-labelledby="qaTitle">
+      <div class="qa-heading reveal">
+        <div>
+          <p class="eyebrow">PRIVATE 1:1 Q&amp;A</p>
+          <h2 id="qaTitle">막힌 문제를 사진으로 올리고,<br>질문을 정확히 남기세요.</h2>
+        </div>
+        <div class="qa-heading-note">
+          <span class="qa-lock-icon" aria-hidden="true">◆</span>
+          <div>
+            <strong>질문자 본인 · 교직원 · 마스터만 열람</strong>
+            <p>다른 학생에게 질문 내용과 첨부 사진이 공개되지 않는 1:1 비공개 질의함입니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="qa-layout">
+        <form class="qa-compose reveal" id="qaForm" novalidate>
+          <div class="qa-compose-head">
+            <div>
+              <span>NEW QUESTION</span>
+              <h3>새 질문 작성</h3>
+            </div>
+            <span class="qa-private-badge">비공개</span>
+          </div>
+
+          <fieldset class="qa-fieldset">
+            <legend>1. 질문 분야</legend>
+            <div class="qa-subjects">
+              <label><input type="radio" name="qaSubject" value="국어" checked><span>국어</span></label>
+              <label><input type="radio" name="qaSubject" value="수학"><span>수학</span></label>
+              <label><input type="radio" name="qaSubject" value="영어"><span>영어</span></label>
+              <label><input type="radio" name="qaSubject" value="탐구"><span>탐구</span></label>
+              <label><input type="radio" name="qaSubject" value="학습·입시"><span>학습·입시</span></label>
+              <label><input type="radio" name="qaSubject" value="기타"><span>기타</span></label>
+            </div>
+          </fieldset>
+
+          <div class="qa-field">
+            <div class="qa-label-row">
+              <label for="qaImage">2. 문제 사진 첨부</label>
+              <span>JPG · PNG · WEBP / 최대 5MB</span>
+            </div>
+            <label class="qa-dropzone" id="qaDropzone" for="qaImage">
+              <input id="qaImage" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">
+              <div class="qa-upload-empty" id="qaUploadEmpty">
+                <span class="qa-camera" aria-hidden="true">▣</span>
+                <strong>문제를 촬영하거나 사진을 선택하세요.</strong>
+                <small>사진은 제출 전 이 화면에서만 미리 확인합니다.</small>
+                <span class="qa-select-button">사진 선택</span>
+              </div>
+              <div class="qa-preview hidden" id="qaPreview">
+                <img id="qaPreviewImage" alt="첨부할 문제 사진 미리보기">
+                <div class="qa-preview-info">
+                  <strong id="qaFileName">선택한 사진</strong>
+                  <span id="qaFileSize"></span>
+                </div>
+              </div>
+            </label>
+            <button class="qa-remove-file hidden" id="qaRemoveFile" type="button">첨부 사진 제거</button>
+          </div>
+
+          <div class="qa-field">
+            <div class="qa-label-row">
+              <label for="qaText">3. 궁금한 내용을 입력하세요.</label>
+              <span><b id="qaCharCount">0</b>/1000</span>
+            </div>
+            <textarea id="qaText" maxlength="1000" rows="7" placeholder="예: 3번 선택지가 왜 틀렸는지 모르겠습니다. 제가 표시한 풀이 과정의 어느 부분부터 잘못되었는지 설명해 주세요."></textarea>
+            <div class="qa-writing-guide">
+              <span>어디까지 풀었는지</span>
+              <span>정확히 막힌 지점</span>
+              <span>원하는 설명 방식</span>
+            </div>
+          </div>
+
+          <div class="qa-submit-row">
+            <div class="qa-login-guide">
+              <strong>Google 로그인 후 등록됩니다.</strong>
+              <span>승인된 재원생 계정만 질문을 제출할 수 있습니다.</span>
+            </div>
+            <button class="qa-login-button" id="qaLoginBtn" type="button">Google 로그인</button>
+            <button class="qa-submit-button" id="qaSubmitBtn" type="submit">질문 등록하기 <span>→</span></button>
+          </div>
+        </form>
+
+        <aside class="qa-side reveal">
+          <div class="qa-flow-card">
+            <span class="qa-side-kicker">ANSWER FLOW</span>
+            <h3>질문이 답변으로<br>이어지는 과정</h3>
+            <ol>
+              <li class="active"><span>01</span><div><strong>질문 등록</strong><small>사진과 질문 내용을 제출합니다.</small></div></li>
+              <li><span>02</span><div><strong>교직원 확인</strong><small>과목과 질문 내용을 확인합니다.</small></div></li>
+              <li><span>03</span><div><strong>답변 작성</strong><small>담당자가 설명과 피드백을 남깁니다.</small></div></li>
+              <li><span>04</span><div><strong>학생 확인</strong><small>내 질문함에서 답변을 확인합니다.</small></div></li>
+            </ol>
+          </div>
+
+          <div class="qa-status-card">
+            <div>
+              <span>내 질문 현황</span>
+              <strong>로그인 후 확인</strong>
+            </div>
+            <div class="qa-status-grid">
+              <span><b>0</b> 답변 대기</span>
+              <span><b>0</b> 확인 중</span>
+              <span><b>0</b> 답변 완료</span>
+            </div>
+            <button type="button" id="qaMyQuestionsBtn">내 질문함 열기</button>
+          </div>
+
+          <div class="qa-privacy-card">
+            <strong>첨부 사진 보호 원칙</strong>
+            <p>질문 사진은 공개 주소로 노출하지 않고, 권한 확인을 통과한 질문자 본인·교직원·마스터만 열람하도록 구성합니다.</p>
+          </div>
+        </aside>
       </div>
     </section>
 
@@ -276,9 +394,9 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <nav class="mobile-quickbar" aria-label="모바일 빠른 메뉴">
-    <a href="tel:053-7420-247"><span>☎</span>상담 전화</a>
+    <a href="#qa"><span>?</span>질문하기</a>
     <button id="mobileLoginBtn" type="button"><span>G</span>로그인</button>
-    <a href="#contact"><span>⌖</span>오시는 길</a>
+    <a href="tel:053-7420-247"><span>☎</span>상담 전화</a>
   </nav>
 
   <script type="module" src="./assets/js/auth.js"></script>

@@ -129,3 +129,113 @@
     });
   });
 })();
+
+(() => {
+  const form = document.getElementById("qaForm");
+  if (!form) return;
+
+  const input = document.getElementById("qaImage");
+  const dropzone = document.getElementById("qaDropzone");
+  const empty = document.getElementById("qaUploadEmpty");
+  const preview = document.getElementById("qaPreview");
+  const previewImage = document.getElementById("qaPreviewImage");
+  const fileName = document.getElementById("qaFileName");
+  const fileSize = document.getElementById("qaFileSize");
+  const removeButton = document.getElementById("qaRemoveFile");
+  const text = document.getElementById("qaText");
+  const charCount = document.getElementById("qaCharCount");
+  const myQuestions = document.getElementById("qaMyQuestionsBtn");
+  let objectUrl = "";
+
+  const showQaToast = (message, type = "") => {
+    const toast = document.getElementById("toast");
+    if (!toast) return;
+    toast.textContent = message;
+    toast.className = `toast show ${type}`.trim();
+    clearTimeout(showQaToast.timer);
+    showQaToast.timer = setTimeout(() => { toast.className = "toast"; }, 4200);
+  };
+
+  const clearFile = () => {
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = "";
+    if (input) input.value = "";
+    if (previewImage) previewImage.removeAttribute("src");
+    empty?.classList.remove("hidden");
+    preview?.classList.add("hidden");
+    removeButton?.classList.add("hidden");
+  };
+
+  const applyFile = file => {
+    if (!file) return;
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      clearFile();
+      showQaToast("JPG, PNG, WEBP 사진만 첨부할 수 있습니다.", "error");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      clearFile();
+      showQaToast("사진은 5MB 이하로 첨부해 주세요.", "error");
+      return;
+    }
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = URL.createObjectURL(file);
+    if (previewImage) previewImage.src = objectUrl;
+    if (fileName) fileName.textContent = file.name;
+    if (fileSize) fileSize.textContent = `${(file.size / 1024 / 1024).toFixed(2)}MB`;
+    empty?.classList.add("hidden");
+    preview?.classList.remove("hidden");
+    removeButton?.classList.remove("hidden");
+  };
+
+  input?.addEventListener("change", () => applyFile(input.files?.[0]));
+  removeButton?.addEventListener("click", clearFile);
+
+  ["dragenter", "dragover"].forEach(type => dropzone?.addEventListener(type, event => {
+    event.preventDefault();
+    dropzone.classList.add("dragover");
+  }));
+  ["dragleave", "drop"].forEach(type => dropzone?.addEventListener(type, event => {
+    event.preventDefault();
+    dropzone.classList.remove("dragover");
+  }));
+  dropzone?.addEventListener("drop", event => {
+    const file = event.dataTransfer?.files?.[0];
+    if (file) applyFile(file);
+  });
+
+  text?.addEventListener("input", () => {
+    if (charCount) charCount.textContent = String(text.value.length);
+  });
+
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+    const question = text?.value.trim() || "";
+    if (!question) {
+      text?.focus();
+      showQaToast("질문 내용을 입력해 주세요.", "error");
+      return;
+    }
+    const currentUser = window.etoosAuth?.auth?.currentUser;
+    if (!currentUser) {
+      showQaToast("질문 등록은 승인된 Google 계정 로그인 후 사용할 수 있습니다.");
+      document.getElementById("qaLoginBtn")?.click();
+      return;
+    }
+    showQaToast("질의응답 화면 구성이 완료되었습니다. Firebase Storage 연결 후 실제 등록이 활성화됩니다.", "success");
+  });
+
+  myQuestions?.addEventListener("click", () => {
+    if (!window.etoosAuth?.auth?.currentUser) {
+      showQaToast("로그인 후 내 질문함을 확인할 수 있습니다.");
+      document.getElementById("qaLoginBtn")?.click();
+      return;
+    }
+    showQaToast("내 질문함은 다음 단계에서 Firestore와 연결됩니다.");
+  });
+
+  addEventListener("beforeunload", () => {
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+  });
+})();
