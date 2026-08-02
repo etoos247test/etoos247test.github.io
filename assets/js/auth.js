@@ -233,3 +233,7 @@
   myQuestionsButton?.addEventListener("click", handleMyQuestions, { capture: true });
   refreshStatus();
 })();
+
+import("./demo-plan.js").catch(error => {
+  console.error("시연 운영 계획을 불러오지 못했습니다.", error);
+});
