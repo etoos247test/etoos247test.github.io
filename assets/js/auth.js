@@ -19,6 +19,31 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 import { firebaseConfig, appSettings } from "./firebase-config.js";
 
+// 베타 운영 중에는 1:1 질문 등록만 로그인 없이 허용한다.
+// 상단 로그인·승인 화면과 실제 Firebase 인증 기능은 그대로 유지한다.
+const BETA_QA_NO_LOGIN = true;
+const betaSessionKey = "etoos247-beta-session-id";
+let betaSessionId = "";
+
+try {
+  betaSessionId = sessionStorage.getItem(betaSessionKey) || "";
+  if (!betaSessionId) {
+    betaSessionId = `beta-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    sessionStorage.setItem(betaSessionKey, betaSessionId);
+  }
+} catch {
+  betaSessionId = `beta-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+const betaUser = Object.freeze({
+  uid: betaSessionId,
+  displayName: "베타 사용자",
+  email: "",
+  photoURL: "",
+  isAnonymous: true,
+  beta: true
+});
+
 const isConfigured = Boolean(
   firebaseConfig.apiKey &&
   !firebaseConfig.apiKey.startsWith("YOUR_") &&
@@ -51,6 +76,51 @@ function showToast(message, type = "") {
   }, 4200);
 }
 
+function applyBetaQaUI() {
+  if (!BETA_QA_NO_LOGIN) return;
+
+  const guide = document.querySelector(".qa-login-guide");
+  const guideTitle = guide?.querySelector("strong");
+  const guideText = guide?.querySelector("span");
+  const qaLoginButton = document.getElementById("qaLoginBtn");
+  const qaSubmitButton = document.getElementById("qaSubmitBtn");
+
+  if (guideTitle) guideTitle.textContent = "베타 기간에는 로그인 없이 등록됩니다.";
+  if (guideText) guideText.textContent = "정식 운영 전 테스트를 위해 로그인 절차를 잠시 생략합니다.";
+  if (qaLoginButton) qaLoginButton.textContent = "Google 로그인(선택)";
+  if (qaSubmitButton) qaSubmitButton.innerHTML = "베타 질문 등록하기 <span>→</span>";
+}
+
+function createAuthView(realAuth = null) {
+  if (!realAuth) {
+    return {
+      currentUser: BETA_QA_NO_LOGIN ? betaUser : null
+    };
+  }
+
+  return new Proxy(realAuth, {
+    get(target, property) {
+      if (property === "currentUser" && BETA_QA_NO_LOGIN) {
+        return target.currentUser || betaUser;
+      }
+
+      const value = Reflect.get(target, property, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  });
+}
+
+function exposeAuth(realAuth = null, extras = {}) {
+  window.etoosAuth = {
+    ...extras,
+    auth: createAuthView(realAuth),
+    realAuth,
+    betaQaNoLogin: BETA_QA_NO_LOGIN,
+    betaUser,
+    isActuallyLoggedIn: () => Boolean(realAuth?.currentUser)
+  };
+}
+
 function setLoggedOutUI() {
   loginButtons.forEach(button => button.classList.remove("hidden"));
   profileButton?.classList.add("hidden");
@@ -75,11 +145,17 @@ function setLoggedInUI(user, access) {
   if (authState) authState.textContent = access.active ? "승인 계정" : "승인 대기";
 }
 
+applyBetaQaUI();
+
 if (!isConfigured) {
   loginButtons.forEach(button => button.addEventListener("click", () => {
     showToast("Firebase 설정값을 먼저 입력해 주세요. README_SETUP.md를 확인하세요.", "error");
   }));
   setLoggedOutUI();
+  exposeAuth(null, {
+    loginWithGoogle: async () => showToast("현재 베타 질문 등록은 로그인 없이 사용할 수 있습니다."),
+    signOut: async () => {}
+  });
 } else {
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -193,5 +269,9 @@ if (!isConfigured) {
     }
   });
 
-  window.etoosAuth = { auth, db, loginWithGoogle, signOut: () => signOut(auth) };
+  exposeAuth(auth, {
+    db,
+    loginWithGoogle,
+    signOut: () => signOut(auth)
+  });
 }
