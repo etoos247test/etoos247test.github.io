@@ -9,350 +9,58 @@
   <link rel="stylesheet" href="../assets/css/internal-article.css">
   <style>
     :root{--accent:#8f8cff}
-    .qa-form{display:grid;gap:14px}
-    .field{padding:18px;border:1px solid var(--line);border-radius:15px;background:#fff}
-    .field label{display:block;margin-bottom:8px;font-size:12px;font-weight:900}
-    .field input,.field select,.field textarea{width:100%;border:1px solid #ccd8e2;border-radius:11px;background:#f9fbfd;padding:12px;color:var(--ink)}
-    .field textarea{min-height:150px;resize:vertical}
-    .drop{display:grid;place-items:center;min-height:130px;border:1px dashed #aebfd0;border-radius:12px;background:#f7f9fc;color:#70808d;text-align:center}
-    .drop input{max-width:290px;border:0;background:transparent}
-    .photo-preview{display:none;margin-top:13px;padding:12px;border:1px solid #d6e0e9;border-radius:14px;background:#f5f8fb}
-    .photo-preview.show{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center}
-    .photo-thumb{position:relative;width:120px;height:96px;border:0;border-radius:11px;overflow:hidden;background:#dbe4eb;padding:0;cursor:zoom-in}
-    .photo-thumb img{width:100%;height:100%;display:block;object-fit:cover}
-    .photo-thumb:after{content:'확대';position:absolute;right:7px;bottom:7px;padding:4px 7px;border-radius:999px;background:rgba(5,14,28,.76);color:#fff;font-size:9px;font-weight:900}
-    .photo-info strong{display:block;color:#1a3043;font-size:13px;overflow-wrap:anywhere}
-    .photo-info span{display:block;margin-top:4px;color:var(--muted);font-size:10px}
-    .photo-info button{margin-top:10px;border:0;border-radius:9px;background:#162b40;color:#fff;padding:8px 11px;font-size:11px;font-weight:900}
-    .save{border:0}
-    .saved-list{display:grid;gap:10px}
-    .saved{padding:14px;border:1px solid var(--line);border-radius:13px;background:#fff}
-    .saved-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-    .saved strong{display:block}
-    .saved span{font-size:10px;color:var(--muted)}
-    .saved p{margin:8px 0 0;color:#596a77;white-space:pre-wrap}
-    .saved-image{display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:center;margin-top:12px;padding:9px;border:1px solid #dce5ec;border-radius:11px;background:#f7f9fc}
-    .saved-image button{width:92px;height:72px;border:0;border-radius:9px;overflow:hidden;padding:0;background:#e1e8ee;cursor:zoom-in}
-    .saved-image img{width:100%;height:100%;object-fit:cover;display:block}
-    .saved-image div{min-width:0}
-    .saved-image b{display:block;font-size:11px;overflow-wrap:anywhere}
-    .saved-image small{display:block;margin-top:4px;color:var(--muted)}
-    .saved-image .open-saved{width:auto;height:auto;margin-top:8px;padding:7px 9px;background:#172d43;color:#fff;font-size:10px;font-weight:900}
-    .empty{padding:22px;border:1px dashed var(--line);border-radius:12px;text-align:center;color:var(--muted)}
-    .image-modal{position:fixed;inset:0;z-index:10000;display:none;place-items:center;padding:22px;background:rgba(3,8,16,.88);backdrop-filter:blur(8px)}
-    .image-modal.open{display:grid;animation:modalIn .2s ease}
-    .image-modal-frame{position:relative;display:grid;place-items:center;width:min(96vw,1200px);height:min(90vh,900px)}
-    .image-modal img{max-width:100%;max-height:100%;object-fit:contain;border-radius:12px;box-shadow:0 28px 90px rgba(0,0,0,.5);background:#fff}
-    .image-modal-close{position:absolute;right:0;top:0;z-index:2;width:42px;height:42px;border:0;border-radius:50%;background:#fff;color:#14283b;font-size:22px;font-weight:900;box-shadow:0 8px 24px rgba(0,0,0,.3)}
-    .image-modal-caption{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);max-width:80%;padding:8px 12px;border-radius:999px;background:rgba(7,17,31,.82);color:#fff;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    @keyframes modalIn{from{opacity:0}to{opacity:1}}
-    @media(max-width:600px){
-      .photo-preview.show{grid-template-columns:92px 1fr}.photo-thumb{width:92px;height:82px}
-      .saved-image{grid-template-columns:78px 1fr}.saved-image button{width:78px;height:66px}
-      .image-modal{padding:10px}.image-modal-close{right:8px;top:8px}
-    }
+    .qa-form{display:grid;gap:14px}.field{padding:18px;border:1px solid var(--line);border-radius:15px;background:#fff}
+    .field label{display:block;margin-bottom:8px;font-size:12px;font-weight:900}.field select,.field textarea{width:100%;border:1px solid #ccd8e2;border-radius:11px;background:#f9fbfd;padding:12px;color:var(--ink)}
+    .field textarea{min-height:150px;resize:vertical}.photo-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.photo-choice{min-height:48px;border:0;border-radius:12px;background:#172d43;color:#fff;font-weight:900}.photo-choice.camera{background:#786fe5}.photo-help{display:block;margin-top:9px;color:var(--muted);font-size:11px}.hidden-file{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important}
+    .photo-preview{display:none;margin-top:13px;padding:12px;border:1px solid #d6e0e9;border-radius:14px;background:#f5f8fb}.photo-preview.show{display:grid;grid-template-columns:130px 1fr;gap:14px;align-items:center}
+    .photo-thumb{position:relative;width:130px;height:100px;border:0;border-radius:11px;overflow:hidden;background:#dbe4eb;padding:0;cursor:zoom-in}.photo-thumb img{width:100%;height:100%;display:block;object-fit:cover}.photo-thumb:after{content:'크게 보기';position:absolute;right:7px;bottom:7px;padding:4px 7px;border-radius:999px;background:rgba(5,14,28,.78);color:#fff;font-size:9px;font-weight:900}
+    .photo-info strong{display:block;color:#1a3043;font-size:13px;overflow-wrap:anywhere}.photo-info span{display:block;margin-top:4px;color:var(--muted);font-size:10px}.photo-info button{margin-top:10px;border:0;border-radius:9px;background:#162b40;color:#fff;padding:8px 11px;font-size:11px;font-weight:900}.photo-status{margin-top:9px;padding:9px 11px;border-radius:10px;background:#edf7f3;color:#287457;font-size:11px;font-weight:800}.photo-status.error{background:#fff0f0;color:#a13a3a}
+    .save{border:0}.saved-list{display:grid;gap:10px}.saved{padding:14px;border:1px solid var(--line);border-radius:13px;background:#fff}.saved-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.saved strong{display:block}.saved span{font-size:10px;color:var(--muted)}.saved p{margin:8px 0 0;color:#596a77;white-space:pre-wrap}.saved-image{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center;margin-top:12px;padding:9px;border:1px solid #dce5ec;border-radius:11px;background:#f7f9fc}.saved-image button.thumb{width:96px;height:74px;border:0;border-radius:9px;overflow:hidden;padding:0;background:#e1e8ee;cursor:zoom-in}.saved-image img{width:100%;height:100%;object-fit:cover;display:block}.saved-image b{display:block;font-size:11px;overflow-wrap:anywhere}.saved-image small{display:block;margin-top:4px;color:var(--muted)}.open-saved,.delete-saved{margin:8px 5px 0 0;border:0;border-radius:8px;padding:7px 9px;font-size:10px;font-weight:900}.open-saved{background:#172d43;color:#fff}.delete-saved{background:#edf0f3;color:#566471}.empty{padding:22px;border:1px dashed var(--line);border-radius:12px;text-align:center;color:var(--muted)}
+    .image-modal{position:fixed;inset:0;z-index:10000;display:none;place-items:center;padding:18px;background:rgba(3,8,16,.92);backdrop-filter:blur(7px)}.image-modal.open{display:grid}.image-modal-frame{position:relative;display:grid;place-items:center;width:min(96vw,1280px);height:min(92vh,920px)}.image-modal img{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;background:#fff;box-shadow:0 28px 90px rgba(0,0,0,.55)}.image-modal-close{position:absolute;right:4px;top:4px;z-index:2;width:44px;height:44px;border:0;border-radius:50%;background:#fff;color:#14283b;font-size:23px;font-weight:900}.image-modal-caption{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);max-width:82%;padding:8px 12px;border-radius:999px;background:rgba(7,17,31,.84);color:#fff;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .toolbar{display:flex;justify-content:flex-end;margin-bottom:10px}.toolbar button{border:1px solid #d5dfe6;border-radius:9px;background:#fff;color:#63717c;padding:8px 10px;font-size:10px;font-weight:900}
+    @media(max-width:600px){.photo-actions{grid-template-columns:1fr}.photo-preview.show{grid-template-columns:92px 1fr}.photo-thumb{width:92px;height:82px}.saved-image{grid-template-columns:78px 1fr}.saved-image button.thumb{width:78px;height:66px}.image-modal{padding:8px}.image-modal-close{right:8px;top:8px}}
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="../"><span class="mark">247</span><span>이투스247 내부 포털<small>1:1 Q&amp;A WORKSPACE</small></span></a>
-    <a class="home" href="../">← 입구로 돌아가기</a>
-  </header>
-
-  <section class="hero" style="--accent:#8f8cff">
-    <div class="hero-inner">
-      <p class="eyebrow">PRIVATE Q&amp;A WORKSPACE</p>
-      <h1>1:1 질의응답<br>시연·운영 화면</h1>
-      <p>학생의 사진 질문 접수 흐름, 담당자 확인, 답변 상태 관리 기준을 독립 화면에서 검토합니다.</p>
-      <div class="notice">! 현재 입력 내용과 이미지는 이 브라우저에만 임시 저장되며 교직원에게 실제 전송되지 않습니다.</div>
-    </div>
-  </section>
-
+  <header class="topbar"><a class="brand" href="../"><span class="mark">247</span><span>이투스247 내부 포털<small>1:1 Q&amp;A WORKSPACE</small></span></a><a class="home" href="../">← 입구로 돌아가기</a></header>
+  <section class="hero" style="--accent:#8f8cff"><div class="hero-inner"><p class="eyebrow">PRIVATE Q&amp;A WORKSPACE</p><h1>1:1 질의응답<br>시연·운영 화면</h1><p>학생의 사진 질문 접수 흐름과 이미지 확인 방식을 독립 화면에서 검토합니다.</p><div class="notice">! 사진과 질문은 서버가 아니라 현재 브라우저의 IndexedDB에만 임시 저장됩니다.</div></div></section>
   <main class="wrap">
-    <section class="flow">
-      <article class="step reveal"><b>01</b><h3>질문 등록</h3><p>과목·사진·막힌 지점을 입력합니다.</p></article>
-      <article class="step reveal"><b>02</b><h3>담당 확인</h3><p>질문 유형과 담당자를 배정합니다.</p></article>
-      <article class="step reveal"><b>03</b><h3>답변 작성</h3><p>풀이와 학습 피드백을 제공합니다.</p></article>
-      <article class="step reveal"><b>04</b><h3>학생 확인</h3><p>답변 확인과 추가 질문을 기록합니다.</p></article>
-    </section>
-
+    <section class="flow"><article class="step reveal"><b>01</b><h3>사진 선택</h3><p>사진첩 또는 카메라를 사용합니다.</p></article><article class="step reveal"><b>02</b><h3>즉시 미리보기</h3><p>선택한 사진을 바로 확인합니다.</p></article><article class="step reveal"><b>03</b><h3>질문 저장</h3><p>현재 브라우저에만 시연 저장합니다.</p></article><article class="step reveal"><b>04</b><h3>다시 열기</h3><p>저장 목록에서 원본 비율로 확대합니다.</p></article></section>
     <section class="split" style="margin-top:24px">
-      <article class="card">
-        <h2>시연 질문 작성</h2>
-        <form class="qa-form" id="qaForm">
-          <div class="field">
-            <label for="subject">질문 분야</label>
-            <select id="subject"><option>국어</option><option>수학</option><option>영어</option><option>탐구</option><option>학습·입시</option><option>기타</option></select>
-          </div>
-          <div class="field">
-            <label for="photo">문제 사진</label>
-            <div class="drop">
-              <div>사진을 선택하세요.<br><small>선택 즉시 미리보기되며, 누르면 크게 열립니다.</small><input id="photo" type="file" accept="image/*"></div>
-            </div>
-            <div class="photo-preview" id="photoPreview">
-              <button class="photo-thumb" id="photoThumb" type="button" aria-label="선택한 사진 크게 열기"><img id="photoPreviewImage" alt="선택한 문제 사진 미리보기"></button>
-              <div class="photo-info"><strong id="photoName">선택한 사진</strong><span id="photoSize"></span><button id="openCurrentImage" type="button">큰 이미지 열기</button></div>
-            </div>
-          </div>
-          <div class="field">
-            <label for="question">궁금한 내용</label>
-            <textarea id="question" maxlength="1000" placeholder="어디까지 풀었고 정확히 어느 지점에서 막혔는지 입력하세요."></textarea>
-          </div>
-          <div class="actions"><button class="button save" type="submit">브라우저에 시연 저장</button><button class="button secondary" id="clear" type="button">입력 지우기</button></div>
-        </form>
-      </article>
-      <aside class="card"><h2>이 브라우저의 시연 질문</h2><div class="saved-list" id="savedList"></div></aside>
+      <article class="card"><h2>시연 질문 작성</h2><form class="qa-form" id="qaForm">
+        <div class="field"><label for="subject">질문 분야</label><select id="subject"><option>국어</option><option>수학</option><option>영어</option><option>탐구</option><option>학습·입시</option><option>기타</option></select></div>
+        <div class="field"><label>문제 사진</label><div class="photo-actions"><button class="photo-choice" id="galleryButton" type="button">사진첩에서 선택</button><button class="photo-choice camera" id="cameraButton" type="button">카메라로 촬영</button></div><small class="photo-help">JPG·PNG·WebP 권장. 일부 HEIC 사진은 사용 중인 브라우저가 지원하지 않을 수 있습니다.</small>
+          <input class="hidden-file" id="galleryInput" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"><input class="hidden-file" id="cameraInput" type="file" accept="image/*" capture="environment">
+          <div class="photo-preview" id="photoPreview"><button class="photo-thumb" id="photoThumb" type="button" aria-label="선택한 사진 크게 보기"><img id="photoPreviewImage" alt="선택한 문제 사진"></button><div class="photo-info"><strong id="photoName">선택한 사진</strong><span id="photoSize"></span><button id="openCurrentImage" type="button">큰 이미지 열기</button><div class="photo-status" id="photoStatus">사진을 불러왔습니다.</div></div></div>
+        </div>
+        <div class="field"><label for="question">궁금한 내용</label><textarea id="question" maxlength="1000" placeholder="어디까지 풀었고 정확히 어느 지점에서 막혔는지 입력하세요."></textarea></div>
+        <div class="actions"><button class="button save" type="submit">브라우저에 시연 저장</button><button class="button secondary" id="clear" type="button">입력 지우기</button></div>
+      </form></article>
+      <aside class="card"><div class="toolbar"><button id="deleteAll" type="button">시연 기록 전체 삭제</button></div><h2>이 브라우저의 시연 질문</h2><div class="saved-list" id="savedList"></div></aside>
     </section>
-
-    <section style="margin-top:28px">
-      <h2 class="section-title">정식 운영 전 확정할 기준</h2>
-      <div class="grid three">
-        <article class="card"><h3>권한</h3><p>학생은 본인 질문만, 담당 교직원은 배정 질문만, 마스터는 전체 현황만 관리하도록 분리합니다.</p></article>
-        <article class="card"><h3>처리시간</h3><p>접수·확인 중·답변 완료 상태와 예상 답변시간을 학생에게 표시합니다.</p></article>
-        <article class="card"><h3>자료보관</h3><p>사진과 질문의 보관기간, 퇴원 시 삭제, 오류 발생 시 복구 절차를 정합니다.</p></article>
-      </div>
-    </section>
-    <p class="footer-note">내부 운영·기능 시연용 화면입니다. 민감한 개인정보가 포함된 실제 질문 사진은 테스트 저장소에 사용하지 마세요.</p>
+    <p class="footer-note">내부 기능 시연용입니다. 실제 개인정보나 민감한 문제 사진은 사용하지 마세요.</p>
   </main>
-
-  <div class="image-modal" id="imageModal" role="dialog" aria-modal="true" aria-label="문제 사진 크게 보기">
-    <div class="image-modal-frame">
-      <button class="image-modal-close" id="imageModalClose" type="button" aria-label="이미지 닫기">×</button>
-      <img id="imageModalImage" alt="확대된 문제 사진">
-      <div class="image-modal-caption" id="imageModalCaption"></div>
-    </div>
-  </div>
-
+  <div class="image-modal" id="imageModal" role="dialog" aria-modal="true" aria-label="문제 사진 크게 보기"><div class="image-modal-frame"><button class="image-modal-close" id="imageModalClose" type="button" aria-label="닫기">×</button><img id="imageModalImage" alt="확대된 문제 사진"><div class="image-modal-caption" id="imageModalCaption"></div></div></div>
   <script>
-    (() => {
-      const key = 'etoos-qa-demo';
-      const form = document.getElementById('qaForm');
-      const list = document.getElementById('savedList');
-      const question = document.getElementById('question');
-      const subject = document.getElementById('subject');
-      const photo = document.getElementById('photo');
-      const preview = document.getElementById('photoPreview');
-      const previewImage = document.getElementById('photoPreviewImage');
-      const photoName = document.getElementById('photoName');
-      const photoSize = document.getElementById('photoSize');
-      const modal = document.getElementById('imageModal');
-      const modalImage = document.getElementById('imageModalImage');
-      const modalCaption = document.getElementById('imageModalCaption');
-      let currentObjectUrl = '';
-
-      const safeRead = () => {
-        try { return JSON.parse(localStorage.getItem(key) || '[]'); }
-        catch { return []; }
-      };
-
-      const formatBytes = bytes => {
-        if (!bytes) return '0KB';
-        return bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)}KB` : `${(bytes / 1024 / 1024).toFixed(1)}MB`;
-      };
-
-      const openImage = (src, caption = '문제 사진') => {
-        if (!src) return;
-        modalImage.src = src;
-        modalCaption.textContent = caption;
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-      };
-
-      const closeImage = () => {
-        modal.classList.remove('open');
-        modalImage.removeAttribute('src');
-        document.body.style.overflow = '';
-      };
-
-      const clearPreview = () => {
-        if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
-        currentObjectUrl = '';
-        preview.classList.remove('show');
-        previewImage.removeAttribute('src');
-        photoName.textContent = '선택한 사진';
-        photoSize.textContent = '';
-      };
-
-      const loadImage = file => new Promise((resolve, reject) => {
-        const url = URL.createObjectURL(file);
-        const image = new Image();
-        image.onload = () => { URL.revokeObjectURL(url); resolve(image); };
-        image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('이 사진 형식은 브라우저에서 열 수 없습니다.')); };
-        image.src = url;
-      });
-
-      const makeStoredImage = async file => {
-        if (!file) return '';
-        const image = await loadImage(file);
-        const sourceWidth = image.naturalWidth || image.width;
-        const sourceHeight = image.naturalHeight || image.height;
-        let maxSide = 1400;
-        let quality = .82;
-        let dataUrl = '';
-
-        for (let attempt = 0; attempt < 7; attempt += 1) {
-          const scale = Math.min(1, maxSide / Math.max(sourceWidth, sourceHeight));
-          const width = Math.max(1, Math.round(sourceWidth * scale));
-          const height = Math.max(1, Math.round(sourceHeight * scale));
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const context = canvas.getContext('2d', { alpha: false });
-          context.fillStyle = '#ffffff';
-          context.fillRect(0, 0, width, height);
-          context.drawImage(image, 0, 0, width, height);
-          dataUrl = canvas.toDataURL('image/jpeg', quality);
-          canvas.width = 1;
-          canvas.height = 1;
-          if (dataUrl.length <= 650000) break;
-          maxSide *= .82;
-          quality = Math.max(.52, quality - .07);
-        }
-        return dataUrl;
-      };
-
-      const render = () => {
-        const data = safeRead();
-        list.innerHTML = '';
-        if (!data.length) {
-          const empty = document.createElement('div');
-          empty.className = 'empty';
-          empty.textContent = '아직 저장된 시연 질문이 없습니다.';
-          list.append(empty);
-          return;
-        }
-
-        data.forEach((item, index) => {
-          const article = document.createElement('article');
-          article.className = 'saved';
-
-          const head = document.createElement('div');
-          head.className = 'saved-head';
-          const titleWrap = document.createElement('div');
-          const title = document.createElement('strong');
-          title.textContent = `${item.subject} · 질문 ${data.length - index}`;
-          const time = document.createElement('span');
-          time.textContent = item.time || '';
-          titleWrap.append(title, time);
-          head.append(titleWrap);
-          article.append(head);
-
-          const text = document.createElement('p');
-          text.textContent = item.text || '';
-          article.append(text);
-
-          if (item.image) {
-            const imageBox = document.createElement('div');
-            imageBox.className = 'saved-image';
-            const thumbButton = document.createElement('button');
-            thumbButton.type = 'button';
-            thumbButton.setAttribute('aria-label', '저장된 문제 사진 크게 열기');
-            const thumb = document.createElement('img');
-            thumb.src = item.image;
-            thumb.alt = '저장된 문제 사진 미리보기';
-            thumbButton.append(thumb);
-            thumbButton.addEventListener('click', () => openImage(item.image, item.file || '저장된 문제 사진'));
-
-            const info = document.createElement('div');
-            const fileName = document.createElement('b');
-            fileName.textContent = item.file || '문제 사진';
-            const guide = document.createElement('small');
-            guide.textContent = '현재 브라우저에 축소 저장됨';
-            const openButton = document.createElement('button');
-            openButton.type = 'button';
-            openButton.className = 'open-saved';
-            openButton.textContent = '큰 이미지 열기';
-            openButton.addEventListener('click', () => openImage(item.image, item.file || '저장된 문제 사진'));
-            info.append(fileName, guide, openButton);
-            imageBox.append(thumbButton, info);
-            article.append(imageBox);
-          } else if (item.file) {
-            const oldFile = document.createElement('span');
-            oldFile.textContent = `기존 저장 기록: ${item.file} · 이미지 데이터 없음`;
-            article.append(oldFile);
-          }
-          list.append(article);
-        });
-      };
-
-      photo.addEventListener('change', () => {
-        clearPreview();
-        const file = photo.files?.[0];
-        if (!file) return;
-        if (!String(file.type).startsWith('image/')) {
-          alert('이미지 파일을 선택해 주세요.');
-          photo.value = '';
-          return;
-        }
-        currentObjectUrl = URL.createObjectURL(file);
-        previewImage.src = currentObjectUrl;
-        photoName.textContent = file.name;
-        photoSize.textContent = `${formatBytes(file.size)} · 이미지를 누르면 크게 열립니다.`;
-        preview.classList.add('show');
-      });
-
-      document.getElementById('photoThumb').addEventListener('click', () => openImage(currentObjectUrl, photo.files?.[0]?.name || '선택한 문제 사진'));
-      document.getElementById('openCurrentImage').addEventListener('click', () => openImage(currentObjectUrl, photo.files?.[0]?.name || '선택한 문제 사진'));
-      document.getElementById('imageModalClose').addEventListener('click', closeImage);
-      modal.addEventListener('click', event => { if (event.target === modal) closeImage(); });
-      document.addEventListener('keydown', event => { if (event.key === 'Escape' && modal.classList.contains('open')) closeImage(); });
-
-      form.addEventListener('submit', async event => {
-        event.preventDefault();
-        if (!question.value.trim()) {
-          question.focus();
-          return;
-        }
-
-        const submit = form.querySelector('[type="submit"]');
-        const originalText = submit.textContent;
-        submit.disabled = true;
-        submit.textContent = '이미지 저장 준비 중…';
-
-        try {
-          const file = photo.files?.[0] || null;
-          const image = file ? await makeStoredImage(file) : '';
-          const data = safeRead();
-          data.unshift({
-            subject: subject.value,
-            text: question.value.trim(),
-            file: file?.name || '',
-            image,
-            time: new Date().toLocaleString('ko-KR')
-          });
-
-          let stored = false;
-          for (let keep = Math.min(data.length, 6); keep >= 1; keep -= 1) {
-            try {
-              localStorage.setItem(key, JSON.stringify(data.slice(0, keep)));
-              stored = true;
-              break;
-            } catch {}
-          }
-          if (!stored) throw new Error('브라우저 저장 공간이 부족합니다. 기존 시연 기록을 삭제하거나 브라우저 저장공간을 정리해 주세요.');
-
-          form.reset();
-          clearPreview();
-          render();
-        } catch (error) {
-          alert(error instanceof Error ? error.message : '이미지를 저장하지 못했습니다.');
-        } finally {
-          submit.disabled = false;
-          submit.textContent = originalText;
-        }
-      });
-
-      document.getElementById('clear').addEventListener('click', () => {
-        form.reset();
-        clearPreview();
-      });
-
-      addEventListener('beforeunload', () => {
-        if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
-      });
-
-      render();
-    })();
+  (()=>{
+    const DB_NAME='etoos247-qa-demo-db',STORE='questions';
+    const form=document.getElementById('qaForm'),question=document.getElementById('question'),subject=document.getElementById('subject'),galleryInput=document.getElementById('galleryInput'),cameraInput=document.getElementById('cameraInput'),preview=document.getElementById('photoPreview'),previewImage=document.getElementById('photoPreviewImage'),photoName=document.getElementById('photoName'),photoSize=document.getElementById('photoSize'),photoStatus=document.getElementById('photoStatus'),list=document.getElementById('savedList'),modal=document.getElementById('imageModal'),modalImage=document.getElementById('imageModalImage'),modalCaption=document.getElementById('imageModalCaption');
+    let selectedFile=null,currentUrl='',renderUrls=[];
+    const dbOpen=()=>new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE,{keyPath:'id'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
+    const dbRun=async(mode,action)=>{const db=await dbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,mode),store=tx.objectStore(STORE),request=action(store);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);tx.oncomplete=()=>db.close()})};
+    const getAll=()=>dbRun('readonly',s=>s.getAll());const put=x=>dbRun('readwrite',s=>s.put(x));const remove=id=>dbRun('readwrite',s=>s.delete(id));const clearAll=()=>dbRun('readwrite',s=>s.clear());
+    const bytes=n=>n<1048576?`${Math.max(1,Math.round(n/1024))}KB`:`${(n/1048576).toFixed(1)}MB`;
+    const revokeCurrent=()=>{if(currentUrl)URL.revokeObjectURL(currentUrl);currentUrl=''};const revokeRender=()=>{renderUrls.forEach(URL.revokeObjectURL);renderUrls=[]};
+    const openImage=(src,name)=>{if(!src)return;modalImage.src=src;modalCaption.textContent=name||'문제 사진';modal.classList.add('open');document.body.style.overflow='hidden'};
+    const closeImage=()=>{modal.classList.remove('open');modalImage.removeAttribute('src');document.body.style.overflow=''};
+    const clearPreview=()=>{revokeCurrent();selectedFile=null;preview.classList.remove('show');previewImage.removeAttribute('src');photoName.textContent='선택한 사진';photoSize.textContent='';galleryInput.value='';cameraInput.value=''};
+    const applyFile=file=>{clearPreview();if(!file)return;selectedFile=file;currentUrl=URL.createObjectURL(file);previewImage.onload=()=>{photoStatus.textContent='사진이 정상적으로 열렸습니다.';photoStatus.className='photo-status'};previewImage.onerror=()=>{photoStatus.textContent='이 사진 형식은 현재 브라우저에서 표시할 수 없습니다. JPG 또는 PNG로 다시 선택해 주세요.';photoStatus.className='photo-status error'};previewImage.src=currentUrl;photoName.textContent=file.name||'촬영 사진';photoSize.textContent=`${bytes(file.size)} · ${file.type||'형식 정보 없음'}`;preview.classList.add('show')};
+    document.getElementById('galleryButton').onclick=()=>galleryInput.click();document.getElementById('cameraButton').onclick=()=>cameraInput.click();galleryInput.onchange=()=>applyFile(galleryInput.files?.[0]);cameraInput.onchange=()=>applyFile(cameraInput.files?.[0]);
+    document.getElementById('photoThumb').onclick=()=>openImage(currentUrl,selectedFile?.name);document.getElementById('openCurrentImage').onclick=()=>openImage(currentUrl,selectedFile?.name);document.getElementById('imageModalClose').onclick=closeImage;modal.onclick=e=>{if(e.target===modal)closeImage()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeImage()});
+    const render=async()=>{revokeRender();const data=(await getAll()).sort((a,b)=>b.created-a.created);list.innerHTML='';if(!data.length){list.innerHTML='<div class="empty">아직 저장된 시연 질문이 없습니다.</div>';return}data.forEach((x,i)=>{const article=document.createElement('article');article.className='saved';const head=document.createElement('div');head.className='saved-head';const title=document.createElement('div');const strong=document.createElement('strong');strong.textContent=`${x.subject} · 질문 ${data.length-i}`;const time=document.createElement('span');time.textContent=x.time;title.append(strong,time);head.append(title);article.append(head);const p=document.createElement('p');p.textContent=x.text;article.append(p);if(x.blob){const url=URL.createObjectURL(x.blob);renderUrls.push(url);const box=document.createElement('div');box.className='saved-image';const thumb=document.createElement('button');thumb.type='button';thumb.className='thumb';const img=document.createElement('img');img.src=url;img.alt='저장된 문제 사진';thumb.append(img);thumb.onclick=()=>openImage(url,x.fileName);const info=document.createElement('div');const b=document.createElement('b');b.textContent=x.fileName||'문제 사진';const small=document.createElement('small');small.textContent=`${bytes(x.blob.size)} · IndexedDB 저장`;const open=document.createElement('button');open.type='button';open.className='open-saved';open.textContent='큰 이미지 열기';open.onclick=()=>openImage(url,x.fileName);const del=document.createElement('button');del.type='button';del.className='delete-saved';del.textContent='삭제';del.onclick=async()=>{await remove(x.id);render()};info.append(b,small,open,del);box.append(thumb,info);article.append(box)}list.append(article)})};
+    form.onsubmit=async e=>{e.preventDefault();if(!question.value.trim()){question.focus();return}const button=form.querySelector('[type=submit]'),old=button.textContent;button.disabled=true;button.textContent='저장 중…';try{await put({id:Date.now(),created:Date.now(),subject:subject.value,text:question.value.trim(),fileName:selectedFile?.name||'',blob:selectedFile||null,time:new Date().toLocaleString('ko-KR')});form.reset();clearPreview();await render()}catch(err){alert('브라우저에 저장하지 못했습니다. 브라우저의 시크릿 모드 또는 저장공간 제한을 확인해 주세요.')}finally{button.disabled=false;button.textContent=old}};
+    document.getElementById('clear').onclick=()=>{form.reset();clearPreview()};document.getElementById('deleteAll').onclick=async()=>{if(confirm('이 브라우저의 시연 질문을 모두 삭제할까요?')){await clearAll();render()}};addEventListener('beforeunload',()=>{revokeCurrent();revokeRender()});render().catch(()=>{list.innerHTML='<div class="empty">브라우저 저장소를 열지 못했습니다. 일반 모드에서 다시 접속해 주세요.</div>'});
+  })();
   </script>
 </body>
 </html>
