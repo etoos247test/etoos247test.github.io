@@ -29,8 +29,8 @@
     .portal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
     .portal-card{position:relative;min-height:190px;overflow:hidden;padding:23px;border:1px solid var(--line);border-radius:23px;background:linear-gradient(145deg,rgba(255,255,255,.105),rgba(255,255,255,.035));backdrop-filter:blur(16px);box-shadow:0 18px 46px rgba(0,0,0,.18);transition:transform .28s,border-color .28s,background .28s;isolation:isolate}
     .portal-card:before{content:"";position:absolute;inset:auto -25% -55% auto;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,var(--accent),transparent 70%);opacity:.17;transition:.35s;z-index:-1}.portal-card:hover{transform:translateY(-7px);border-color:color-mix(in srgb,var(--accent) 58%,transparent);background:linear-gradient(145deg,rgba(255,255,255,.15),rgba(255,255,255,.055))}.portal-card:hover:before{transform:scale(1.35);opacity:.29}
-    .portal-card .number{display:flex;align-items:center;justify-content:space-between;color:rgba(255,255,255,.35);font-size:10px;font-weight:900;letter-spacing:.12em}.portal-card .icon{display:grid;place-items:center;width:43px;height:43px;margin:27px 0 17px;border-radius:14px;background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent);font-size:19px;font-weight:950}.portal-card h3{margin:0;font-size:19px;letter-spacing:-.045em}.portal-card p{margin:8px 0 0;color:rgba(255,255,255,.54);font-size:11px;line-height:1.55}.portal-card .go{position:absolute;right:19px;bottom:17px;color:var(--accent);font-size:17px}.portal-card.primary{grid-column:span 2;background:linear-gradient(135deg,rgba(47,109,255,.24),rgba(78,224,255,.075));border-color:rgba(78,224,255,.24)}.portal-card.primary h3{font-size:24px}.portal-card.primary p{max-width:390px;font-size:12px}
-    .portal-card.disabled{opacity:.55;cursor:not-allowed}.portal-card.disabled:hover{transform:none}
+    .portal-card .number{display:flex;align-items:center;justify-content:space-between;color:rgba(255,255,255,.35);font-size:10px;font-weight:900;letter-spacing:.12em}.portal-card .number b{padding:4px 7px;border-radius:999px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.72);font-size:8px}.portal-card .icon{display:grid;place-items:center;width:43px;height:43px;margin:27px 0 17px;border-radius:14px;background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent);font-size:19px;font-weight:950}.portal-card h3{margin:0;font-size:19px;letter-spacing:-.045em}.portal-card p{margin:8px 0 0;color:rgba(255,255,255,.54);font-size:11px;line-height:1.55}.portal-card .go{position:absolute;right:19px;bottom:17px;color:var(--accent);font-size:17px}.portal-card.primary{grid-column:span 2;background:linear-gradient(135deg,rgba(47,109,255,.24),rgba(78,224,255,.075));border-color:rgba(78,224,255,.24)}.portal-card.primary h3{font-size:24px}.portal-card.primary p{max-width:390px;font-size:12px}
+    .portal-card.external{border-style:dashed;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.025))}.portal-card.external .number b{background:rgba(255,128,90,.18);color:#ffc0ac}.portal-card.external:after{content:"새 창";position:absolute;right:18px;top:53px;padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.09);color:rgba(255,255,255,.55);font-size:8px;font-weight:900;letter-spacing:.08em}
     footer{display:flex;justify-content:space-between;gap:20px;color:rgba(255,255,255,.35);font-size:10px;letter-spacing:.04em}
     .transition{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;pointer-events:none;background:#07111f;clip-path:circle(0 at var(--x,50%) var(--y,50%));transition:clip-path .55s cubic-bezier(.7,0,.2,1)}.transition.open{clip-path:circle(150vmax at var(--x,50%) var(--y,50%))}.transition strong{opacity:0;transform:translateY(10px);font-size:18px;letter-spacing:.08em}.transition.open strong{animation:transitionCopy .35s .2s forwards}@keyframes transitionCopy{to{opacity:1;transform:none}}
     .entry{position:fixed;inset:0;z-index:10000;pointer-events:none;overflow:hidden}.entry-panel{position:absolute;top:0;bottom:0;width:50.2%;background:linear-gradient(120deg,#102743,#030914);animation-duration:1.5s;animation-timing-function:cubic-bezier(.72,0,.14,1);animation-fill-mode:forwards}.entry-panel.left{left:0;animation-name:left}.entry-panel.right{right:0;animation-name:right}@keyframes left{0%{transform:translateX(-101%)}35%,52%{transform:none}100%{transform:translateX(-104%)}}@keyframes right{0%{transform:translateX(101%)}35%,52%{transform:none}100%{transform:translateX(104%)}}
@@ -67,6 +67,7 @@
           <a class="portal-card" style="--accent:#ffbc5e" href="./space/" data-title="공간 관리"><span class="number">04 · SPACE</span><span class="icon">▦</span><h3>공간·좌석 운영</h3><p>학습공간과 좌석별 운영 기준을 정리합니다.</p><span class="go">→</span></a>
           <a class="portal-card" style="--accent:#ff8064" href="./admission/" data-title="입학 상담"><span class="number">05 · ADMISSION</span><span class="icon">◎</span><h3>입학·상담 관리</h3><p>5분 간이점검, 결과 출력, 등록 안내를 다룹니다.</p><span class="go">→</span></a>
           <a class="portal-card" style="--accent:#78b8ff" href="./dashboard/" data-title="재원생 전용"><span class="number">06 · MEMBER</span><span class="icon">G</span><h3>재원생 전용 화면</h3><p>승인 계정 기반 전용 기능으로 이동합니다.</p><span class="go">→</span></a>
+          <a class="portal-card external" style="--accent:#ff916f" href="https://ipsywan.com/" target="_blank" rel="noopener noreferrer" aria-label="ipsywan.com 외부 사이트 새 창으로 열기"><span class="number">07 · EXTERNAL <b>외부 연결</b></span><span class="icon">↗</span><h3>ipsywan.com</h3><p>입시 관련 외부 사이트를 새 창에서 엽니다. 내부 포털의 저장·관리 기능과는 연결되지 않습니다.</p><span class="go">↗</span></a>
         </div>
       </section>
     </main>
@@ -75,7 +76,17 @@
   <script>
     const entry=document.getElementById('entry');setTimeout(()=>entry?.remove(),1900);
     const layer=document.getElementById('transition');const label=document.getElementById('transitionLabel');
-    document.querySelectorAll('.portal-card[href]').forEach(card=>card.addEventListener('click',e=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();const r=card.getBoundingClientRect();layer.style.setProperty('--x',`${r.left+r.width/2}px`);layer.style.setProperty('--y',`${r.top+r.height/2}px`);label.textContent=`${card.dataset.title} 화면을 여는 중`;layer.classList.add('open');setTimeout(()=>location.href=card.href,520)}));
+    document.querySelectorAll('.portal-card[href]').forEach(card=>card.addEventListener('click',e=>{
+      if(card.target==='_blank'||card.classList.contains('external'))return;
+      if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
+      e.preventDefault();
+      const r=card.getBoundingClientRect();
+      layer.style.setProperty('--x',`${r.left+r.width/2}px`);
+      layer.style.setProperty('--y',`${r.top+r.height/2}px`);
+      label.textContent=`${card.dataset.title} 화면을 여는 중`;
+      layer.classList.add('open');
+      setTimeout(()=>location.href=card.href,520)
+    }));
   </script>
 </body>
 </html>
