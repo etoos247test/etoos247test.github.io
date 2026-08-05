@@ -1,15 +1,10 @@
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import { addDoc, collection, getDocs, query, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 import { auth, db } from "./firebase-client.js";
-import { $, els, state, showStatus, timeout, timestampValue, formatDate, isAnswered, campusLabel } from "./shared.js";
-
-export const STUDENT_CODE_PATTERN = /^[MS](00[1-9]|0[1-9][0-9]|1[0-9]{2})$/;
-
-export function campusFromStudentId(value) {
-  const studentId = String(value ?? "").trim().toUpperCase();
-  if (!STUDENT_CODE_PATTERN.test(studentId)) return "";
-  return studentId.startsWith("M") ? "suseong1" : "suseong2";
-}
+import {
+  $, els, state, showStatus, timeout, timestampValue, formatDate, isAnswered, campusLabel,
+  STUDENT_CODE_PATTERN, campusFromStudentId, studentCodeRange
+} from "./shared.js";
 
 export function studentEmail(studentId) {
   const id = String(studentId ?? "").trim().toUpperCase();
@@ -24,10 +19,18 @@ export async function studentLogin(event) {
   const submit = els.studentLoginForm.querySelector("button");
   submit.disabled = true;
   try {
+    const selectedCampus = $("studentCampus").value;
     const id = $("studentId").value.trim().toUpperCase();
+    const codeCampus = campusFromStudentId(id);
     $("studentId").value = id;
-    const email = studentEmail(id);
-    await signInWithEmailAndPassword(auth, email, $("studentPassword").value);
+
+    if (!selectedCampus) throw new Error("소속관을 선택하세요.");
+    if (!codeCampus) throw new Error("학생코드는 수성1관 M001~M199 또는 수성2관 S001~S199로 입력하세요.");
+    if (selectedCampus !== codeCampus) {
+      throw new Error(`${campusLabel(selectedCampus)} 학생코드는 ${studentCodeRange(selectedCampus)}입니다.`);
+    }
+
+    await signInWithEmailAndPassword(auth, studentEmail(id), $("studentPassword").value);
   } catch (error) {
     const message = error.code === "auth/operation-not-allowed"
       ? "Firebase에서 이메일/비밀번호 로그인 기능이 아직 켜지지 않았습니다."
