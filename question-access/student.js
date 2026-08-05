@@ -3,17 +3,20 @@ import { addDoc, collection, getDocs, query, serverTimestamp, where } from "http
 import { auth, db } from "./firebase-client.js";
 import { $, els, state, showStatus, timeout, timestampValue, formatDate, isAnswered, campusLabel } from "./shared.js";
 
-const CAMPUS_EMAIL_PREFIX = {
-  suseong1: "s1",
-  suseong2: "s2"
-};
+export const STUDENT_CODE_PATTERN = /^[MS](00[1-9]|0[1-9][0-9]|1[0-9]{2})$/;
 
-export function studentEmail(campus, studentId) {
-  const prefix = CAMPUS_EMAIL_PREFIX[campus];
-  const id = studentId.trim().toUpperCase();
-  if (!prefix) throw new Error("소속관을 선택하세요.");
-  if (!/^M(00[1-9]|0[1-9][0-9]|100)$/.test(id)) throw new Error("학생번호는 M001부터 M100까지 입력할 수 있습니다.");
-  return `${prefix}-${id.toLowerCase()}@etoos247test.local`;
+export function campusFromStudentId(value) {
+  const studentId = String(value ?? "").trim().toUpperCase();
+  if (!STUDENT_CODE_PATTERN.test(studentId)) return "";
+  return studentId.startsWith("M") ? "suseong1" : "suseong2";
+}
+
+export function studentEmail(studentId) {
+  const id = String(studentId ?? "").trim().toUpperCase();
+  if (!STUDENT_CODE_PATTERN.test(id)) {
+    throw new Error("학생코드는 수성1관 M001~M199 또는 수성2관 S001~S199로 입력하세요.");
+  }
+  return `${id.toLowerCase()}@etoos247test.local`;
 }
 
 export async function studentLogin(event) {
@@ -21,16 +24,15 @@ export async function studentLogin(event) {
   const submit = els.studentLoginForm.querySelector("button");
   submit.disabled = true;
   try {
-    const campus = $("studentCampus").value;
-    const email = studentEmail(campus, $("studentId").value);
-    sessionStorage.setItem("etoos247StudentCampus", campus);
+    const id = $("studentId").value.trim().toUpperCase();
+    $("studentId").value = id;
+    const email = studentEmail(id);
     await signInWithEmailAndPassword(auth, email, $("studentPassword").value);
   } catch (error) {
-    sessionStorage.removeItem("etoos247StudentCampus");
     const message = error.code === "auth/operation-not-allowed"
       ? "Firebase에서 이메일/비밀번호 로그인 기능이 아직 켜지지 않았습니다."
       : error.code === "auth/invalid-credential"
-        ? "소속관, 학생번호 또는 비밀번호가 맞지 않습니다."
+        ? "학생코드 또는 비밀번호가 맞지 않습니다."
         : error.message ?? String(error);
     showStatus(`학생 로그인에 실패했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${message}`, "error");
   } finally {
