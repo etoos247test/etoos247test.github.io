@@ -1,5 +1,11 @@
 export const $ = (id) => document.getElementById(id);
 export const SUBJECTS = ["국어", "수학", "영어", "사탐", "과탐", "입시"];
+export const CAMPUSES = [
+  { id: "suseong1", label: "수성1관" },
+  { id: "suseong2", label: "수성2관" }
+];
+export const campusLabel = (id) => CAMPUSES.find((x) => x.id === id)?.label ?? "관 미지정";
+
 export const els = {
   loginArea: $("loginArea"), accountToolbar: $("accountToolbar"),
   studentLoginForm: $("studentLoginForm"), googleLoginButton: $("googleLoginButton"),
@@ -38,12 +44,25 @@ export function timeout(promise, ms, message) { return Promise.race([promise, ne
 export function isAnswered(data) { return data.status === "answered" && Boolean((data.answer ?? "").trim()); }
 export function normalizedStatus(data) { return isAnswered(data) ? "answered" : "waiting"; }
 export function isMaster() { return state.currentProfile?.role === "master" && state.currentProfile?.active === true; }
+export function allowedCampuses() {
+  if (isMaster()) return CAMPUSES.map((x) => x.id);
+  const values = Array.isArray(state.currentProfile?.allowedCampuses) ? state.currentProfile.allowedCampuses : [];
+  return CAMPUSES.map((x) => x.id).filter((id) => values.includes(id));
+}
+export function canAccessCampus(campus) { return isMaster() || allowedCampuses().includes(campus); }
 export function canAnswerQuestions() { return isMaster() || state.currentProfile?.canAnswerQuestions === true || (state.currentProfile?.role === "teacher" && state.currentProfile?.canAnswerQuestions === undefined); }
 export function canManageStudentInfo() { return isMaster() || state.currentProfile?.canManageStudentInfo === true; }
+export function canApproveStudents() { return isMaster() || state.currentProfile?.canApproveStudents === true; }
 export function canResetStudentPassword() { return isMaster() || state.currentProfile?.canResetStudentPassword === true; }
+export function isQuasiMaster() { return !isMaster() && (canApproveStudents() || canManageStudentInfo() || canResetStudentPassword()); }
 export function studentDisplay(student) {
   const fallback = state.teacherQuestions.find((q) => q.studentUid === student.uid);
-  return { uid: student.uid, studentId: (student.studentId || fallback?.studentId || "번호 미입력").toUpperCase(), name: student.name || fallback?.studentName || "이름 미입력" };
+  return {
+    uid: student.uid,
+    studentId: (student.studentId || fallback?.studentId || "번호 미입력").toUpperCase(),
+    name: student.name || fallback?.studentName || "이름 미입력",
+    campus: student.campus || fallback?.campus || ""
+  };
 }
 export function questionsForStudent(uid) { return uid === "all" ? state.teacherQuestions : state.teacherQuestions.filter((q) => q.studentUid === uid); }
 export function selectedStudent() {
