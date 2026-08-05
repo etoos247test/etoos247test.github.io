@@ -4,7 +4,22 @@ export const CAMPUSES = [
   { id: "suseong1", label: "수성1관" },
   { id: "suseong2", label: "수성2관" }
 ];
+export const STUDENT_CODE_PATTERN = /^[MS](00[1-9]|0[1-9][0-9]|1[0-9]{2})$/;
 export const campusLabel = (id) => CAMPUSES.find((x) => x.id === id)?.label ?? "관 미지정";
+export function campusFromStudentId(value) {
+  const studentId = String(value ?? "").trim().toUpperCase();
+  if (!STUDENT_CODE_PATTERN.test(studentId)) return "";
+  return studentId.startsWith("M") ? "suseong1" : "suseong2";
+}
+export function studentCodeRange(campus) {
+  return campus === "suseong1" ? "M001~M199" : campus === "suseong2" ? "S001~S199" : "M001~M199 또는 S001~S199";
+}
+export function codeForCampus(campus, value = "001") {
+  const digits = String(value ?? "").replace(/\D/g, "").slice(-3).padStart(3, "0");
+  const number = Number(digits);
+  const safeDigits = number >= 1 && number <= 199 ? digits : "001";
+  return `${campus === "suseong2" ? "S" : "M"}${safeDigits}`;
+}
 
 export const els = {
   loginArea: $("loginArea"), accountToolbar: $("accountToolbar"),
