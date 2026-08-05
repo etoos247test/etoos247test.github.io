@@ -1,11 +1,11 @@
 import {
-  collection, doc, getDocs, limit, query, serverTimestamp, updateDoc, where, writeBatch
+  collection, doc, getDocs, limit, query, runTransaction, serverTimestamp, updateDoc, where, writeBatch
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-import { db, resetStudentPasswordCallable, updateStudentIdentityCallable } from "./firebase-client.js";
+import { db } from "./firebase-client.js";
 import {
   SUBJECTS, CAMPUSES, campusLabel, els, state, showStatus, timeout, timestampValue,
   normalizedStatus, isAnswered, formatDate, allowedCampuses, canAnswerQuestions,
-  canManageStudentInfo, canApproveStudents, canResetStudentPassword, studentDisplay,
+  canManageStudentInfo, canApproveStudents, studentDisplay,
   questionsForStudent, selectedStudent, isMaster, STUDENT_CODE_PATTERN, campusFromStudentId,
   studentCodeRange, codeForCampus
 } from "./shared.js";
@@ -27,7 +27,6 @@ function renderPermissionBadges() {
     ["질문 답변", canAnswerQuestions()],
     ["학생 승인", canApproveStudents()],
     ["학생정보", canManageStudentInfo()],
-    ["비밀번호", canResetStudentPassword()]
   ].forEach(([label, enabled]) => {
     const badge = document.createElement("span");
     badge.className = `permission-badge ${enabled ? "on" : ""}`;
@@ -190,7 +189,7 @@ function createStudentCard(student) {
   });
   card.appendChild(select);
 
-  if (!student.isAll && (isMaster() || canApproveStudents() || canManageStudentInfo() || canResetStudentPassword())) {
+  if (!student.isAll && (isMaster() || canApproveStudents() || canManageStudentInfo())) {
     const actions = document.createElement("div");
     actions.className = "student-actions";
 
@@ -221,19 +220,70 @@ function createStudentCard(student) {
       actions.appendChild(edit);
     }
 
-    if (canResetStudentPassword() && active && student.campus) {
-      const reset = document.createElement("button");
-      reset.type = "button";
-      reset.className = "password-button";
-      reset.textContent = "임시 비밀번호";
-      reset.addEventListener("click", () => resetStudentPassword(student.uid));
-      actions.appendChild(reset);
-    }
-
     card.appendChild(actions);
   }
 
   return card;
+}
+
+async function persistStudentIdentity(uid, campus, studentId, name) {
+  const student = state.approvedStudents.find((x) => x.uid === uid);
+  if (!student) throw new Error("학생 정보를 찾을 수 없습니다.");
+  const oldStudentId = String(student.studentId || "").trim().toUpperCase();
+
+  await runTransaction(db, async (transaction) => {
+    const userRef = doc(db, "users", uid);
+    const newCodeRef = doc(db, "studentCodes", studentId);
+    const newCodeSnap = await transaction.get(newCodeRef);
+
+    if (newCodeSnap.exists() && newCodeSnap.data().uid !== uid) {
+      throw new Error(studentId + "는 이미 다른 학생에게 부여된 번호입니다.");
+    }
+
+    transaction.set(userRef, {
+      campus,
+      studentId,
+      name,
+      updatedAt: serverTimestamp(),
+      updatedBy: state.currentUser.uid
+    }, { merge: true });
+
+    transaction.set(newCodeRef, {
+      uid,
+      campus,
+      studentId,
+      name,
+      updatedAt: serverTimestamp(),
+      updatedBy: state.currentUser.uid
+    });
+
+    if (oldStudentId && oldStudentId !== studentId && STUDENT_CODE_PATTERN.test(oldStudentId)) {
+      transaction.delete(doc(db, "studentCodes", oldStudentId));
+    }
+  });
+
+  const relatedQuestions = state.teacherQuestions.filter((q) => q.studentUid === uid);
+  if (relatedQuestions.length) {
+    const batch = writeBatch(db);
+    relatedQuestions.forEach((question) => {
+      batch.update(doc(db, "questions", question.id), {
+        campus,
+        studentId,
+        studentName: name,
+        updatedAt: serverTimestamp()
+      });
+    });
+    await batch.commit();
+  }
+
+  student.campus = campus;
+  student.studentId = studentId;
+  student.name = name;
+  relatedQuestions.forEach((question) => {
+    question.campus = campus;
+    question.studentId = studentId;
+    question.studentName = name;
+  });
 }
 
 async function changeStudentCampus(uid) {
@@ -261,22 +311,12 @@ async function changeStudentCampus(uid) {
   if (!confirm((student.studentId || "학생") + "을(를) " + studentId + "로 변경해 " + campusLabel(campus) + "으로 이동하시겠습니까?")) return;
 
   try {
-    showStatus("소속관과 학생 로그인 코드를 함께 변경하는 중입니다.");
-    await timeout(updateStudentIdentityCallable({
-      uid,
-      campus,
-      studentId,
-      name: student.name
-    }), 25000, "소속관 변경 시간이 초과되었습니다.");
-
-    const questions = state.teacherQuestions.filter((q) => q.studentUid === uid);
-    student.campus = campus;
-    student.studentId = studentId;
-    questions.forEach((q) => {
-      q.campus = campus;
-      q.studentId = studentId;
-      q.studentName = student.name;
-    });
+    showStatus("소속관과 내부 학생번호를 함께 변경하는 중입니다.");
+    await timeout(
+      persistStudentIdentity(uid, campus, studentId, student.name),
+      25000,
+      "소속관 변경 시간이 초과되었습니다."
+    );
     showStatus(studentId + "로 변경하고 " + campusLabel(campus) + "으로 이동했습니다.", "success");
     renderStudentDirectory();
     renderTeacherQuestions();
@@ -311,18 +351,14 @@ async function editStudentInfo(uid) {
   const student = state.approvedStudents.find((x) => x.uid === uid);
   if (!student || !student.campus) return;
   const guide = studentCodeRange(student.campus);
-  const studentId = prompt("학생코드를 입력하세요. (" + guide + ")", (student.studentId || "").toUpperCase())?.trim().toUpperCase();
+  const studentId = prompt("내부 학생번호를 입력하세요. (" + guide + ")", (student.studentId || "").toUpperCase())?.trim().toUpperCase();
   if (studentId == null) return;
   if (!STUDENT_CODE_PATTERN.test(studentId)) {
-    showStatus("학생코드는 수성1관 M001~M199 또는 수성2관 S001~S199로 입력하세요.", "warning");
+    showStatus("학생번호는 수성1관 M001~M199 또는 수성2관 S001~S199로 입력하세요.", "warning");
     return;
   }
   if (campusFromStudentId(studentId) !== student.campus) {
-    showStatus(campusLabel(student.campus) + " 학생코드는 " + guide + "입니다.", "warning");
-    return;
-  }
-  if (state.approvedStudents.some((x) => x.uid !== uid && (x.studentId || "").toUpperCase() === studentId)) {
-    showStatus(studentId + "는 이미 사용 중입니다.", "error");
+    showStatus(campusLabel(student.campus) + " 학생번호는 " + guide + "입니다.", "warning");
     return;
   }
   const name = prompt("학생 이름을 입력하세요.", student.name || "")?.trim();
@@ -332,50 +368,17 @@ async function editStudentInfo(uid) {
   }
 
   try {
-    showStatus("학생코드·이름과 로그인 계정을 함께 수정하는 중입니다.");
-    await timeout(updateStudentIdentityCallable({
-      uid,
-      campus: student.campus,
-      studentId,
-      name
-    }), 25000, "학생정보 저장 시간이 초과되었습니다.");
-    student.studentId = studentId;
-    student.name = name;
-    state.teacherQuestions.filter((q) => q.studentUid === uid).forEach((q) => {
-      q.studentId = studentId;
-      q.studentName = name;
-    });
-    showStatus(campusLabel(student.campus) + " " + studentId + " · " + name + " 정보와 로그인 계정을 저장했습니다.", "success");
+    showStatus("학생번호와 이름을 저장하는 중입니다.");
+    await timeout(
+      persistStudentIdentity(uid, student.campus, studentId, name),
+      25000,
+      "학생정보 저장 시간이 초과되었습니다."
+    );
+    showStatus(campusLabel(student.campus) + " " + studentId + " · " + name + " 정보를 저장했습니다.", "success");
     renderStudentDirectory();
     renderTeacherQuestions();
   } catch (error) {
     showStatus("학생정보 수정에 실패했습니다.\n" + (error.code ?? "") + " " + (error.message ?? String(error)), "error");
-  }
-}
-
-function generateTemporaryPassword() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
-  let value = "E247-";
-  crypto.getRandomValues(new Uint32Array(8)).forEach((n) => { value += chars[n % chars.length]; });
-  return value;
-}
-
-async function resetStudentPassword(uid) {
-  const student = state.approvedStudents.find((x) => x.uid === uid);
-  if (!student) return;
-  const newPassword = prompt(`${campusLabel(student.campus)} ${student.studentId || "학생"}의 임시 비밀번호`, generateTemporaryPassword());
-  if (newPassword === null) return;
-  if (newPassword.length < 8 || newPassword.length > 64) {
-    showStatus("임시 비밀번호는 8~64자로 입력하세요.", "warning");
-    return;
-  }
-
-  try {
-    showStatus("임시 비밀번호를 재발급하는 중입니다.");
-    await timeout(resetStudentPasswordCallable({ uid, newPassword }), 20000, "비밀번호 재발급 시간이 초과되었습니다.");
-    showStatus(`${campusLabel(student.campus)} ${student.studentId || "학생"} 임시 비밀번호 재발급 완료\n\n새 비밀번호: ${newPassword}\n\n지금 학생에게 전달하세요.`, "success");
-  } catch (error) {
-    showStatus(`비밀번호 재발급에 실패했습니다.\n${error.code ?? ""} ${error.message ?? String(error)}\nCloud Functions 함수가 아직 배포되지 않았을 수 있습니다.`, "error");
   }
 }
 

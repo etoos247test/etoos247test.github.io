@@ -25,8 +25,7 @@ function permissionFieldset(prefix, values = {}) {
   [
     ["canAnswerQuestions", "질문 열람·답변", "허용된 관 학생의 질문을 읽고 답변합니다.", values.canAnswerQuestions !== false],
     ["canApproveStudents", "학생 승인·이용중지", "허용된 관에서 학생 승인 상태를 변경하는 준마스터 권한입니다.", values.canApproveStudents === true],
-    ["canManageStudentInfo", "학생번호·이름 수정", "허용된 관 학생의 번호와 이름만 수정합니다.", values.canManageStudentInfo === true],
-    ["canResetStudentPassword", "임시 비밀번호 재발급", "허용된 관 학생의 비밀번호를 보안 서버 함수로 재발급합니다.", values.canResetStudentPassword === true]
+    ["canManageStudentInfo", "학생번호·이름 수정", "허용된 관 학생의 번호와 이름만 수정합니다.", values.canManageStudentInfo === true]
   ].forEach(([key, label, help, checked]) => {
     const row = document.createElement("label"); row.className = "permission-option";
     const input = document.createElement("input");
