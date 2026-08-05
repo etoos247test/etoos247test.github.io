@@ -56,11 +56,11 @@ replaceBlock(
       q.studentId = student.studentId;
       q.studentName = student.name;
     });
-    showStatus(\\`${student.studentId}의 소속과 로그인 계정을 ${campusLabel(campus)}으로 변경했습니다.\\`, "success");
+    showStatus(student.studentId + "의 소속과 로그인 계정을 " + campusLabel(campus) + "으로 변경했습니다.", "success");
     renderStudentDirectory();
     renderTeacherQuestions();
   } catch (error) {
-    showStatus(\\`소속관 변경에 실패했습니다.\\n${error.code ?? ""} ${error.message ?? String(error)}\\`, "error");
+    showStatus("소속관 변경에 실패했습니다.\\n" + (error.code ?? "") + " " + (error.message ?? String(error)), "error");
   }
 }
 `
@@ -79,7 +79,7 @@ replaceBlock(
     return;
   }
   if (state.approvedStudents.some((x) => x.uid !== uid && x.campus === student.campus && (x.studentId || "").toUpperCase() === studentId)) {
-    showStatus(\\`${campusLabel(student.campus)} ${studentId}는 이미 사용 중입니다.\\`, "error");
+    showStatus(campusLabel(student.campus) + " " + studentId + "는 이미 사용 중입니다.", "error");
     return;
   }
   const name = prompt("학생 이름을 입력하세요.", student.name || "")?.trim();
@@ -102,11 +102,11 @@ replaceBlock(
       q.studentId = studentId;
       q.studentName = name;
     });
-    showStatus(\\`${campusLabel(student.campus)} ${studentId} · ${name} 정보와 로그인 계정을 저장했습니다.\\`, "success");
+    showStatus(campusLabel(student.campus) + " " + studentId + " · " + name + " 정보와 로그인 계정을 저장했습니다.", "success");
     renderStudentDirectory();
     renderTeacherQuestions();
   } catch (error) {
-    showStatus(\\`학생정보 수정에 실패했습니다.\\n${error.code ?? ""} ${error.message ?? String(error)}\\`, "error");
+    showStatus("학생정보 수정에 실패했습니다.\\n" + (error.code ?? "") + " " + (error.message ?? String(error)), "error");
   }
 }
 `
