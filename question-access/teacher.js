@@ -1,7 +1,7 @@
 import {
   collection, doc, getDocs, limit, query, serverTimestamp, updateDoc, where, writeBatch
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-import { db, resetStudentPasswordCallable } from "./firebase-client.js";
+import { db, resetStudentPasswordCallable, updateStudentIdentityCallable } from "./firebase-client.js";
 import {
   SUBJECTS, CAMPUSES, campusLabel, els, state, showStatus, timeout, timestampValue,
   normalizedStatus, isAnswered, formatDate, allowedCampuses, canAnswerQuestions,
@@ -250,33 +250,32 @@ async function changeStudentCampus(uid) {
     showStatus("현재 소속관과 같습니다.", "warning");
     return;
   }
+  if (!student.studentId || !student.name) {
+    showStatus("소속관을 옮기기 전에 학생번호와 이름을 먼저 확인하세요.", "warning");
+    return;
+  }
 
   try {
-    await updateDoc(doc(db, "users", uid), {
+    showStatus("소속관과 학생 로그인 계정을 함께 변경하는 중입니다.");
+    await timeout(updateStudentIdentityCallable({
+      uid,
       campus,
-      updatedAt: serverTimestamp(),
-      updatedBy: state.currentUser.uid
-    });
+      studentId: student.studentId,
+      name: student.name
+    }), 25000, "소속관 변경 시간이 초과되었습니다.");
 
     const questions = state.teacherQuestions.filter((q) => q.studentUid === uid);
-    for (let start = 0; start < questions.length; start += 400) {
-      const batch = writeBatch(db);
-      questions.slice(start, start + 400).forEach((question) => {
-        batch.update(doc(db, "questions", question.id), {
-          campus,
-          updatedAt: serverTimestamp()
-        });
-      });
-      await batch.commit();
-    }
-
     student.campus = campus;
-    questions.forEach((q) => { q.campus = campus; });
-    showStatus(`${student.studentId || "학생"}의 소속을 ${campusLabel(campus)}으로 변경했습니다.`, "success");
+    questions.forEach((q) => {
+      q.campus = campus;
+      q.studentId = student.studentId;
+      q.studentName = student.name;
+    });
+    showStatus(student.studentId + "의 소속과 로그인 계정을 " + campusLabel(campus) + "으로 변경했습니다.", "success");
     renderStudentDirectory();
     renderTeacherQuestions();
   } catch (error) {
-    showStatus(`소속관 변경에 실패했습니다.\n${error.code ?? ""} ${error.message ?? String(error)}`, "error");
+    showStatus("소속관 변경에 실패했습니다.\n" + (error.code ?? "") + " " + (error.message ?? String(error)), "error");
   }
 }
 
@@ -304,15 +303,15 @@ async function setStudentActive(uid, active) {
 
 async function editStudentInfo(uid) {
   const student = state.approvedStudents.find((x) => x.uid === uid);
-  if (!student) return;
+  if (!student || !student.campus) return;
   const studentId = prompt("학생번호를 입력하세요. (M001~M100)", (student.studentId || "").toUpperCase())?.trim().toUpperCase();
   if (studentId == null) return;
   if (!/^M(00[1-9]|0[1-9][0-9]|100)$/.test(studentId)) {
     showStatus("학생번호는 M001부터 M100까지 입력하세요.", "warning");
     return;
   }
-  if (state.approvedStudents.some((x) => x.uid !== uid && (x.studentId || "").toUpperCase() === studentId)) {
-    showStatus(`${studentId}는 현재 관리 범위에서 이미 사용 중입니다.`, "error");
+  if (state.approvedStudents.some((x) => x.uid !== uid && x.campus === student.campus && (x.studentId || "").toUpperCase() === studentId)) {
+    showStatus(campusLabel(student.campus) + " " + studentId + "는 이미 사용 중입니다.", "error");
     return;
   }
   const name = prompt("학생 이름을 입력하세요.", student.name || "")?.trim();
@@ -322,19 +321,24 @@ async function editStudentInfo(uid) {
   }
 
   try {
-    await timeout(updateDoc(doc(db, "users", uid), {
+    showStatus("학생번호·이름과 로그인 계정을 함께 수정하는 중입니다.");
+    await timeout(updateStudentIdentityCallable({
+      uid,
+      campus: student.campus,
       studentId,
-      name,
-      updatedAt: serverTimestamp(),
-      updatedBy: state.currentUser.uid
-    }), 12000, "학생정보 저장 시간이 초과되었습니다.");
+      name
+    }), 25000, "학생정보 저장 시간이 초과되었습니다.");
     student.studentId = studentId;
     student.name = name;
-    showStatus(`${campusLabel(student.campus)} ${studentId} · ${name} 정보를 저장했습니다.`, "success");
+    state.teacherQuestions.filter((q) => q.studentUid === uid).forEach((q) => {
+      q.studentId = studentId;
+      q.studentName = name;
+    });
+    showStatus(campusLabel(student.campus) + " " + studentId + " · " + name + " 정보와 로그인 계정을 저장했습니다.", "success");
     renderStudentDirectory();
     renderTeacherQuestions();
   } catch (error) {
-    showStatus(`학생정보 수정에 실패했습니다.\n${error.code ?? ""} ${error.message ?? String(error)}`, "error");
+    showStatus("학생정보 수정에 실패했습니다.\n" + (error.code ?? "") + " " + (error.message ?? String(error)), "error");
   }
 }
 
