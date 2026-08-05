@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-import { auth, db, provider } from "./firebase-client.js";
+import { auth, authPersistenceReady, db, provider } from "./firebase-client.js";
 import {
   els, state, showStatus, hidePanels, userSummary, timeout, isMaster, isQuasiMaster,
   allowedCampuses, campusLabel, campusFromStudentId
@@ -96,21 +96,30 @@ async function loadAccountView(user) {
   }
 }
 
+async function googleLogin(button) {
+  button.disabled = true;
+  try {
+    await authPersistenceReady;
+    await signInWithPopup(auth, provider);
+  } catch (error) {
+    const message = error.code === "auth/popup-blocked"
+      ? "브라우저가 로그인 팝업을 차단했습니다. 주소창 오른쪽의 팝업 허용을 선택한 뒤 다시 누르세요."
+      : error.code === "auth/popup-closed-by-user"
+        ? "Google 로그인 창을 닫았습니다. 다시 로그인 버튼을 누르세요."
+        : error.message ?? String(error);
+    showStatus(`Google 로그인에 실패했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${message}`, "error");
+  } finally {
+    button.disabled = false;
+  }
+}
+
 els.studentLoginForm.addEventListener("submit", studentLogin);
 els.questionForm.addEventListener("submit", submitQuestion);
 els.requestButton.addEventListener("click", requestTeacherRole);
 els.logoutButton.addEventListener("click", () => signOut(auth));
 els.refreshButton.addEventListener("click", () => state.currentUser && loadAccountView(state.currentUser));
-els.googleLoginButton.addEventListener("click", async () => {
-  els.googleLoginButton.disabled = true;
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (error) {
-    showStatus(`Google 로그인에 실패했습니다.\n${error.code ?? ""} ${error.message ?? String(error)}`, "error");
-  } finally {
-    els.googleLoginButton.disabled = false;
-  }
-});
+els.googleLoginButton.addEventListener("click", () => googleLogin(els.googleLoginButton));
+els.googleSwitchButton.addEventListener("click", () => googleLogin(els.googleSwitchButton));
 
 bindTeacherFilters();
 
@@ -124,7 +133,7 @@ onAuthStateChanged(auth, async (user) => {
     els.accountToolbar.classList.add("hidden");
     hidePanels();
     configureStudentAccountPanel();
-    showStatus("로그인하지 않았습니다.");
+    showStatus("로그인하지 않았습니다. 교사·마스터는 위의 Google 로그인 버튼을 누르세요.");
     return;
   }
   els.loginArea.classList.add("hidden");
