@@ -1,0 +1,33 @@
+name: Apply student application flow
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/apply-student-application-flow.mjs"
+      - ".github/workflows/apply-student-application-flow.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Apply application-first onboarding patch
+        run: node scripts/apply-student-application-flow.mjs
+      - name: Commit patched files
+        run: |
+          if git diff --quiet; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add question-access functions
+          git commit -m "Use student application approval before account issuance"
+          git push
