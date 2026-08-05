@@ -1,6 +1,6 @@
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import { addDoc, collection, getDocs, query, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-import { auth, db } from "./firebase-client.js";
+import { auth, authPersistenceReady, db } from "./firebase-client.js";
 import {
   $, els, state, showStatus, timeout, timestampValue, formatDate, isAnswered, campusLabel,
   STUDENT_CODE_PATTERN, campusFromStudentId, studentCodeRange
@@ -30,6 +30,7 @@ export async function studentLogin(event) {
       throw new Error(`${campusLabel(selectedCampus)} 학생코드는 ${studentCodeRange(selectedCampus)}입니다.`);
     }
 
+    await authPersistenceReady;
     await signInWithEmailAndPassword(auth, studentEmail(id), $("studentPassword").value);
   } catch (error) {
     const message = error.code === "auth/operation-not-allowed"
