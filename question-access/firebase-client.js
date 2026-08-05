@@ -26,3 +26,4 @@ auth.languageCode = "ko";
 
 // Students, teachers, and masters all authenticate with Google.
 // M001~M199 and S001~S199 are internal student numbers, not login accounts.
+// Student signup requests and administrator approvals are stored directly in Firestore.
