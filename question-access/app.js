@@ -3,7 +3,7 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.17.1/firebase
 import { auth, db, provider } from "./firebase-client.js";
 import {
   els, state, showStatus, hidePanels, userSummary, timeout, isMaster, isQuasiMaster,
-  allowedCampuses, campusLabel
+  allowedCampuses, campusLabel, campusFromStudentId
 } from "./shared.js";
 import { studentLogin, loadStudentQuestions, submitQuestion } from "./student.js";
 import { resetTeacherView, loadTeacherWorkspace, bindTeacherFilters } from "./teacher.js";
@@ -25,17 +25,20 @@ async function loadAccountView(user) {
     const active = state.currentProfile?.active === true;
 
     if (role === "student" && active) {
-      const selectedCampus = sessionStorage.getItem("etoos247StudentCampus");
-      if (selectedCampus && selectedCampus !== state.currentProfile?.campus) {
-        sessionStorage.removeItem("etoos247StudentCampus");
+      const studentId = String(state.currentProfile?.studentId ?? "").trim().toUpperCase();
+      const codeCampus = campusFromStudentId(studentId);
+      if (!codeCampus || codeCampus !== state.currentProfile?.campus) {
         await signOut(auth);
-        showStatus("선택한 소속관과 학생 계정의 소속관이 다릅니다. 소속관을 다시 확인하세요.", "error");
+        showStatus(
+          "학생코드와 소속관 정보가 일치하지 않습니다.\n" +
+          "수성1관은 M001~M199, 수성2관은 S001~S199를 사용합니다. 관리자에게 수정을 요청하세요.",
+          "error"
+        );
         return;
       }
-      sessionStorage.removeItem("etoos247StudentCampus");
       els.studentPanel.classList.remove("hidden");
       const campus = campusLabel(state.currentProfile?.campus);
-      showStatus(`${userSummary(user)}\n\n권한: 학생\n소속: ${campus}\n학생 질문 화면이 열렸습니다.`, "success");
+      showStatus(`${userSummary(user)}\n\n권한: 학생\n학생코드: ${studentId}\n소속: ${campus}\n학생 질문 화면이 열렸습니다.`, "success");
       await loadStudentQuestions();
       return;
     }
