@@ -14,13 +14,12 @@
     .hero h1{margin:0 0 10px;font-size:clamp(27px,4vw,38px)}
     .hero p{margin:0;line-height:1.75;color:#dbeafe}
     .shell{margin-top:18px;padding:24px;background:#fff;border:1px solid #d8e0eb;border-radius:18px;box-shadow:0 14px 38px rgba(15,23,42,.08)}
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap}
+    .toolbar,.actions{display:flex;gap:10px;flex-wrap:wrap}
     button{min-height:48px;border:0;border-radius:10px;padding:11px 18px;font-size:15px;font-weight:800;cursor:pointer}
-    button:disabled{opacity:.5;cursor:wait}
+    button:disabled{opacity:.55;cursor:wait}
     #loginButton,#refreshButton{background:#2563eb;color:#fff}
     #logoutButton{background:#475569;color:#fff}
-    #requestButton{background:#0f766e;color:#fff}
-    .approve{background:#0f766e;color:#fff}
+    #requestButton,.approve{background:#0f766e;color:#fff}
     .reject{background:#b91c1c;color:#fff}
     .status{margin-top:18px;padding:17px;border:1px solid #d6deea;border-radius:12px;background:#f8fafc;line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere}
     .success{border-color:#16a34a;background:#f0fdf4}
@@ -34,13 +33,14 @@
     .step b{display:block;margin-bottom:7px;color:#0f172a}
     .step span{color:#64748b;line-height:1.55;font-size:14px}
     .list{display:grid;gap:14px;margin-top:16px}
-    .item{padding:18px;border:1px solid #d8e0eb;border-radius:13px;background:#f8fafc}
+    .item{padding:18px;border:1px solid #d8e0eb;border-radius:13px;background:#f8fafc;transition:opacity .2s ease,transform .2s ease}
+    .item.processing{opacity:.62;transform:scale(.995)}
     .item h3{margin:0 0 8px;font-size:18px}
-    .meta{color:#475569;line-height:1.75;overflow-wrap:anywhere}
-    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .meta{color:#475569;line-height:1.75;overflow-wrap:anywhere;white-space:pre-wrap}
     .badge{display:inline-block;margin-left:7px;padding:4px 8px;border-radius:999px;background:#fff7ed;color:#9a3412;font-size:12px;font-weight:800}
     .hidden{display:none!important}
     .foot{margin-top:16px;padding:14px;border-radius:11px;background:#eff6ff;color:#1e40af;line-height:1.65;font-size:14px}
+    .small{font-size:13px;color:#64748b;margin-top:9px}
     @media(max-width:720px){.steps{grid-template-columns:1fr}.toolbar button,.actions button{width:100%}.shell{padding:18px}.hero{padding:22px}}
   </style>
 </head>
@@ -48,7 +48,7 @@
 <main>
   <section class="hero">
     <h1>이투스247 질문 시스템 권한센터</h1>
-    <p>한 주소에서 Google 로그인, 교사 등록 요청, 승인 상태 확인, 마스터의 교사 승인·반려를 처리합니다. 로그인한 계정의 권한에 따라 필요한 화면만 자동으로 열립니다.</p>
+    <p>한 주소에서 Google 로그인, 교사 등록 요청, 승인 상태 확인, 마스터의 교사 승인·반려를 처리합니다.</p>
   </section>
 
   <section class="shell">
@@ -66,7 +66,7 @@
       <div class="steps">
         <div class="step"><b>1. Google 로그인</b><span>교사 또는 마스터가 자신의 Google 계정을 선택합니다.</span></div>
         <div class="step"><b>2. 권한 자동 판정</b><span>Firestore의 users/{UID} 문서와 교사 등록 요청 상태를 확인합니다.</span></div>
-        <div class="step"><b>3. 역할별 화면 표시</b><span>교사는 승인 요청·상태 확인, 마스터는 대기 목록 승인·반려를 처리합니다.</span></div>
+        <div class="step"><b>3. 즉시 처리</b><span>승인 결과를 화면에 먼저 반영하고 목록 갱신은 뒤에서 처리합니다.</span></div>
       </div>
     </section>
 
@@ -83,11 +83,11 @@
 
     <section id="masterPanel" class="panel hidden">
       <h2>마스터 관리 화면</h2>
-      <p>승인 대기 중인 교사 요청을 이 페이지에서 처리합니다.</p>
+      <p>승인 대기 중인 교사 요청을 처리합니다. 목록 조회가 10초를 넘기면 오류 원인을 바로 표시합니다.</p>
       <div id="requestList" class="list"></div>
     </section>
 
-    <div class="foot">교사 요청만으로 권한이 생기지 않습니다. Firestore의 마스터 계정이 승인해야 users/{교사 UID}에 role: teacher, active: true가 저장됩니다.</div>
+    <div class="foot">교사 요청만으로 권한이 생기지 않습니다. 마스터 승인 시 users/{교사 UID}에 role: teacher, active: true가 저장됩니다.</div>
   </section>
 </main>
 
@@ -105,10 +105,10 @@
     doc,
     getDoc,
     setDoc,
-    updateDoc,
     collection,
     query,
     where,
+    limit,
     getDocs,
     writeBatch,
     serverTimestamp
@@ -130,270 +130,320 @@
   auth.languageCode = "ko";
 
   const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: "select_account" });
+  provider.setCustomParameters({prompt:"select_account"});
 
-  const loginButton = document.getElementById("loginButton");
-  const refreshButton = document.getElementById("refreshButton");
-  const logoutButton = document.getElementById("logoutButton");
-  const requestButton = document.getElementById("requestButton");
-  const statusBox = document.getElementById("status");
-  const guidePanel = document.getElementById("guidePanel");
-  const requestPanel = document.getElementById("requestPanel");
-  const requestText = document.getElementById("requestText");
-  const teacherPanel = document.getElementById("teacherPanel");
-  const masterPanel = document.getElementById("masterPanel");
-  const requestList = document.getElementById("requestList");
+  const $ = (id) => document.getElementById(id);
+  const loginButton = $("loginButton");
+  const refreshButton = $("refreshButton");
+  const logoutButton = $("logoutButton");
+  const requestButton = $("requestButton");
+  const statusBox = $("status");
+  const guidePanel = $("guidePanel");
+  const requestPanel = $("requestPanel");
+  const requestText = $("requestText");
+  const teacherPanel = $("teacherPanel");
+  const masterPanel = $("masterPanel");
+  const requestList = $("requestList");
 
   let currentUser = null;
   let currentRole = null;
+  let loading = false;
 
-  function showStatus(message, type = "") {
-    statusBox.className = `status ${type}`.trim();
-    statusBox.textContent = message;
+  function showStatus(message,type=""){
+    statusBox.className=`status ${type}`.trim();
+    statusBox.textContent=message;
   }
 
-  function hideRolePanels() {
+  function withTimeout(promise,ms,label){
+    let timer;
+    const timeout=new Promise((_,reject)=>{
+      timer=setTimeout(()=>{
+        const error=new Error(`${label} 작업이 ${Math.round(ms/1000)}초를 넘겼습니다.`);
+        error.code="client-timeout";
+        reject(error);
+      },ms);
+    });
+    return Promise.race([promise,timeout]).finally(()=>clearTimeout(timer));
+  }
+
+  function hideRolePanels(){
     requestPanel.classList.add("hidden");
     teacherPanel.classList.add("hidden");
     masterPanel.classList.add("hidden");
-    requestList.innerHTML = "";
+    requestList.innerHTML="";
   }
 
-  function userSummary(user) {
+  function userSummary(user){
     return [
-      `이름: ${user.displayName ?? "이름 정보 없음"}`,
-      `이메일: ${user.email ?? "이메일 정보 없음"}`,
+      `이름: ${user.displayName??"이름 정보 없음"}`,
+      `이메일: ${user.email??"이메일 정보 없음"}`,
       `UID: ${user.uid}`
     ].join("\n");
   }
 
-  async function loadPendingRequests() {
-    if (!currentUser || currentRole !== "master") return;
+  function errorMessage(error,context){
+    if(error?.code==="client-timeout"){
+      return `${context} 시간이 길어 중단했습니다.\n인터넷 연결을 확인한 뒤 ‘현재 상태 새로고침’을 누르세요.`;
+    }
+    if(error?.code==="permission-denied"){
+      return `${context} 권한이 거부되었습니다.\nFirestore 규칙이 최신 상태인지 확인하세요.`;
+    }
+    return `${context} 실패했습니다.\n오류 코드: ${error?.code??"확인 불가"}\n${error?.message??String(error)}`;
+  }
 
-    requestList.innerHTML = "<div class='status'>승인 대기 요청을 불러오는 중입니다.</div>";
+  async function loadPendingRequests(){
+    if(!currentUser||currentRole!=="master") return;
 
-    try {
-      const pendingQuery = query(
-        collection(db, "teacherRequests"),
-        where("status", "==", "pending")
+    const started=performance.now();
+    requestList.innerHTML="<div class='status'>승인 대기 요청을 불러오는 중입니다.</div>";
+
+    try{
+      const pendingQuery=query(
+        collection(db,"teacherRequests"),
+        where("status","==","pending"),
+        limit(50)
       );
-      const snapshot = await getDocs(pendingQuery);
-      requestList.innerHTML = "";
+      const snapshot=await withTimeout(getDocs(pendingQuery),10000,"승인 대기 목록 조회");
+      const elapsed=((performance.now()-started)/1000).toFixed(1);
+      requestList.innerHTML="";
 
-      if (snapshot.empty) {
-        requestList.innerHTML = "<div class='status success'>현재 승인 대기 중인 교사 요청이 없습니다.</div>";
+      if(snapshot.empty){
+        requestList.innerHTML=`<div class='status success'>현재 승인 대기 중인 교사 요청이 없습니다.<div class='small'>조회 ${elapsed}초</div></div>`;
         return;
       }
 
-      snapshot.forEach((requestDoc) => {
-        const data = requestDoc.data();
-        const item = document.createElement("article");
-        item.className = "item";
+      snapshot.forEach((requestDoc)=>{
+        const data=requestDoc.data();
+        const item=document.createElement("article");
+        item.className="item";
+        item.dataset.uid=requestDoc.id;
 
-        const title = document.createElement("h3");
-        title.textContent = data.name || "이름 정보 없음";
-        const badge = document.createElement("span");
-        badge.className = "badge";
-        badge.textContent = "승인 대기";
+        const title=document.createElement("h3");
+        title.textContent=data.name||"이름 정보 없음";
+        const badge=document.createElement("span");
+        badge.className="badge";
+        badge.textContent="승인 대기";
         title.appendChild(badge);
 
-        const meta = document.createElement("div");
-        meta.className = "meta";
-        meta.textContent = [
-          `이메일: ${data.email ?? "없음"}`,
-          `UID: ${data.uid ?? requestDoc.id}`
+        const meta=document.createElement("div");
+        meta.className="meta";
+        meta.textContent=[
+          `이메일: ${data.email??"없음"}`,
+          `UID: ${data.uid??requestDoc.id}`
         ].join("\n");
 
-        const actions = document.createElement("div");
-        actions.className = "actions";
+        const actions=document.createElement("div");
+        actions.className="actions";
+        const approveButton=document.createElement("button");
+        const rejectButton=document.createElement("button");
+        approveButton.type="button";
+        approveButton.className="approve";
+        approveButton.textContent="교사 승인";
+        rejectButton.type="button";
+        rejectButton.className="reject";
+        rejectButton.textContent="요청 반려";
+        approveButton.addEventListener("click",()=>reviewTeacher(requestDoc.id,data,"approved",item,approveButton,rejectButton));
+        rejectButton.addEventListener("click",()=>reviewTeacher(requestDoc.id,data,"rejected",item,approveButton,rejectButton));
 
-        const approveButton = document.createElement("button");
-        approveButton.type = "button";
-        approveButton.className = "approve";
-        approveButton.textContent = "교사 승인";
-        approveButton.addEventListener("click", () => reviewTeacher(requestDoc.id, data, "approved", approveButton, rejectButton));
-
-        const rejectButton = document.createElement("button");
-        rejectButton.type = "button";
-        rejectButton.className = "reject";
-        rejectButton.textContent = "요청 반려";
-        rejectButton.addEventListener("click", () => reviewTeacher(requestDoc.id, data, "rejected", approveButton, rejectButton));
-
-        actions.append(approveButton, rejectButton);
-        item.append(title, meta, actions);
+        actions.append(approveButton,rejectButton);
+        item.append(title,meta,actions);
         requestList.appendChild(item);
       });
-    } catch (error) {
+
+      const timing=document.createElement("div");
+      timing.className="small";
+      timing.textContent=`${snapshot.size}건 조회 · ${elapsed}초`;
+      requestList.prepend(timing);
+    }catch(error){
       console.error(error);
-      requestList.innerHTML = `<div class="status error">승인 대기 목록을 읽지 못했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${error.message ?? String(error)}</div>`;
+      requestList.innerHTML=`<div class="status error">${errorMessage(error,"승인 대기 목록 조회").replaceAll("\n","<br>")}</div>`;
     }
   }
 
-  async function reviewTeacher(uid, data, decision, approveButton, rejectButton) {
-    approveButton.disabled = true;
-    rejectButton.disabled = true;
+  async function reviewTeacher(uid,data,decision,item,approveButton,rejectButton){
+    const originalApprove=approveButton.textContent;
+    const originalReject=rejectButton.textContent;
+    approveButton.disabled=true;
+    rejectButton.disabled=true;
+    item.classList.add("processing");
+    if(decision==="approved") approveButton.textContent="승인 저장 중…";
+    else rejectButton.textContent="반려 저장 중…";
 
-    try {
-      const batch = writeBatch(db);
-      const requestRef = doc(db, "teacherRequests", uid);
+    const started=performance.now();
+    try{
+      const batch=writeBatch(db);
+      const requestRef=doc(db,"teacherRequests",uid);
 
-      if (decision === "approved") {
-        const userRef = doc(db, "users", uid);
-        batch.set(userRef, {
-          role: "teacher",
-          active: true,
-          name: data.name ?? "",
-          email: data.email ?? "",
-          approvedAt: serverTimestamp(),
-          approvedBy: currentUser.uid
-        }, { merge: true });
+      if(decision==="approved"){
+        batch.set(doc(db,"users",uid),{
+          role:"teacher",
+          active:true,
+          name:data.name??"",
+          email:data.email??"",
+          approvedAt:serverTimestamp(),
+          approvedBy:currentUser.uid
+        },{merge:true});
       }
 
-      batch.update(requestRef, {
-        status: decision,
-        reviewedAt: serverTimestamp(),
-        reviewedBy: currentUser.uid,
-        updatedAt: serverTimestamp()
+      batch.update(requestRef,{
+        status:decision,
+        reviewedAt:serverTimestamp(),
+        reviewedBy:currentUser.uid,
+        updatedAt:serverTimestamp()
       });
 
-      await batch.commit();
+      await withTimeout(batch.commit(),15000,"교사 승인 저장");
+      const elapsed=((performance.now()-started)/1000).toFixed(1);
+
+      item.remove();
+      const remaining=requestList.querySelectorAll(".item").length;
+      if(remaining===0){
+        requestList.innerHTML="<div class='status success'>현재 승인 대기 중인 교사 요청이 없습니다.</div>";
+      }
+
       showStatus(
-        decision === "approved"
-          ? `${data.name ?? data.email ?? uid} 교사를 승인했습니다.`
-          : `${data.name ?? data.email ?? uid} 요청을 반려했습니다.`,
-        decision === "approved" ? "success" : "warning"
+        decision==="approved"
+          ? `${data.name??data.email??uid} 교사를 승인했습니다.\n처리 시간: ${elapsed}초`
+          : `${data.name??data.email??uid} 요청을 반려했습니다.\n처리 시간: ${elapsed}초`,
+        decision==="approved"?"success":"warning"
       );
-      await loadPendingRequests();
-    } catch (error) {
+
+      setTimeout(()=>loadPendingRequests(),500);
+    }catch(error){
       console.error(error);
-      showStatus(`처리에 실패했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${error.message ?? String(error)}`, "error");
-      approveButton.disabled = false;
-      rejectButton.disabled = false;
+      showStatus(errorMessage(error,decision==="approved"?"교사 승인":"요청 반려"),"error");
+      item.classList.remove("processing");
+      approveButton.disabled=false;
+      rejectButton.disabled=false;
+      approveButton.textContent=originalApprove;
+      rejectButton.textContent=originalReject;
     }
   }
 
-  async function requestTeacherRole() {
-    if (!currentUser) return;
-    requestButton.disabled = true;
+  async function requestTeacherRole(){
+    if(!currentUser) return;
+    requestButton.disabled=true;
     showStatus("교사 권한 요청을 저장하는 중입니다.");
-
-    try {
-      await setDoc(doc(db, "teacherRequests", currentUser.uid), {
-        uid: currentUser.uid,
-        name: currentUser.displayName ?? "",
-        email: currentUser.email ?? "",
-        status: "pending",
-        requestedAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
+    try{
+      await withTimeout(setDoc(doc(db,"teacherRequests",currentUser.uid),{
+        uid:currentUser.uid,
+        name:currentUser.displayName??"",
+        email:currentUser.email??"",
+        status:"pending",
+        requestedAt:serverTimestamp(),
+        updatedAt:serverTimestamp()
+      },{merge:true}),12000,"교사 권한 요청 저장");
       await loadAccountView(currentUser);
-    } catch (error) {
+    }catch(error){
       console.error(error);
-      showStatus(`교사 권한 요청에 실패했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${error.message ?? String(error)}`, "error");
-    } finally {
-      requestButton.disabled = false;
+      showStatus(errorMessage(error,"교사 권한 요청"),"error");
+    }finally{
+      requestButton.disabled=false;
     }
   }
 
-  async function loadAccountView(user) {
-    currentUser = user;
-    currentRole = null;
+  async function loadAccountView(user){
+    if(loading) return;
+    loading=true;
+    currentUser=user;
+    currentRole=null;
     hideRolePanels();
     showStatus(`로그인 계정과 권한을 확인하는 중입니다.\n\n${userSummary(user)}`);
 
-    try {
-      const profileSnap = await getDoc(doc(db, "users", user.uid));
+    try{
+      const profileSnap=await withTimeout(getDoc(doc(db,"users",user.uid)),10000,"사용자 권한 조회");
 
-      if (profileSnap.exists()) {
-        const profile = profileSnap.data();
-        currentRole = profile.role ?? null;
-        const active = profile.active === true;
+      if(profileSnap.exists()){
+        const profile=profileSnap.data();
+        currentRole=profile.role??null;
+        const active=profile.active===true;
 
-        if (currentRole === "master" && active) {
+        if(currentRole==="master"&&active){
+          sessionStorage.setItem(`etoos-role-${user.uid}`,"master");
           guidePanel.classList.add("hidden");
           masterPanel.classList.remove("hidden");
-          showStatus(`${userSummary(user)}\n\n권한: master\n계정 상태: 활성\n현재 화면: 교사 승인 관리`, "success");
-          await loadPendingRequests();
+          showStatus(`${userSummary(user)}\n\n권한: master\n계정 상태: 활성\n현재 화면: 교사 승인 관리`,"success");
+          loadPendingRequests();
           return;
         }
 
-        if (currentRole === "teacher" && active) {
+        if(currentRole==="teacher"&&active){
           guidePanel.classList.add("hidden");
           teacherPanel.classList.remove("hidden");
-          showStatus(`${userSummary(user)}\n\n권한: teacher\n계정 상태: 활성\n최종 판정: 교사 권한 확인 완료`, "success");
+          showStatus(`${userSummary(user)}\n\n권한: teacher\n계정 상태: 활성\n최종 판정: 교사 권한 확인 완료`,"success");
           return;
         }
 
-        if (currentRole === "student" && active) {
+        if(currentRole==="student"&&active){
           guidePanel.classList.add("hidden");
-          showStatus(`${userSummary(user)}\n\n권한: student\n계정 상태: 활성\n학생용 질문 화면은 다음 단계에서 연결합니다.`, "success");
+          showStatus(`${userSummary(user)}\n\n권한: student\n계정 상태: 활성\n학생용 질문 화면은 다음 단계에서 연결합니다.`,"success");
           return;
         }
-
-        showStatus(`${userSummary(user)}\n\n등록된 사용자 문서는 있으나 현재 활성 권한이 없습니다.`, "warning");
       }
 
-      const requestSnap = await getDoc(doc(db, "teacherRequests", user.uid));
+      const requestSnap=await withTimeout(getDoc(doc(db,"teacherRequests",user.uid)),10000,"교사 등록 상태 조회");
       guidePanel.classList.add("hidden");
       requestPanel.classList.remove("hidden");
 
-      if (!requestSnap.exists()) {
-        requestText.textContent = "교사 권한이 아직 없습니다. 아래 버튼으로 마스터에게 승인을 요청하세요.";
-        requestButton.textContent = "교사 권한 승인 요청";
-        requestButton.disabled = false;
-        showStatus(`${userSummary(user)}\n\n교사 등록 요청: 아직 없음`, "warning");
+      if(!requestSnap.exists()){
+        requestText.textContent="교사 권한이 아직 없습니다. 아래 버튼으로 마스터에게 승인을 요청하세요.";
+        requestButton.textContent="교사 권한 승인 요청";
+        requestButton.disabled=false;
+        showStatus(`${userSummary(user)}\n\n교사 등록 요청: 아직 없음`,"warning");
         return;
       }
 
-      const requestData = requestSnap.data();
-      const requestStatus = requestData.status ?? "확인 불가";
-
-      if (requestStatus === "pending") {
-        requestText.textContent = "교사 등록 요청이 접수되었습니다. 마스터 승인을 기다리고 있습니다.";
-        requestButton.textContent = "승인 대기 중";
-        requestButton.disabled = true;
-        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: 승인 대기`, "warning");
-      } else if (requestStatus === "rejected") {
-        requestText.textContent = "이전 요청이 반려되었습니다. 필요하면 다시 승인을 요청할 수 있습니다.";
-        requestButton.textContent = "교사 권한 다시 요청";
-        requestButton.disabled = false;
-        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: 반려`, "error");
-      } else if (requestStatus === "approved") {
-        requestText.textContent = "승인 처리는 되었지만 교사 사용자 문서 확인이 필요합니다. 잠시 후 새로고침하세요.";
-        requestButton.textContent = "승인 처리 확인 중";
-        requestButton.disabled = true;
-        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: 승인됨\n사용자 권한 문서를 다시 확인하세요.`, "warning");
-      } else {
-        requestText.textContent = `현재 요청 상태를 확인할 수 없습니다: ${requestStatus}`;
-        requestButton.disabled = true;
-        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: ${requestStatus}`, "warning");
+      const requestStatus=requestSnap.data().status??"확인 불가";
+      if(requestStatus==="pending"){
+        requestText.textContent="교사 등록 요청이 접수되었습니다. 마스터 승인을 기다리고 있습니다.";
+        requestButton.textContent="승인 대기 중";
+        requestButton.disabled=true;
+        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: 승인 대기`,"warning");
+      }else if(requestStatus==="rejected"){
+        requestText.textContent="이전 요청이 반려되었습니다. 필요하면 다시 승인을 요청할 수 있습니다.";
+        requestButton.textContent="교사 권한 다시 요청";
+        requestButton.disabled=false;
+        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: 반려`,"error");
+      }else if(requestStatus==="approved"){
+        requestText.textContent="승인 처리는 완료됐습니다. 현재 상태 새로고침을 눌러 교사 권한을 다시 확인하세요.";
+        requestButton.textContent="승인 처리 확인 중";
+        requestButton.disabled=true;
+        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: 승인됨`,"warning");
+      }else{
+        requestText.textContent=`현재 요청 상태를 확인할 수 없습니다: ${requestStatus}`;
+        requestButton.disabled=true;
+        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: ${requestStatus}`,"warning");
       }
-    } catch (error) {
+    }catch(error){
       console.error(error);
-      showStatus(`권한 확인에 실패했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${error.message ?? String(error)}`, "error");
+      showStatus(errorMessage(error,"권한 확인"),"error");
+    }finally{
+      loading=false;
     }
   }
 
-  loginButton.addEventListener("click", async () => {
-    loginButton.disabled = true;
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error(error);
-      showStatus(`Google 로그인에 실패했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${error.message ?? String(error)}`, "error");
-    } finally {
-      loginButton.disabled = false;
-    }
+  loginButton.addEventListener("click",async()=>{
+    loginButton.disabled=true;
+    try{await signInWithPopup(auth,provider)}
+    catch(error){console.error(error);showStatus(errorMessage(error,"Google 로그인"),"error")}
+    finally{loginButton.disabled=false}
   });
 
-  logoutButton.addEventListener("click", () => signOut(auth));
-  refreshButton.addEventListener("click", () => currentUser && loadAccountView(currentUser));
-  requestButton.addEventListener("click", requestTeacherRole);
+  logoutButton.addEventListener("click",()=>signOut(auth));
+  refreshButton.addEventListener("click",()=>{
+    if(!currentUser) return;
+    loading=false;
+    loadAccountView(currentUser);
+  });
+  requestButton.addEventListener("click",requestTeacherRole);
 
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      currentUser = null;
-      currentRole = null;
+  window.addEventListener("offline",()=>showStatus("인터넷 연결이 끊어졌습니다. 연결 후 현재 상태 새로고침을 누르세요.","error"));
+
+  onAuthStateChanged(auth,async(user)=>{
+    if(!user){
+      currentUser=null;
+      currentRole=null;
+      loading=false;
       loginButton.classList.remove("hidden");
       refreshButton.classList.add("hidden");
       logoutButton.classList.add("hidden");
@@ -406,6 +456,17 @@
     loginButton.classList.add("hidden");
     refreshButton.classList.remove("hidden");
     logoutButton.classList.remove("hidden");
+
+    const cachedRole=sessionStorage.getItem(`etoos-role-${user.uid}`);
+    if(cachedRole==="master"){
+      currentUser=user;
+      currentRole="master";
+      guidePanel.classList.add("hidden");
+      masterPanel.classList.remove("hidden");
+      showStatus(`${userSummary(user)}\n\n마스터 권한을 재확인하면서 승인 목록을 먼저 불러옵니다.`,"success");
+      loadPendingRequests();
+    }
+
     await loadAccountView(user);
   });
 </script>
