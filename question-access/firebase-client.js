@@ -23,3 +23,5 @@ export const resetStudentPasswordCallable = httpsCallable(functions, "resetStude
 export const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ prompt: "select_account" });
 auth.languageCode = "ko";
+
+// Student login codes: suseong1=M001~M199, suseong2=S001~S199.
