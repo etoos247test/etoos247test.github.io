@@ -3,25 +3,53 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Firebase Google 로그인 시험</title>
+  <title>Firebase 로그인·마스터 권한 시험</title>
   <meta name="robots" content="noindex,nofollow">
   <style>
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;padding:32px 16px;background:#f4f6f8;color:#172033;font-family:Pretendard,"Noto Sans KR",Arial,sans-serif}main{width:min(100%,560px);margin:48px auto;padding:30px;background:#fff;border:1px solid #d9dee8;border-radius:18px;box-shadow:0 16px 40px rgba(17,24,39,.09)}h1{margin:0 0 12px;font-size:28px}p{line-height:1.7;color:#5f6b7c}button{width:100%;min-height:52px;margin-top:12px;border:0;border-radius:10px;padding:13px 18px;font-size:16px;font-weight:700;cursor:pointer}#loginButton{background:#2563eb;color:#fff}#logoutButton{background:#475467;color:#fff}button:disabled{opacity:.55;cursor:wait}#result{margin-top:22px;min-height:120px;padding:18px;border:1px solid #cfd6e2;border-radius:12px;background:#f9fafb;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7}#result.success{border-color:#16a34a;background:#f0fdf4}#result.error{border-color:#dc2626;background:#fef2f2}.notice{margin-top:18px;padding:14px;border-radius:10px;background:#eff6ff;color:#1e40af;font-size:14px;line-height:1.6}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;padding:32px 16px;background:#f4f6f8;color:#172033;font-family:Pretendard,"Noto Sans KR",Arial,sans-serif}
+    main{width:min(100%,620px);margin:48px auto;padding:30px;background:#fff;border:1px solid #d9dee8;border-radius:18px;box-shadow:0 16px 40px rgba(17,24,39,.09)}
+    h1{margin:0 0 12px;font-size:28px}
+    p{line-height:1.7;color:#5f6b7c}
+    button{width:100%;min-height:52px;margin-top:12px;border:0;border-radius:10px;padding:13px 18px;font-size:16px;font-weight:700;cursor:pointer}
+    #loginButton{background:#2563eb;color:#fff}
+    #checkButton{background:#0f766e;color:#fff}
+    #logoutButton{background:#475467;color:#fff}
+    button:disabled{opacity:.55;cursor:wait}
+    #result{margin-top:22px;min-height:150px;padding:18px;border:1px solid #cfd6e2;border-radius:12px;background:#f9fafb;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.75}
+    #result.success{border-color:#16a34a;background:#f0fdf4}
+    #result.warning{border-color:#d97706;background:#fff7ed}
+    #result.error{border-color:#dc2626;background:#fef2f2}
+    .notice{margin-top:18px;padding:14px;border-radius:10px;background:#eff6ff;color:#1e40af;font-size:14px;line-height:1.6}
   </style>
 </head>
 <body>
   <main>
-    <h1>교사 Google 로그인 시험</h1>
-    <p>Firebase Authentication과 Google 계정 연결 상태를 확인하는 시험용 페이지입니다.</p>
+    <h1>Firebase 로그인·마스터 권한 시험</h1>
+    <p>Google 로그인과 Firestore의 <code>users/{UID}</code> 권한 문서를 함께 확인합니다.</p>
+
     <button id="loginButton" type="button">Google 계정으로 로그인</button>
+    <button id="checkButton" type="button" hidden>마스터 권한 다시 확인</button>
     <button id="logoutButton" type="button" hidden>로그아웃</button>
+
     <div id="result" role="status" aria-live="polite">Firebase 연결을 확인하는 중입니다.</div>
-    <div class="notice">로그인에 성공하면 이름, 이메일, Firebase 사용자 UID가 표시됩니다.</div>
+    <div class="notice">정상이라면 로그인 정보와 함께 <strong>권한: master / 계정 상태: 활성 / 최종 판정: 마스터 권한 확인 완료</strong>가 표시됩니다.</div>
   </main>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAg6PnWUVfvlc10R81wb2liVxyGMbqbw78",
@@ -34,34 +62,144 @@
     };
 
     const loginButton = document.getElementById("loginButton");
+    const checkButton = document.getElementById("checkButton");
     const logoutButton = document.getElementById("logoutButton");
     const result = document.getElementById("result");
 
-    function show(message,type=""){result.className=type;result.textContent=message}
+    function show(message,type=""){
+      result.className=type;
+      result.textContent=message;
+    }
 
-    try {
+    function explainFirestoreError(error){
+      const code=error?.code??"확인 불가";
+      if(code==="permission-denied"){
+        return "Firestore 읽기가 거부되었습니다. 규칙(Rules)이 게시되었는지와 users 문서 ID가 로그인 UID와 같은지 확인하세요.";
+      }
+      if(code==="unavailable"){
+        return "Firestore 서버에 일시적으로 연결할 수 없습니다. 잠시 후 다시 시도하세요.";
+      }
+      return error?.message??String(error);
+    }
+
+    try{
       const app=initializeApp(firebaseConfig);
       const auth=getAuth(app);
+      const db=getFirestore(app);
       auth.languageCode="ko";
+
       const provider=new GoogleAuthProvider();
       provider.setCustomParameters({prompt:"select_account"});
+
+      async function checkRole(user){
+        checkButton.disabled=true;
+        show("로그인은 확인되었습니다. Firestore 권한 문서를 읽는 중입니다.");
+
+        try{
+          const userRef=doc(db,"users",user.uid);
+          const userSnap=await getDoc(userRef);
+
+          if(!userSnap.exists()){
+            show([
+              "Google 로그인 성공",
+              "",
+              `이름: ${user.displayName??"이름 정보 없음"}`,
+              `이메일: ${user.email??"이메일 정보 없음"}`,
+              `UID: ${user.uid}`,
+              "",
+              "Firestore users 문서를 찾지 못했습니다.",
+              "문서 ID가 위 UID와 정확히 같은지 확인하세요."
+            ].join("\n"),"warning");
+            return;
+          }
+
+          const profile=userSnap.data();
+          const role=profile.role??"미지정";
+          const active=profile.active===true;
+          const verified=role==="master"&&active;
+
+          show([
+            "Google 로그인 성공",
+            "",
+            `이름: ${user.displayName??profile.name??"이름 정보 없음"}`,
+            `이메일: ${user.email??profile.email??"이메일 정보 없음"}`,
+            `UID: ${user.uid}`,
+            "",
+            "Firestore 사용자 문서 확인 성공",
+            `권한: ${role}`,
+            `계정 상태: ${active?"활성":"비활성"}`,
+            "",
+            verified
+              ? "최종 판정: 마스터 권한 확인 완료"
+              : "최종 판정: 로그인은 성공했지만 활성 마스터 계정은 아닙니다."
+          ].join("\n"),verified?"success":"warning");
+        }catch(error){
+          console.error("Firestore 권한 확인 오류:",error);
+          show([
+            "Google 로그인은 성공했지만 Firestore 권한 확인에 실패했습니다.",
+            "",
+            `오류 코드: ${error?.code??"확인 불가"}`,
+            `확인 내용: ${explainFirestoreError(error)}`
+          ].join("\n"),"error");
+        }finally{
+          checkButton.disabled=false;
+        }
+      }
 
       loginButton.addEventListener("click",async()=>{
         loginButton.disabled=true;
         show("Google 로그인 창을 여는 중입니다.");
-        try{await signInWithPopup(auth,provider)}catch(error){console.error(error);show(["로그인에 실패했습니다.","",`오류 코드: ${error.code??"확인 불가"}`,`오류 내용: ${error.message??String(error)}`].join("\n"),"error")}finally{loginButton.disabled=false}
+        try{
+          await signInWithPopup(auth,provider);
+        }catch(error){
+          console.error("로그인 오류:",error);
+          show([
+            "로그인에 실패했습니다.",
+            "",
+            `오류 코드: ${error?.code??"확인 불가"}`,
+            `오류 내용: ${error?.message??String(error)}`
+          ].join("\n"),"error");
+        }finally{
+          loginButton.disabled=false;
+        }
       });
 
-      logoutButton.addEventListener("click",async()=>{try{await signOut(auth)}catch(error){show(`로그아웃 오류: ${error.message??String(error)}`,"error")}});
-
-      onAuthStateChanged(auth,user=>{
-        if(!user){loginButton.hidden=false;logoutButton.hidden=true;show("아직 로그인하지 않았습니다.");return}
-        loginButton.hidden=true;logoutButton.hidden=false;show(["Google 로그인 성공","",`이름: ${user.displayName??"이름 정보 없음"}`,`이메일: ${user.email??"이메일 정보 없음"}`,`UID: ${user.uid}`,"","위 UID가 Firebase 사용자 고유번호입니다."].join("\n"),"success")
+      checkButton.addEventListener("click",async()=>{
+        if(auth.currentUser){
+          await checkRole(auth.currentUser);
+        }
       });
-    } catch (error) {
-      console.error(error);
+
+      logoutButton.addEventListener("click",async()=>{
+        try{
+          await signOut(auth);
+        }catch(error){
+          show(`로그아웃 오류: ${error?.message??String(error)}`,"error");
+        }
+      });
+
+      onAuthStateChanged(auth,async user=>{
+        if(!user){
+          loginButton.hidden=false;
+          checkButton.hidden=true;
+          logoutButton.hidden=true;
+          show("아직 로그인하지 않았습니다.");
+          return;
+        }
+
+        loginButton.hidden=true;
+        checkButton.hidden=false;
+        logoutButton.hidden=false;
+        await checkRole(user);
+      });
+    }catch(error){
+      console.error("Firebase 초기화 오류:",error);
       loginButton.disabled=true;
-      show(["Firebase 초기화에 실패했습니다.","",`오류 내용: ${error.message??String(error)}`].join("\n"),"error");
+      show([
+        "Firebase 초기화에 실패했습니다.",
+        "",
+        `오류 내용: ${error?.message??String(error)}`
+      ].join("\n"),"error");
     }
   </script>
 </body>
