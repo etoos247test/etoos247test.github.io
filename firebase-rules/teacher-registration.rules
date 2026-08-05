@@ -7,6 +7,11 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function userProfileExists() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
     function currentUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
@@ -15,8 +20,21 @@ service cloud.firestore {
       return campus == "suseong1" || campus == "suseong2";
     }
 
+    function validStudentCode(studentId) {
+      return studentId is string
+        && studentId.matches('^[MS](00[1-9]|0[1-9][0-9]|1[0-9]{2})$');
+    }
+
+    function codeMatchesCampus(studentId, campus) {
+      return validStudentCode(studentId)
+        && (
+          (campus == "suseong1" && studentId.matches('^M.*'))
+          || (campus == "suseong2" && studentId.matches('^S.*'))
+        );
+    }
+
     function isActiveUser() {
-      return signedIn() && currentUserData().active == true;
+      return userProfileExists() && currentUserData().active == true;
     }
 
     function isMaster() {
@@ -42,26 +60,21 @@ service cloud.firestore {
 
     function canAnswerQuestions() {
       return isMaster()
-        || (
-          isTeacher()
-          && currentUserData().canAnswerQuestions == true
-        );
+        || (isTeacher() && currentUserData().canAnswerQuestions == true);
     }
 
     function canApproveStudents() {
       return isMaster()
-        || (
-          isTeacher()
-          && currentUserData().canApproveStudents == true
-        );
+        || (isTeacher() && currentUserData().canApproveStudents == true);
     }
 
     function canManageStudentInfo() {
       return isMaster()
-        || (
-          isTeacher()
-          && currentUserData().canManageStudentInfo == true
-        );
+        || (isTeacher() && currentUserData().canManageStudentInfo == true);
+    }
+
+    function canReviewCampus(campus) {
+      return canApproveStudents() && hasCampusAccess(campus);
     }
 
     match /users/{userId} {
@@ -73,10 +86,7 @@ service cloud.firestore {
             isTeacher()
             && resource.data.role == "student"
             && hasCampusAccess(resource.data.campus)
-            && (
-              resource.data.active == true
-              || canApproveStudents()
-            )
+            && (resource.data.active == true || canApproveStudents())
           )
         );
 
@@ -85,13 +95,38 @@ service cloud.firestore {
           isTeacher()
           && resource.data.role == "student"
           && hasCampusAccess(resource.data.campus)
-          && (
-            resource.data.active == true
-            || canApproveStudents()
-          )
+          && (resource.data.active == true || canApproveStudents())
         );
 
-      allow create, delete: if isMaster();
+      allow create: if canReviewCampus(request.resource.data.campus)
+        && request.resource.data.role == "student"
+        && request.resource.data.active == true
+        && validCampus(request.resource.data.campus)
+        && codeMatchesCampus(request.resource.data.studentId, request.resource.data.campus)
+        && request.resource.data.email is string
+        && request.resource.data.authProvider == "google.com"
+        && request.resource.data.approvedBy == request.auth.uid
+        && request.resource.data.approvedAt == request.time
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+          "role",
+          "active",
+          "campus",
+          "studentId",
+          "name",
+          "email",
+          "authProvider",
+          "approvedAt",
+          "approvedBy",
+          "createdAt",
+          "updatedAt",
+          "updatedBy"
+        ])
+        && getAfter(/databases/$(database)/documents/studentApplications/$(userId)).data.status == "approved"
+        && getAfter(/databases/$(database)/documents/studentApplications/$(userId)).data.assignedStudentId == request.resource.data.studentId
+        && getAfter(/databases/$(database)/documents/studentCodes/$(request.resource.data.studentId)).data.uid == userId;
 
       allow update: if isMaster()
         || (
@@ -100,10 +135,13 @@ service cloud.firestore {
           && request.resource.data.role == "student"
           && validCampus(resource.data.campus)
           && hasCampusAccess(resource.data.campus)
-          && request.resource.data.campus == resource.data.campus
           && (
             (
               canManageStudentInfo()
+              && request.resource.data.campus == resource.data.campus
+              && codeMatchesCampus(request.resource.data.studentId, resource.data.campus)
+              && request.resource.data.updatedBy == request.auth.uid
+              && request.resource.data.updatedAt == request.time
               && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
                 "studentId",
                 "name",
@@ -114,6 +152,9 @@ service cloud.firestore {
             ||
             (
               canApproveStudents()
+              && request.resource.data.campus == resource.data.campus
+              && request.resource.data.updatedBy == request.auth.uid
+              && request.resource.data.updatedAt == request.time
               && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
                 "active",
                 "approvedAt",
@@ -124,14 +165,138 @@ service cloud.firestore {
             )
           )
         );
+
+      allow delete: if isMaster();
+    }
+
+    match /studentApplications/{studentUid} {
+      allow get: if signedIn()
+        && (
+          request.auth.uid == studentUid
+          || isMaster()
+          || (canApproveStudents() && hasCampusAccess(resource.data.campus))
+        );
+
+      allow list: if isMaster()
+        || (canApproveStudents() && hasCampusAccess(resource.data.campus));
+
+      allow create: if signedIn()
+        && request.auth.uid == studentUid
+        && validCampus(request.resource.data.campus)
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.status == "pending"
+        && request.resource.data.requestedAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.keys().hasOnly([
+          "uid",
+          "name",
+          "email",
+          "campus",
+          "contactLast4",
+          "status",
+          "requestedAt",
+          "updatedAt"
+        ]);
+
+      allow update: if (
+          signedIn()
+          && request.auth.uid == studentUid
+          && resource.data.status != "approved"
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.email == request.auth.token.email
+          && validCampus(request.resource.data.campus)
+          && request.resource.data.status == "pending"
+          && request.resource.data.requestedAt == request.time
+          && request.resource.data.updatedAt == request.time
+          && request.resource.data.keys().hasOnly([
+            "uid",
+            "name",
+            "email",
+            "campus",
+            "contactLast4",
+            "status",
+            "requestedAt",
+            "updatedAt"
+          ])
+        )
+        || (
+          canReviewCampus(resource.data.campus)
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.email == resource.data.email
+          && request.resource.data.campus == resource.data.campus
+          && request.resource.data.updatedAt == request.time
+          && (
+            (
+              request.resource.data.status == "approved"
+              && codeMatchesCampus(request.resource.data.assignedStudentId, resource.data.campus)
+              && request.resource.data.reviewedBy == request.auth.uid
+              && request.resource.data.reviewedAt == request.time
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                "status",
+                "assignedStudentId",
+                "approvedName",
+                "reviewedAt",
+                "reviewedBy",
+                "updatedAt"
+              ])
+              && getAfter(/databases/$(database)/documents/users/$(studentUid)).data.role == "student"
+              && getAfter(/databases/$(database)/documents/users/$(studentUid)).data.studentId == request.resource.data.assignedStudentId
+              && getAfter(/databases/$(database)/documents/studentCodes/$(request.resource.data.assignedStudentId)).data.uid == studentUid
+            )
+            ||
+            (
+              request.resource.data.status == "rejected"
+              && request.resource.data.reviewedBy == request.auth.uid
+              && request.resource.data.reviewedAt == request.time
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                "status",
+                "reviewedAt",
+                "reviewedBy",
+                "updatedAt"
+              ])
+            )
+          )
+        );
+
+      allow delete: if isMaster();
+    }
+
+    match /studentCodes/{studentId} {
+      allow get, list: if isMaster()
+        || (isTeacher() && (canApproveStudents() || canManageStudentInfo()));
+
+      allow create, update: if validStudentCode(studentId)
+        && request.resource.data.studentId == studentId
+        && codeMatchesCampus(studentId, request.resource.data.campus)
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+          "uid",
+          "campus",
+          "studentId",
+          "name",
+          "updatedAt",
+          "updatedBy"
+        ])
+        && (
+          canReviewCampus(request.resource.data.campus)
+          || (canManageStudentInfo() && hasCampusAccess(request.resource.data.campus))
+        )
+        && getAfter(/databases/$(database)/documents/users/$(request.resource.data.uid)).data.studentId == studentId
+        && getAfter(/databases/$(database)/documents/users/$(request.resource.data.uid)).data.campus == request.resource.data.campus;
+
+      allow delete: if isMaster()
+        || (
+          canManageStudentInfo()
+          && hasCampusAccess(resource.data.campus)
+          && resource.data.studentId == studentId
+        );
     }
 
     match /teacherRequests/{requestId} {
       allow read: if signedIn()
-        && (
-          request.auth.uid == requestId
-          || isMaster()
-        );
+        && (request.auth.uid == requestId || isMaster());
 
       allow create: if signedIn()
         && request.auth.uid == requestId
@@ -185,9 +350,13 @@ service cloud.firestore {
       allow create: if isStudent()
         && validCampus(currentUserData().campus)
         && request.resource.data.studentUid == request.auth.uid
+        && request.resource.data.studentId == currentUserData().studentId
+        && request.resource.data.studentName == currentUserData().name
         && request.resource.data.campus == currentUserData().campus
         && request.resource.data.status == "waiting"
         && request.resource.data.answer == ""
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
         && request.resource.data.keys().hasOnly([
           "studentUid",
           "studentId",
@@ -213,6 +382,22 @@ service cloud.firestore {
             "status",
             "answeredAt",
             "answeredBy",
+            "updatedAt"
+          ])
+        )
+        || (
+          canManageStudentInfo()
+          && hasCampusAccess(resource.data.campus)
+          && (isMaster() || request.resource.data.campus == resource.data.campus)
+          && request.resource.data.studentUid == resource.data.studentUid
+          && request.resource.data.studentId == get(/databases/$(database)/documents/users/$(resource.data.studentUid)).data.studentId
+          && request.resource.data.studentName == get(/databases/$(database)/documents/users/$(resource.data.studentUid)).data.name
+          && request.resource.data.campus == get(/databases/$(database)/documents/users/$(resource.data.studentUid)).data.campus
+          && request.resource.data.updatedAt == request.time
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            "studentId",
+            "studentName",
+            "campus",
             "updatedAt"
           ])
         );
