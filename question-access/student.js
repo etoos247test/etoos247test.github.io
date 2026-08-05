@@ -1,7 +1,7 @@
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import { addDoc, collection, getDocs, query, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 import { auth, db } from "./firebase-client.js";
-import { $, els, state, showStatus, timeout, timestampValue, formatDate, isAnswered } from "./shared.js";
+import { $, els, state, showStatus, timeout, timestampValue, formatDate, isAnswered, campusLabel } from "./shared.js";
 
 export function studentEmail(studentId) {
   const id = studentId.trim().toUpperCase();
@@ -28,7 +28,7 @@ export async function loadStudentQuestions() {
     if (!rows.length) { els.studentQuestionList.innerHTML = "<div class='status success'>등록한 질문이 없습니다.</div>"; return; }
     rows.forEach((data) => {
       const answered = isAnswered(data); const item = document.createElement("article"); item.className = "item";
-      const heading = document.createElement("h3"); heading.textContent = data.subject ?? "과목 미지정";
+      const heading = document.createElement("h3"); heading.textContent = `${data.subject ?? "과목 미지정"} · ${campusLabel(data.campus ?? state.currentProfile?.campus)}`;
       const badge = document.createElement("span"); badge.className = `badge ${answered ? "answered" : ""}`; badge.textContent = answered ? "답변 완료" : "답변 대기"; heading.appendChild(badge);
       const meta = document.createElement("div"); meta.className = "meta"; meta.textContent = `등록: ${formatDate(data.createdAt)}`;
       const question = document.createElement("div"); question.className = "question-text"; question.textContent = data.questionText ?? "";
@@ -41,11 +41,13 @@ export async function loadStudentQuestions() {
 export async function submitQuestion(event) {
   event.preventDefault();
   const subject = $("subject").value, questionText = $("questionText").value.trim(), button = $("questionSubmitButton");
+  const campus = state.currentProfile?.campus;
+  if (!campus) { showStatus("학생 소속관이 지정되지 않았습니다. 관리자에게 문의하세요.", "error"); return; }
   if (!subject || questionText.length < 2) { showStatus("과목과 질문 내용을 확인하세요.", "warning"); return; }
   button.disabled = true; showStatus("질문을 등록하는 중입니다.");
   try {
     await timeout(addDoc(collection(db, "questions"), {
-      studentUid: state.currentUser.uid, studentId: state.currentProfile.studentId ?? "", studentName: state.currentProfile.name ?? "",
+      studentUid: state.currentUser.uid, studentId: state.currentProfile.studentId ?? "", studentName: state.currentProfile.name ?? "", campus,
       subject, questionText, status: "waiting", answer: "", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
     }), 12000, "질문 등록 시간이 초과되었습니다.");
     els.questionForm.reset(); showStatus("질문이 등록되었습니다.", "success"); await loadStudentQuestions();
