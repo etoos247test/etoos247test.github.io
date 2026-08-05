@@ -11,6 +11,10 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
+    function validCampus(campus) {
+      return campus == "suseong1" || campus == "suseong2";
+    }
+
     function isActiveUser() {
       return signedIn() && currentUserData().active == true;
     }
@@ -60,14 +64,6 @@ service cloud.firestore {
         );
     }
 
-    function canResetStudentPassword() {
-      return isMaster()
-        || (
-          isTeacher()
-          && currentUserData().canResetStudentPassword == true
-        );
-    }
-
     match /users/{userId} {
       allow get: if signedIn()
         && (
@@ -102,6 +98,7 @@ service cloud.firestore {
           isTeacher()
           && resource.data.role == "student"
           && request.resource.data.role == "student"
+          && validCampus(resource.data.campus)
           && hasCampusAccess(resource.data.campus)
           && request.resource.data.campus == resource.data.campus
           && (
@@ -186,6 +183,7 @@ service cloud.firestore {
         );
 
       allow create: if isStudent()
+        && validCampus(currentUserData().campus)
         && request.resource.data.studentUid == request.auth.uid
         && request.resource.data.campus == currentUserData().campus
         && request.resource.data.status == "waiting"
@@ -203,23 +201,21 @@ service cloud.firestore {
           "updatedAt"
         ]);
 
-      allow update: if (
-          isMaster()
-          || (
-            isTeacher()
-            && canAnswerQuestions()
-            && hasCampusAccess(resource.data.campus)
-          )
-        )
-        && request.resource.data.studentUid == resource.data.studentUid
-        && request.resource.data.campus == resource.data.campus
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          "answer",
-          "status",
-          "answeredAt",
-          "answeredBy",
-          "updatedAt"
-        ]);
+      allow update: if isMaster()
+        || (
+          isTeacher()
+          && canAnswerQuestions()
+          && hasCampusAccess(resource.data.campus)
+          && request.resource.data.studentUid == resource.data.studentUid
+          && request.resource.data.campus == resource.data.campus
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            "answer",
+            "status",
+            "answeredAt",
+            "answeredBy",
+            "updatedAt"
+          ])
+        );
 
       allow delete: if isMaster();
     }
