@@ -8,11 +8,13 @@ import {
 import { studentLogin, loadStudentQuestions, submitQuestion } from "./student.js";
 import { resetTeacherView, loadTeacherWorkspace, bindTeacherFilters } from "./teacher.js";
 import { loadTeacherRequests, loadApprovedTeachers, requestTeacherRole } from "./master.js";
+import { configureStudentAccountPanel } from "./student-account.js";
 
 async function loadAccountView(user) {
   state.currentUser = user;
   state.currentProfile = null;
   hidePanels();
+  configureStudentAccountPanel();
   showStatus(`계정 권한을 확인하는 중입니다.\n\n${userSummary(user)}`);
 
   try {
@@ -23,6 +25,14 @@ async function loadAccountView(user) {
     const active = state.currentProfile?.active === true;
 
     if (role === "student" && active) {
+      const selectedCampus = sessionStorage.getItem("etoos247StudentCampus");
+      if (selectedCampus && selectedCampus !== state.currentProfile?.campus) {
+        sessionStorage.removeItem("etoos247StudentCampus");
+        await signOut(auth);
+        showStatus("선택한 소속관과 학생 계정의 소속관이 다릅니다. 소속관을 다시 확인하세요.", "error");
+        return;
+      }
+      sessionStorage.removeItem("etoos247StudentCampus");
       els.studentPanel.classList.remove("hidden");
       const campus = campusLabel(state.currentProfile?.campus);
       showStatus(`${userSummary(user)}\n\n권한: 학생\n소속: ${campus}\n학생 질문 화면이 열렸습니다.`, "success");
@@ -33,6 +43,7 @@ async function loadAccountView(user) {
     if (role === "teacher" && active) {
       els.teacherPanel.classList.remove("hidden");
       resetTeacherView();
+      configureStudentAccountPanel();
       const campuses = allowedCampuses().map(campusLabel).join(" · ") || "미지정";
       const level = isQuasiMaster() ? "준마스터 교사" : "일반 교사";
       showStatus(`${userSummary(user)}\n\n권한: ${level}\n관리 지점: ${campuses}\n허용된 지점 학생만 표시됩니다.`, "success");
@@ -44,6 +55,7 @@ async function loadAccountView(user) {
       els.masterPanel.classList.remove("hidden");
       els.teacherPanel.classList.remove("hidden");
       resetTeacherView();
+      configureStudentAccountPanel();
       showStatus(`${userSummary(user)}\n\n권한: 마스터\n수성1관·수성2관 전체 관리 화면이 열렸습니다.`, "success");
       await Promise.all([loadTeacherRequests(), loadApprovedTeachers(), loadTeacherWorkspace()]);
       return;
@@ -88,9 +100,13 @@ els.logoutButton.addEventListener("click", () => signOut(auth));
 els.refreshButton.addEventListener("click", () => state.currentUser && loadAccountView(state.currentUser));
 els.googleLoginButton.addEventListener("click", async () => {
   els.googleLoginButton.disabled = true;
-  try { await signInWithPopup(auth, provider); }
-  catch (error) { showStatus(`Google 로그인에 실패했습니다.\n${error.code ?? ""} ${error.message ?? String(error)}`, "error"); }
-  finally { els.googleLoginButton.disabled = false; }
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (error) {
+    showStatus(`Google 로그인에 실패했습니다.\n${error.code ?? ""} ${error.message ?? String(error)}`, "error");
+  } finally {
+    els.googleLoginButton.disabled = false;
+  }
 });
 
 bindTeacherFilters();
@@ -104,6 +120,7 @@ onAuthStateChanged(auth, async (user) => {
     els.loginArea.classList.remove("hidden");
     els.accountToolbar.classList.add("hidden");
     hidePanels();
+    configureStudentAccountPanel();
     showStatus("로그인하지 않았습니다.");
     return;
   }
