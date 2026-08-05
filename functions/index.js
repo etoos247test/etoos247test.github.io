@@ -10,10 +10,7 @@ setGlobalOptions({ region: "asia-northeast3", maxInstances: 10 });
 const db = getFirestore();
 const auth = getAuth();
 const VALID_CAMPUSES = new Set(["suseong1", "suseong2"]);
-const CAMPUS_EMAIL_PREFIX = {
-  suseong1: "s1",
-  suseong2: "s2"
-};
+const STUDENT_CODE_PATTERN = /^[MS](00[1-9]|0[1-9][0-9]|1[0-9]{2})$/;
 
 async function getProfile(uid) {
   const snap = await db.doc(`users/${uid}`).get();
@@ -31,8 +28,8 @@ function hasCampusAccess(profile, campus) {
 
 function normalizeStudentId(value) {
   const studentId = typeof value === "string" ? value.trim().toUpperCase() : "";
-  if (!/^M(00[1-9]|0[1-9][0-9]|100)$/.test(studentId)) {
-    throw new HttpsError("invalid-argument", "학생번호는 M001부터 M100까지 입력해야 합니다.");
+  if (!STUDENT_CODE_PATTERN.test(studentId)) {
+    throw new HttpsError("invalid-argument", "학생코드는 수성1관 M001~M199 또는 수성2관 S001~S199로 입력해야 합니다.");
   }
   return studentId;
 }
@@ -45,10 +42,25 @@ function normalizeStudentName(value) {
   return name;
 }
 
-function studentAccountEmail(campus, studentId) {
-  const prefix = CAMPUS_EMAIL_PREFIX[campus];
-  if (!prefix) throw new HttpsError("invalid-argument", "소속관이 올바르지 않습니다.");
-  return `${prefix}-${studentId.toLowerCase()}@etoos247test.local`;
+function campusFromStudentId(studentId) {
+  return studentId.startsWith("M") ? "suseong1" : "suseong2";
+}
+
+function campusLabel(campus) {
+  return campus === "suseong1" ? "수성1관" : "수성2관";
+}
+
+function studentAccountEmail(studentId) {
+  return `${studentId.toLowerCase()}@etoos247test.local`;
+}
+
+function validateDisplayedCampus(requestedCampus, derivedCampus) {
+  if (requestedCampus && !VALID_CAMPUSES.has(requestedCampus)) {
+    throw new HttpsError("invalid-argument", "소속관이 올바르지 않습니다.");
+  }
+  if (requestedCampus && requestedCampus !== derivedCampus) {
+    throw new HttpsError("invalid-argument", `${campusLabel(requestedCampus)}과 학생코드가 일치하지 않습니다.`);
+  }
 }
 
 function canCreateStudent(profile, campus) {
@@ -61,41 +73,40 @@ function canCreateStudent(profile, campus) {
     );
 }
 
-async function ensureStudentKeyAvailable(campus, studentId, excludedUid = "") {
+async function ensureStudentCodeAvailable(studentId, excludedUid = "") {
   const duplicate = await db.collection("users")
-    .where("role", "==", "student")
-    .where("campus", "==", campus)
     .where("studentId", "==", studentId)
-    .limit(2)
+    .limit(5)
     .get();
-  const conflict = duplicate.docs.find((docSnap) => docSnap.id !== excludedUid);
-  if (conflict) {
-    throw new HttpsError("already-exists", `${campus === "suseong1" ? "수성1관" : "수성2관"} ${studentId} 계정이 이미 있습니다.`);
-  }
+  const conflict = duplicate.docs.find((docSnap) => docSnap.id !== excludedUid && docSnap.data().role === "student");
+  if (conflict) throw new HttpsError("already-exists", `${studentId} 학생코드가 이미 있습니다.`);
 }
 
 exports.createStudentAccount = onCall(async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
 
-  const campus = typeof request.data?.campus === "string" ? request.data.campus.trim() : "";
-  if (!VALID_CAMPUSES.has(campus)) throw new HttpsError("invalid-argument", "소속관을 선택하세요.");
-
   const studentId = normalizeStudentId(request.data?.studentId);
+  const campus = campusFromStudentId(studentId);
+  const requestedCampus = typeof request.data?.campus === "string" ? request.data.campus.trim() : "";
+  validateDisplayedCampus(requestedCampus, campus);
+
   const name = normalizeStudentName(request.data?.name);
   const password = typeof request.data?.password === "string" ? request.data.password : "";
-  if (password.length < 8 || password.length > 64) throw new HttpsError("invalid-argument", "초기 비밀번호는 8~64자로 입력하세요.");
+  if (password.length < 8 || password.length > 64) {
+    throw new HttpsError("invalid-argument", "초기 비밀번호는 8~64자로 입력하세요.");
+  }
 
   const caller = await getProfile(request.auth.uid);
   if (!canCreateStudent(caller, campus)) {
     throw new HttpsError("permission-denied", "이 소속관의 학생 계정을 생성할 권한이 없습니다.");
   }
 
-  const email = studentAccountEmail(campus, studentId);
-  await ensureStudentKeyAvailable(campus, studentId);
+  const email = studentAccountEmail(studentId);
+  await ensureStudentCodeAvailable(studentId);
 
   try {
     await auth.getUserByEmail(email);
-    throw new HttpsError("already-exists", "같은 소속관과 학생번호의 로그인 계정이 이미 있습니다.");
+    throw new HttpsError("already-exists", `${studentId} 로그인 계정이 이미 있습니다.`);
   } catch (error) {
     if (error instanceof HttpsError) throw error;
     if (error.code !== "auth/user-not-found") throw error;
@@ -119,7 +130,7 @@ exports.createStudentAccount = onCall(async (request) => {
       studentId,
       name,
       email,
-      loginKey: `${campus}_${studentId}`,
+      loginKey: studentId,
       mustChangePassword: true,
       approvedAt: FieldValue.serverTimestamp(),
       approvedBy: request.auth.uid,
@@ -140,10 +151,14 @@ exports.createStudentAccount = onCall(async (request) => {
     await batch.commit();
   } catch (error) {
     if (userRecord?.uid) {
-      try { await auth.deleteUser(userRecord.uid); } catch (cleanupError) { console.error("학생 계정 정리 실패", cleanupError); }
+      try {
+        await auth.deleteUser(userRecord.uid);
+      } catch (cleanupError) {
+        console.error("학생 계정 정리 실패", cleanupError);
+      }
     }
     if (error.code === "auth/email-already-exists") {
-      throw new HttpsError("already-exists", "같은 소속관과 학생번호의 로그인 계정이 이미 있습니다.");
+      throw new HttpsError("already-exists", `${studentId} 로그인 계정이 이미 있습니다.`);
     }
     if (error instanceof HttpsError) throw error;
     console.error(error);
@@ -157,10 +172,12 @@ exports.updateStudentIdentity = onCall(async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
 
   const uid = typeof request.data?.uid === "string" ? request.data.uid.trim() : "";
-  const campus = typeof request.data?.campus === "string" ? request.data.campus.trim() : "";
   if (!uid) throw new HttpsError("invalid-argument", "학생 UID가 필요합니다.");
-  if (!VALID_CAMPUSES.has(campus)) throw new HttpsError("invalid-argument", "소속관이 올바르지 않습니다.");
+
   const studentId = normalizeStudentId(request.data?.studentId);
+  const campus = campusFromStudentId(studentId);
+  const requestedCampus = typeof request.data?.campus === "string" ? request.data.campus.trim() : "";
+  validateDisplayedCampus(requestedCampus, campus);
   const name = normalizeStudentName(request.data?.name);
 
   const [caller, targetSnap, authUser] = await Promise.all([
@@ -182,11 +199,11 @@ exports.updateStudentIdentity = onCall(async (request) => {
     throw new HttpsError("permission-denied", "이 학생의 로그인 정보를 수정할 권한이 없습니다.");
   }
 
-  await ensureStudentKeyAvailable(campus, studentId, uid);
-  const email = studentAccountEmail(campus, studentId);
+  await ensureStudentCodeAvailable(studentId, uid);
+  const email = studentAccountEmail(studentId);
   try {
     const existing = await auth.getUserByEmail(email);
-    if (existing.uid !== uid) throw new HttpsError("already-exists", "같은 소속관과 학생번호의 로그인 계정이 이미 있습니다.");
+    if (existing.uid !== uid) throw new HttpsError("already-exists", `${studentId} 로그인 계정이 이미 있습니다.`);
   } catch (error) {
     if (error instanceof HttpsError) throw error;
     if (error.code !== "auth/user-not-found") throw error;
@@ -207,7 +224,7 @@ exports.updateStudentIdentity = onCall(async (request) => {
       studentId,
       name,
       email,
-      loginKey: `${campus}_${studentId}`,
+      loginKey: studentId,
       updatedAt: FieldValue.serverTimestamp(),
       updatedBy: request.auth.uid
     }, { merge: true });
@@ -248,7 +265,7 @@ exports.updateStudentIdentity = onCall(async (request) => {
     }
     if (error instanceof HttpsError) throw error;
     if (error.code === "auth/email-already-exists") {
-      throw new HttpsError("already-exists", "같은 소속관과 학생번호의 로그인 계정이 이미 있습니다.");
+      throw new HttpsError("already-exists", `${studentId} 로그인 계정이 이미 있습니다.`);
     }
     console.error(error);
     throw new HttpsError("internal", "학생 로그인정보 수정 중 오류가 발생했습니다.");
