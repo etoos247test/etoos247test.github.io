@@ -23,6 +23,9 @@ export function codeForCampus(campus, value = "001") {
 
 export const els = {
   loginArea: $("loginArea"), accountToolbar: $("accountToolbar"),
+  studentApplicationOpenButton: $("studentApplicationOpenButton"),
+  studentApplicationCancelButton: $("studentApplicationCancelButton"),
+  studentApplicationBox: $("studentApplicationBox"),
   studentApplicationForm: $("studentApplicationForm"),
   studentApplicationResult: $("studentApplicationResult"),
   studentApplicationSubmit: $("studentApplicationSubmit"),
