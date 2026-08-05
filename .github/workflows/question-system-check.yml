@@ -38,3 +38,7 @@ jobs:
           python -m json.tool firestore.indexes.json >/dev/null
           python -m json.tool functions/package.json >/dev/null
           python -m json.tool .firebaserc >/dev/null
+      - name: Install Firebase CLI
+        run: npm install --global firebase-tools
+      - name: Parse Firestore rules in emulator
+        run: firebase emulators:exec --only firestore --project demo-etoos247 "echo Firestore rules OK"
