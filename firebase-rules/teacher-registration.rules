@@ -8,38 +8,67 @@ service cloud.firestore {
     }
 
     function currentUserData() {
-      return get(
-        /databases/$(database)/documents/users/$(request.auth.uid)
-      ).data;
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
     function isActiveUser() {
-      return signedIn()
-        && currentUserData().active == true;
+      return signedIn() && currentUserData().active == true;
     }
 
     function isMaster() {
-      return isActiveUser()
-        && currentUserData().role == "master";
+      return isActiveUser() && currentUserData().role == "master";
     }
 
     function isTeacher() {
-      return isActiveUser()
-        && (
-          currentUserData().role == "teacher"
-          || currentUserData().role == "master"
-        );
+      return isActiveUser() && currentUserData().role == "teacher";
     }
 
     function isStudent() {
-      return isActiveUser()
-        && currentUserData().role == "student";
+      return isActiveUser() && currentUserData().role == "student";
+    }
+
+    function hasCampusAccess(campus) {
+      return isMaster()
+        || (
+          isTeacher()
+          && currentUserData().allowedCampuses is list
+          && campus in currentUserData().allowedCampuses
+        );
+    }
+
+    function canAnswerQuestions() {
+      return isMaster()
+        || (
+          isTeacher()
+          && currentUserData().canAnswerQuestions == true
+        );
+    }
+
+    function canApproveStudents() {
+      return isMaster()
+        || (
+          isTeacher()
+          && currentUserData().canApproveStudents == true
+        );
+    }
+
+    function canManageStudentInfo() {
+      return isMaster()
+        || (
+          isTeacher()
+          && currentUserData().canManageStudentInfo == true
+        );
+    }
+
+    function canResetStudentPassword() {
+      return isMaster()
+        || (
+          isTeacher()
+          && currentUserData().canResetStudentPassword == true
+        );
     }
 
     match /users/{userId} {
-      // 본인은 자기 사용자 문서를 읽을 수 있습니다.
-      // 마스터는 모든 사용자 문서를 읽을 수 있습니다.
-      // 교사는 승인된 학생(role: student, active: true) 정보만 읽을 수 있습니다.
       allow get: if signedIn()
         && (
           request.auth.uid == userId
@@ -47,18 +76,57 @@ service cloud.firestore {
           || (
             isTeacher()
             && resource.data.role == "student"
-            && resource.data.active == true
+            && hasCampusAccess(resource.data.campus)
+            && (
+              resource.data.active == true
+              || canApproveStudents()
+            )
           )
         );
 
-      // 교사 화면의 학생 목록 쿼리는 반드시
-      // where("role", "==", "student")와
-      // where("active", "==", true)를 함께 사용해야 합니다.
-      allow list: if isTeacher()
-        && resource.data.role == "student"
-        && resource.data.active == true;
+      allow list: if isMaster()
+        || (
+          isTeacher()
+          && resource.data.role == "student"
+          && hasCampusAccess(resource.data.campus)
+          && (
+            resource.data.active == true
+            || canApproveStudents()
+          )
+        );
 
-      allow create, update, delete: if isMaster();
+      allow create, delete: if isMaster();
+
+      allow update: if isMaster()
+        || (
+          isTeacher()
+          && resource.data.role == "student"
+          && request.resource.data.role == "student"
+          && hasCampusAccess(resource.data.campus)
+          && request.resource.data.campus == resource.data.campus
+          && (
+            (
+              canManageStudentInfo()
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                "studentId",
+                "name",
+                "updatedAt",
+                "updatedBy"
+              ])
+            )
+            ||
+            (
+              canApproveStudents()
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                "active",
+                "approvedAt",
+                "approvedBy",
+                "updatedAt",
+                "updatedBy"
+              ])
+            )
+          )
+        );
     }
 
     match /teacherRequests/{requestId} {
@@ -92,15 +160,13 @@ service cloud.firestore {
           && request.resource.data.email == request.auth.token.email
           && request.resource.data.status == "pending"
           && request.resource.data.updatedAt == request.time
-          && request.resource.data.diff(resource.data)
-            .affectedKeys()
-            .hasOnly([
-              "name",
-              "email",
-              "status",
-              "requestedAt",
-              "updatedAt"
-            ])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            "name",
+            "email",
+            "status",
+            "requestedAt",
+            "updatedAt"
+          ])
         )
         || isMaster();
 
@@ -108,23 +174,59 @@ service cloud.firestore {
     }
 
     match /questions/{questionId} {
-      // 학생은 자기 질문만 읽고, 교사·마스터는 모든 질문을 읽습니다.
       allow read: if (
           isStudent()
           && resource.data.studentUid == request.auth.uid
         )
-        || isTeacher();
+        || isMaster()
+        || (
+          isTeacher()
+          && canAnswerQuestions()
+          && hasCampusAccess(resource.data.campus)
+        );
 
-      // 학생은 자기 UID와 사용자 문서의 학생번호·이름으로만 질문을 등록합니다.
       allow create: if isStudent()
         && request.resource.data.studentUid == request.auth.uid
-        && request.resource.data.studentId == currentUserData().studentId
-        && request.resource.data.studentName == currentUserData().name
+        && request.resource.data.campus == currentUserData().campus
         && request.resource.data.status == "waiting"
-        && request.resource.data.answer == "";
+        && request.resource.data.answer == ""
+        && request.resource.data.keys().hasOnly([
+          "studentUid",
+          "studentId",
+          "studentName",
+          "campus",
+          "subject",
+          "questionText",
+          "status",
+          "answer",
+          "createdAt",
+          "updatedAt"
+        ]);
 
-      allow update: if isTeacher();
+      allow update: if (
+          isMaster()
+          || (
+            isTeacher()
+            && canAnswerQuestions()
+            && hasCampusAccess(resource.data.campus)
+          )
+        )
+        && request.resource.data.studentUid == resource.data.studentUid
+        && request.resource.data.campus == resource.data.campus
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "answer",
+          "status",
+          "answeredAt",
+          "answeredBy",
+          "updatedAt"
+        ]);
+
       allow delete: if isMaster();
+    }
+
+    match /auditLogs/{logId} {
+      allow read: if isMaster();
+      allow write: if false;
     }
 
     match /{document=**} {
