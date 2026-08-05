@@ -3,7 +3,6 @@ import {
   browserSessionPersistence, getAuth, GoogleAuthProvider, setPersistence
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAg6PnWUVfvlc10R81wb2liVxyGMbqbw78",
@@ -21,17 +20,9 @@ export const authPersistenceReady = setPersistence(auth, browserSessionPersisten
   console.error("Firebase 세션 유지 방식 설정 실패", error);
 });
 export const db = getFirestore(app);
-const functions = getFunctions(app, "asia-northeast3");
-export const createStudentAccountCallable = httpsCallable(functions, "createStudentAccount");
-export const updateStudentIdentityCallable = httpsCallable(functions, "updateStudentIdentity");
-export const resetStudentPasswordCallable = httpsCallable(functions, "resetStudentPassword");
-export const requestStudentApplicationCallable = httpsCallable(functions, "requestStudentApplication");
-export const listStudentApplicationsCallable = httpsCallable(functions, "listStudentApplications");
-export const approveStudentApplicationCallable = httpsCallable(functions, "approveStudentApplication");
-export const rejectStudentApplicationCallable = httpsCallable(functions, "rejectStudentApplication");
 export const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ prompt: "select_account" });
 auth.languageCode = "ko";
 
-// Student login codes: suseong1=M001~M199, suseong2=S001~S199.
-// New students submit an application before an administrator issues login credentials.
+// Students, teachers, and masters all authenticate with Google.
+// M001~M199 and S001~S199 are internal student numbers, not login accounts.
