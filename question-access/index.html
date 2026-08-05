@@ -16,6 +16,13 @@
 
   <section class="shell">
     <div id="loginArea" class="login-grid">
+      <section class="login-card teacher-login-card">
+        <h2>교사·마스터 Google 로그인</h2>
+        <p>교사와 마스터는 아래 버튼을 눌러 승인된 Google 계정으로 로그인합니다.</p>
+        <button id="googleLoginButton" class="primary" type="button">Google 계정으로 로그인</button>
+        <p class="login-rule">처음 접속한 교사는 Google 로그인 후 마스터에게 권한 승인을 요청할 수 있습니다.</p>
+      </section>
+
       <section class="login-card">
         <h2>학생 로그인</h2>
         <p>소속관을 확인한 뒤 학생코드와 비밀번호를 입력합니다.</p>
@@ -34,14 +41,10 @@
         </form>
         <p class="login-rule">수성1관은 M001~M199, 수성2관은 S001~S199입니다. 소속관 선택은 확인용이며 실제 계정은 학생코드 하나로 구분합니다.</p>
       </section>
-      <section class="login-card">
-        <h2>교사·마스터 로그인</h2>
-        <p>승인된 Google 계정으로 로그인합니다.</p>
-        <button id="googleLoginButton" type="button">Google 계정으로 로그인</button>
-      </section>
     </div>
 
     <div id="accountToolbar" class="toolbar hidden">
+      <button id="googleSwitchButton" class="primary" type="button">Google 계정 전환</button>
       <button id="refreshButton" type="button">현재 화면 새로고침</button>
       <button id="logoutButton" type="button">로그아웃</button>
     </div>
