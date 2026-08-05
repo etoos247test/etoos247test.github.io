@@ -11,6 +11,18 @@ import { configureStudentApprovalPanel, loadStudentApplications } from "./studen
 import { resetTeacherView, loadTeacherWorkspace, bindTeacherFilters } from "./teacher.js";
 import { loadTeacherRequests, loadApprovedTeachers, requestTeacherRole } from "./master.js";
 
+function setStudentApplicationOpen(open) {
+  els.studentApplicationBox.classList.toggle("hidden", !open);
+  els.studentApplicationOpenButton.classList.toggle("hidden", open);
+  if (!open) {
+    els.studentApplicationForm.reset();
+    els.studentApplicationResult.classList.add("hidden");
+    els.studentApplicationResult.textContent = "";
+  } else {
+    document.getElementById("studentApplicationCampus")?.focus();
+  }
+}
+
 async function loadAccountView(user) {
   state.currentUser = user;
   state.currentProfile = null;
@@ -114,6 +126,8 @@ async function googleLogin(button) {
   }
 }
 
+els.studentApplicationOpenButton.addEventListener("click", () => setStudentApplicationOpen(true));
+els.studentApplicationCancelButton.addEventListener("click", () => setStudentApplicationOpen(false));
 els.studentApplicationForm.addEventListener("submit", submitStudentApplication);
 els.studentLoginForm.addEventListener("submit", studentLogin);
 els.questionForm.addEventListener("submit", submitQuestion);
@@ -124,6 +138,7 @@ els.googleLoginButton.addEventListener("click", () => googleLogin(els.googleLogi
 els.googleSwitchButton.addEventListener("click", () => googleLogin(els.googleSwitchButton));
 
 bindTeacherFilters();
+setStudentApplicationOpen(false);
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -135,6 +150,7 @@ onAuthStateChanged(auth, async (user) => {
     els.accountToolbar.classList.add("hidden");
     hidePanels();
     configureStudentApprovalPanel();
+    setStudentApplicationOpen(false);
     showStatus("로그인하지 않았습니다. 교사·마스터는 위의 Google 로그인 버튼을 누르세요.");
     return;
   }
