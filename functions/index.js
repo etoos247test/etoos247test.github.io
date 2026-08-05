@@ -44,7 +44,7 @@ function studentAccountEmail(campus, studentId) {
 }
 
 function canCreateStudent(profile, campus) {
-  return profile.role === "master"
+  return (profile.role === "master" && profile.active === true)
     || (
       profile.role === "teacher"
       && profile.active === true
@@ -168,7 +168,7 @@ exports.resetStudentPassword = onCall(async (request) => {
   if (target.role !== "student") throw new HttpsError("failed-precondition", "학생 계정이 아닙니다.");
   if (!VALID_CAMPUSES.has(target.campus)) throw new HttpsError("failed-precondition", "학생 소속관이 올바르지 않습니다.");
 
-  const allowed = caller.role === "master"
+  const allowed = (caller.role === "master" && caller.active === true)
     || (
       caller.role === "teacher"
       && caller.active === true
