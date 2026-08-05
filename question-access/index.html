@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>이투스247 질문 시스템 권한센터</title>
+  <style>
+    *{box-sizing:border-box}
+    :root{color-scheme:light}
+    body{margin:0;min-height:100vh;padding:28px 14px;background:#eef2f7;color:#172033;font-family:Pretendard,"Noto Sans KR",Arial,sans-serif}
+    main{width:min(100%,980px);margin:20px auto}
+    .hero{padding:28px;background:linear-gradient(135deg,#102a43,#1f5f74);color:#fff;border-radius:20px;box-shadow:0 18px 46px rgba(15,23,42,.16)}
+    .hero h1{margin:0 0 10px;font-size:clamp(27px,4vw,38px)}
+    .hero p{margin:0;line-height:1.75;color:#dbeafe}
+    .shell{margin-top:18px;padding:24px;background:#fff;border:1px solid #d8e0eb;border-radius:18px;box-shadow:0 14px 38px rgba(15,23,42,.08)}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap}
+    button{min-height:48px;border:0;border-radius:10px;padding:11px 18px;font-size:15px;font-weight:800;cursor:pointer}
+    button:disabled{opacity:.5;cursor:wait}
+    #loginButton,#refreshButton{background:#2563eb;color:#fff}
+    #logoutButton{background:#475569;color:#fff}
+    #requestButton{background:#0f766e;color:#fff}
+    .approve{background:#0f766e;color:#fff}
+    .reject{background:#b91c1c;color:#fff}
+    .status{margin-top:18px;padding:17px;border:1px solid #d6deea;border-radius:12px;background:#f8fafc;line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere}
+    .success{border-color:#16a34a;background:#f0fdf4}
+    .warning{border-color:#d97706;background:#fff7ed}
+    .error{border-color:#dc2626;background:#fef2f2}
+    .panel{margin-top:18px;padding:20px;border:1px solid #d8e0eb;border-radius:14px;background:#fff}
+    .panel h2{margin:0 0 8px;font-size:22px}
+    .panel p{margin:0;color:#64748b;line-height:1.7}
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+    .step{padding:16px;border-radius:13px;background:#f8fafc;border:1px solid #e2e8f0}
+    .step b{display:block;margin-bottom:7px;color:#0f172a}
+    .step span{color:#64748b;line-height:1.55;font-size:14px}
+    .list{display:grid;gap:14px;margin-top:16px}
+    .item{padding:18px;border:1px solid #d8e0eb;border-radius:13px;background:#f8fafc}
+    .item h3{margin:0 0 8px;font-size:18px}
+    .meta{color:#475569;line-height:1.75;overflow-wrap:anywhere}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .badge{display:inline-block;margin-left:7px;padding:4px 8px;border-radius:999px;background:#fff7ed;color:#9a3412;font-size:12px;font-weight:800}
+    .hidden{display:none!important}
+    .foot{margin-top:16px;padding:14px;border-radius:11px;background:#eff6ff;color:#1e40af;line-height:1.65;font-size:14px}
+    @media(max-width:720px){.steps{grid-template-columns:1fr}.toolbar button,.actions button{width:100%}.shell{padding:18px}.hero{padding:22px}}
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <h1>이투스247 질문 시스템 권한센터</h1>
+    <p>한 주소에서 Google 로그인, 교사 등록 요청, 승인 상태 확인, 마스터의 교사 승인·반려를 처리합니다. 로그인한 계정의 권한에 따라 필요한 화면만 자동으로 열립니다.</p>
+  </section>
+
+  <section class="shell">
+    <div class="toolbar">
+      <button id="loginButton" type="button">Google 계정으로 로그인</button>
+      <button id="refreshButton" type="button" class="hidden">현재 상태 새로고침</button>
+      <button id="logoutButton" type="button" class="hidden">로그아웃</button>
+    </div>
+
+    <div id="status" class="status" role="status" aria-live="polite">로그인하지 않았습니다.</div>
+
+    <section id="guidePanel" class="panel">
+      <h2>한 페이지 이용 흐름</h2>
+      <p>같은 주소를 교사와 마스터가 함께 사용합니다.</p>
+      <div class="steps">
+        <div class="step"><b>1. Google 로그인</b><span>교사 또는 마스터가 자신의 Google 계정을 선택합니다.</span></div>
+        <div class="step"><b>2. 권한 자동 판정</b><span>Firestore의 users/{UID} 문서와 교사 등록 요청 상태를 확인합니다.</span></div>
+        <div class="step"><b>3. 역할별 화면 표시</b><span>교사는 승인 요청·상태 확인, 마스터는 대기 목록 승인·반려를 처리합니다.</span></div>
+      </div>
+    </section>
+
+    <section id="requestPanel" class="panel hidden">
+      <h2>교사 등록 요청</h2>
+      <p id="requestText">교사 권한이 아직 없습니다. 마스터에게 승인을 요청할 수 있습니다.</p>
+      <button id="requestButton" type="button">교사 권한 승인 요청</button>
+    </section>
+
+    <section id="teacherPanel" class="panel hidden">
+      <h2>교사 권한 확인 완료</h2>
+      <p>현재 계정은 활성 교사입니다. 다음 구축 단계에서 전체 질문 열람·답변 화면으로 연결합니다.</p>
+    </section>
+
+    <section id="masterPanel" class="panel hidden">
+      <h2>마스터 관리 화면</h2>
+      <p>승인 대기 중인 교사 요청을 이 페이지에서 처리합니다.</p>
+      <div id="requestList" class="list"></div>
+    </section>
+
+    <div class="foot">교사 요청만으로 권한이 생기지 않습니다. Firestore의 마스터 계정이 승인해야 users/{교사 UID}에 role: teacher, active: true가 저장됩니다.</div>
+  </section>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    collection,
+    query,
+    where,
+    getDocs,
+    writeBatch,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAg6PnWUVfvlc10R81wb2liVxyGMbqbw78",
+    authDomain: "etoos247test-10ffa.firebaseapp.com",
+    projectId: "etoos247test-10ffa",
+    storageBucket: "etoos247test-10ffa.firebasestorage.app",
+    messagingSenderId: "795523938504",
+    appId: "1:795523938504:web:1f5815dc67dd0906310dfd",
+    measurementId: "G-NS4NCBBG4S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  auth.languageCode = "ko";
+
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+
+  const loginButton = document.getElementById("loginButton");
+  const refreshButton = document.getElementById("refreshButton");
+  const logoutButton = document.getElementById("logoutButton");
+  const requestButton = document.getElementById("requestButton");
+  const statusBox = document.getElementById("status");
+  const guidePanel = document.getElementById("guidePanel");
+  const requestPanel = document.getElementById("requestPanel");
+  const requestText = document.getElementById("requestText");
+  const teacherPanel = document.getElementById("teacherPanel");
+  const masterPanel = document.getElementById("masterPanel");
+  const requestList = document.getElementById("requestList");
+
+  let currentUser = null;
+  let currentRole = null;
+
+  function showStatus(message, type = "") {
+    statusBox.className = `status ${type}`.trim();
+    statusBox.textContent = message;
+  }
+
+  function hideRolePanels() {
+    requestPanel.classList.add("hidden");
+    teacherPanel.classList.add("hidden");
+    masterPanel.classList.add("hidden");
+    requestList.innerHTML = "";
+  }
+
+  function userSummary(user) {
+    return [
+      `이름: ${user.displayName ?? "이름 정보 없음"}`,
+      `이메일: ${user.email ?? "이메일 정보 없음"}`,
+      `UID: ${user.uid}`
+    ].join("\n");
+  }
+
+  async function loadPendingRequests() {
+    if (!currentUser || currentRole !== "master") return;
+
+    requestList.innerHTML = "<div class='status'>승인 대기 요청을 불러오는 중입니다.</div>";
+
+    try {
+      const pendingQuery = query(
+        collection(db, "teacherRequests"),
+        where("status", "==", "pending")
+      );
+      const snapshot = await getDocs(pendingQuery);
+      requestList.innerHTML = "";
+
+      if (snapshot.empty) {
+        requestList.innerHTML = "<div class='status success'>현재 승인 대기 중인 교사 요청이 없습니다.</div>";
+        return;
+      }
+
+      snapshot.forEach((requestDoc) => {
+        const data = requestDoc.data();
+        const item = document.createElement("article");
+        item.className = "item";
+
+        const title = document.createElement("h3");
+        title.textContent = data.name || "이름 정보 없음";
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = "승인 대기";
+        title.appendChild(badge);
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = [
+          `이메일: ${data.email ?? "없음"}`,
+          `UID: ${data.uid ?? requestDoc.id}`
+        ].join("\n");
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const approveButton = document.createElement("button");
+        approveButton.type = "button";
+        approveButton.className = "approve";
+        approveButton.textContent = "교사 승인";
+        approveButton.addEventListener("click", () => reviewTeacher(requestDoc.id, data, "approved", approveButton, rejectButton));
+
+        const rejectButton = document.createElement("button");
+        rejectButton.type = "button";
+        rejectButton.className = "reject";
+        rejectButton.textContent = "요청 반려";
+        rejectButton.addEventListener("click", () => reviewTeacher(requestDoc.id, data, "rejected", approveButton, rejectButton));
+
+        actions.append(approveButton, rejectButton);
+        item.append(title, meta, actions);
+        requestList.appendChild(item);
+      });
+    } catch (error) {
+      console.error(error);
+      requestList.innerHTML = `<div class="status error">승인 대기 목록을 읽지 못했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${error.message ?? String(error)}</div>`;
+    }
+  }
+
+  async function reviewTeacher(uid, data, decision, approveButton, rejectButton) {
+    approveButton.disabled = true;
+    rejectButton.disabled = true;
+
+    try {
+      const batch = writeBatch(db);
+      const requestRef = doc(db, "teacherRequests", uid);
+
+      if (decision === "approved") {
+        const userRef = doc(db, "users", uid);
+        batch.set(userRef, {
+          role: "teacher",
+          active: true,
+          name: data.name ?? "",
+          email: data.email ?? "",
+          approvedAt: serverTimestamp(),
+          approvedBy: currentUser.uid
+        }, { merge: true });
+      }
+
+      batch.update(requestRef, {
+        status: decision,
+        reviewedAt: serverTimestamp(),
+        reviewedBy: currentUser.uid,
+        updatedAt: serverTimestamp()
+      });
+
+      await batch.commit();
+      showStatus(
+        decision === "approved"
+          ? `${data.name ?? data.email ?? uid} 교사를 승인했습니다.`
+          : `${data.name ?? data.email ?? uid} 요청을 반려했습니다.`,
+        decision === "approved" ? "success" : "warning"
+      );
+      await loadPendingRequests();
+    } catch (error) {
+      console.error(error);
+      showStatus(`처리에 실패했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${error.message ?? String(error)}`, "error");
+      approveButton.disabled = false;
+      rejectButton.disabled = false;
+    }
+  }
+
+  async function requestTeacherRole() {
+    if (!currentUser) return;
+    requestButton.disabled = true;
+    showStatus("교사 권한 요청을 저장하는 중입니다.");
+
+    try {
+      await setDoc(doc(db, "teacherRequests", currentUser.uid), {
+        uid: currentUser.uid,
+        name: currentUser.displayName ?? "",
+        email: currentUser.email ?? "",
+        status: "pending",
+        requestedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      await loadAccountView(currentUser);
+    } catch (error) {
+      console.error(error);
+      showStatus(`교사 권한 요청에 실패했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${error.message ?? String(error)}`, "error");
+    } finally {
+      requestButton.disabled = false;
+    }
+  }
+
+  async function loadAccountView(user) {
+    currentUser = user;
+    currentRole = null;
+    hideRolePanels();
+    showStatus(`로그인 계정과 권한을 확인하는 중입니다.\n\n${userSummary(user)}`);
+
+    try {
+      const profileSnap = await getDoc(doc(db, "users", user.uid));
+
+      if (profileSnap.exists()) {
+        const profile = profileSnap.data();
+        currentRole = profile.role ?? null;
+        const active = profile.active === true;
+
+        if (currentRole === "master" && active) {
+          guidePanel.classList.add("hidden");
+          masterPanel.classList.remove("hidden");
+          showStatus(`${userSummary(user)}\n\n권한: master\n계정 상태: 활성\n현재 화면: 교사 승인 관리`, "success");
+          await loadPendingRequests();
+          return;
+        }
+
+        if (currentRole === "teacher" && active) {
+          guidePanel.classList.add("hidden");
+          teacherPanel.classList.remove("hidden");
+          showStatus(`${userSummary(user)}\n\n권한: teacher\n계정 상태: 활성\n최종 판정: 교사 권한 확인 완료`, "success");
+          return;
+        }
+
+        if (currentRole === "student" && active) {
+          guidePanel.classList.add("hidden");
+          showStatus(`${userSummary(user)}\n\n권한: student\n계정 상태: 활성\n학생용 질문 화면은 다음 단계에서 연결합니다.`, "success");
+          return;
+        }
+
+        showStatus(`${userSummary(user)}\n\n등록된 사용자 문서는 있으나 현재 활성 권한이 없습니다.`, "warning");
+      }
+
+      const requestSnap = await getDoc(doc(db, "teacherRequests", user.uid));
+      guidePanel.classList.add("hidden");
+      requestPanel.classList.remove("hidden");
+
+      if (!requestSnap.exists()) {
+        requestText.textContent = "교사 권한이 아직 없습니다. 아래 버튼으로 마스터에게 승인을 요청하세요.";
+        requestButton.textContent = "교사 권한 승인 요청";
+        requestButton.disabled = false;
+        showStatus(`${userSummary(user)}\n\n교사 등록 요청: 아직 없음`, "warning");
+        return;
+      }
+
+      const requestData = requestSnap.data();
+      const requestStatus = requestData.status ?? "확인 불가";
+
+      if (requestStatus === "pending") {
+        requestText.textContent = "교사 등록 요청이 접수되었습니다. 마스터 승인을 기다리고 있습니다.";
+        requestButton.textContent = "승인 대기 중";
+        requestButton.disabled = true;
+        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: 승인 대기`, "warning");
+      } else if (requestStatus === "rejected") {
+        requestText.textContent = "이전 요청이 반려되었습니다. 필요하면 다시 승인을 요청할 수 있습니다.";
+        requestButton.textContent = "교사 권한 다시 요청";
+        requestButton.disabled = false;
+        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: 반려`, "error");
+      } else if (requestStatus === "approved") {
+        requestText.textContent = "승인 처리는 되었지만 교사 사용자 문서 확인이 필요합니다. 잠시 후 새로고침하세요.";
+        requestButton.textContent = "승인 처리 확인 중";
+        requestButton.disabled = true;
+        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: 승인됨\n사용자 권한 문서를 다시 확인하세요.`, "warning");
+      } else {
+        requestText.textContent = `현재 요청 상태를 확인할 수 없습니다: ${requestStatus}`;
+        requestButton.disabled = true;
+        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: ${requestStatus}`, "warning");
+      }
+    } catch (error) {
+      console.error(error);
+      showStatus(`권한 확인에 실패했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${error.message ?? String(error)}`, "error");
+    }
+  }
+
+  loginButton.addEventListener("click", async () => {
+    loginButton.disabled = true;
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error(error);
+      showStatus(`Google 로그인에 실패했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${error.message ?? String(error)}`, "error");
+    } finally {
+      loginButton.disabled = false;
+    }
+  });
+
+  logoutButton.addEventListener("click", () => signOut(auth));
+  refreshButton.addEventListener("click", () => currentUser && loadAccountView(currentUser));
+  requestButton.addEventListener("click", requestTeacherRole);
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      currentUser = null;
+      currentRole = null;
+      loginButton.classList.remove("hidden");
+      refreshButton.classList.add("hidden");
+      logoutButton.classList.add("hidden");
+      guidePanel.classList.remove("hidden");
+      hideRolePanels();
+      showStatus("로그인하지 않았습니다.");
+      return;
+    }
+
+    loginButton.classList.add("hidden");
+    refreshButton.classList.remove("hidden");
+    logoutButton.classList.remove("hidden");
+    await loadAccountView(user);
+  });
+</script>
+</body>
+</html>
