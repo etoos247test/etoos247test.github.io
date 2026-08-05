@@ -6,7 +6,8 @@ import {
   SUBJECTS, CAMPUSES, campusLabel, els, state, showStatus, timeout, timestampValue,
   normalizedStatus, isAnswered, formatDate, allowedCampuses, canAnswerQuestions,
   canManageStudentInfo, canApproveStudents, canResetStudentPassword, studentDisplay,
-  questionsForStudent, selectedStudent, isMaster
+  questionsForStudent, selectedStudent, isMaster, STUDENT_CODE_PATTERN, campusFromStudentId,
+  studentCodeRange, codeForCampus
 } from "./shared.js";
 
 export function resetTeacherView() {
@@ -53,12 +54,12 @@ export async function loadTeacherWorkspace() {
     let questionQuery = null;
 
     if (isMaster()) {
-      studentQuery = query(collection(db, "users"), where("role", "==", "student"), limit(300));
+      studentQuery = query(collection(db, "users"), where("role", "==", "student"), limit(450));
       if (canAnswerQuestions()) questionQuery = query(collection(db, "questions"), limit(500));
     } else {
       const studentConstraints = [where("role", "==", "student"), where("campus", "in", campuses)];
       if (!canApproveStudents()) studentConstraints.push(where("active", "==", true));
-      studentConstraints.push(limit(250));
+      studentConstraints.push(limit(450));
       studentQuery = query(collection(db, "users"), ...studentConstraints);
       if (canAnswerQuestions()) questionQuery = query(collection(db, "questions"), where("campus", "in", campuses), limit(500));
     }
@@ -238,40 +239,45 @@ function createStudentCard(student) {
 async function changeStudentCampus(uid) {
   const student = state.approvedStudents.find((x) => x.uid === uid);
   if (!student || !isMaster()) return;
-  const current = student.campus === "suseong2" ? "2" : "1";
-  const input = prompt("소속관을 입력하세요. 수성1관=1, 수성2관=2", current);
+  const currentCampus = student.campus;
+  const currentChoice = currentCampus === "suseong2" ? "2" : "1";
+  const input = prompt("이동할 소속관을 입력하세요. 수성1관=1, 수성2관=2", currentChoice);
   if (input === null) return;
   const campus = input.trim() === "1" ? "suseong1" : input.trim() === "2" ? "suseong2" : "";
   if (!campus) {
     showStatus("소속관은 1 또는 2로 입력하세요.", "warning");
     return;
   }
-  if (campus === student.campus) {
+  if (campus === currentCampus) {
     showStatus("현재 소속관과 같습니다.", "warning");
     return;
   }
-  if (!student.studentId || !student.name) {
-    showStatus("소속관을 옮기기 전에 학생번호와 이름을 먼저 확인하세요.", "warning");
+  if (!student.name) {
+    showStatus("소속관을 옮기기 전에 학생 이름을 먼저 확인하세요.", "warning");
     return;
   }
 
+  const studentId = codeForCampus(campus, student.studentId);
+  if (!confirm((student.studentId || "학생") + "을(를) " + studentId + "로 변경해 " + campusLabel(campus) + "으로 이동하시겠습니까?")) return;
+
   try {
-    showStatus("소속관과 학생 로그인 계정을 함께 변경하는 중입니다.");
+    showStatus("소속관과 학생 로그인 코드를 함께 변경하는 중입니다.");
     await timeout(updateStudentIdentityCallable({
       uid,
       campus,
-      studentId: student.studentId,
+      studentId,
       name: student.name
     }), 25000, "소속관 변경 시간이 초과되었습니다.");
 
     const questions = state.teacherQuestions.filter((q) => q.studentUid === uid);
     student.campus = campus;
+    student.studentId = studentId;
     questions.forEach((q) => {
       q.campus = campus;
-      q.studentId = student.studentId;
+      q.studentId = studentId;
       q.studentName = student.name;
     });
-    showStatus(student.studentId + "의 소속과 로그인 계정을 " + campusLabel(campus) + "으로 변경했습니다.", "success");
+    showStatus(studentId + "로 변경하고 " + campusLabel(campus) + "으로 이동했습니다.", "success");
     renderStudentDirectory();
     renderTeacherQuestions();
   } catch (error) {
@@ -304,14 +310,19 @@ async function setStudentActive(uid, active) {
 async function editStudentInfo(uid) {
   const student = state.approvedStudents.find((x) => x.uid === uid);
   if (!student || !student.campus) return;
-  const studentId = prompt("학생번호를 입력하세요. (M001~M100)", (student.studentId || "").toUpperCase())?.trim().toUpperCase();
+  const guide = studentCodeRange(student.campus);
+  const studentId = prompt("학생코드를 입력하세요. (" + guide + ")", (student.studentId || "").toUpperCase())?.trim().toUpperCase();
   if (studentId == null) return;
-  if (!/^M(00[1-9]|0[1-9][0-9]|100)$/.test(studentId)) {
-    showStatus("학생번호는 M001부터 M100까지 입력하세요.", "warning");
+  if (!STUDENT_CODE_PATTERN.test(studentId)) {
+    showStatus("학생코드는 수성1관 M001~M199 또는 수성2관 S001~S199로 입력하세요.", "warning");
     return;
   }
-  if (state.approvedStudents.some((x) => x.uid !== uid && x.campus === student.campus && (x.studentId || "").toUpperCase() === studentId)) {
-    showStatus(campusLabel(student.campus) + " " + studentId + "는 이미 사용 중입니다.", "error");
+  if (campusFromStudentId(studentId) !== student.campus) {
+    showStatus(campusLabel(student.campus) + " 학생코드는 " + guide + "입니다.", "warning");
+    return;
+  }
+  if (state.approvedStudents.some((x) => x.uid !== uid && (x.studentId || "").toUpperCase() === studentId)) {
+    showStatus(studentId + "는 이미 사용 중입니다.", "error");
     return;
   }
   const name = prompt("학생 이름을 입력하세요.", student.name || "")?.trim();
@@ -321,7 +332,7 @@ async function editStudentInfo(uid) {
   }
 
   try {
-    showStatus("학생번호·이름과 로그인 계정을 함께 수정하는 중입니다.");
+    showStatus("학생코드·이름과 로그인 계정을 함께 수정하는 중입니다.");
     await timeout(updateStudentIdentityCallable({
       uid,
       campus: student.campus,
