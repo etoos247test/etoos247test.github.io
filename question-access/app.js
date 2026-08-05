@@ -6,15 +6,16 @@ import {
   allowedCampuses, campusLabel, campusFromStudentId
 } from "./shared.js";
 import { studentLogin, loadStudentQuestions, submitQuestion } from "./student.js";
+import { submitStudentApplication } from "./student-application.js";
+import { configureStudentApprovalPanel, loadStudentApplications } from "./student-approval.js";
 import { resetTeacherView, loadTeacherWorkspace, bindTeacherFilters } from "./teacher.js";
 import { loadTeacherRequests, loadApprovedTeachers, requestTeacherRole } from "./master.js";
-import { configureStudentAccountPanel } from "./student-account.js";
 
 async function loadAccountView(user) {
   state.currentUser = user;
   state.currentProfile = null;
   hidePanels();
-  configureStudentAccountPanel();
+  configureStudentApprovalPanel();
   showStatus(`계정 권한을 확인하는 중입니다.\n\n${userSummary(user)}`);
 
   try {
@@ -46,11 +47,11 @@ async function loadAccountView(user) {
     if (role === "teacher" && active) {
       els.teacherPanel.classList.remove("hidden");
       resetTeacherView();
-      configureStudentAccountPanel();
+      configureStudentApprovalPanel();
       const campuses = allowedCampuses().map(campusLabel).join(" · ") || "미지정";
       const level = isQuasiMaster() ? "준마스터 교사" : "일반 교사";
       showStatus(`${userSummary(user)}\n\n권한: ${level}\n관리 지점: ${campuses}\n허용된 지점 학생만 표시됩니다.`, "success");
-      await loadTeacherWorkspace();
+      await Promise.all([loadTeacherWorkspace(), loadStudentApplications()]);
       return;
     }
 
@@ -58,9 +59,9 @@ async function loadAccountView(user) {
       els.masterPanel.classList.remove("hidden");
       els.teacherPanel.classList.remove("hidden");
       resetTeacherView();
-      configureStudentAccountPanel();
+      configureStudentApprovalPanel();
       showStatus(`${userSummary(user)}\n\n권한: 마스터\n수성1관·수성2관 전체 관리 화면이 열렸습니다.`, "success");
-      await Promise.all([loadTeacherRequests(), loadApprovedTeachers(), loadTeacherWorkspace()]);
+      await Promise.all([loadTeacherRequests(), loadApprovedTeachers(), loadTeacherWorkspace(), loadStudentApplications()]);
       return;
     }
 
@@ -113,6 +114,7 @@ async function googleLogin(button) {
   }
 }
 
+els.studentApplicationForm.addEventListener("submit", submitStudentApplication);
 els.studentLoginForm.addEventListener("submit", studentLogin);
 els.questionForm.addEventListener("submit", submitQuestion);
 els.requestButton.addEventListener("click", requestTeacherRole);
@@ -132,7 +134,7 @@ onAuthStateChanged(auth, async (user) => {
     els.loginArea.classList.remove("hidden");
     els.accountToolbar.classList.add("hidden");
     hidePanels();
-    configureStudentAccountPanel();
+    configureStudentApprovalPanel();
     showStatus("로그인하지 않았습니다. 교사·마스터는 위의 Google 로그인 버튼을 누르세요.");
     return;
   }

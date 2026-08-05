@@ -23,6 +23,9 @@ export function codeForCampus(campus, value = "001") {
 
 export const els = {
   loginArea: $("loginArea"), accountToolbar: $("accountToolbar"),
+  studentApplicationForm: $("studentApplicationForm"),
+  studentApplicationResult: $("studentApplicationResult"),
+  studentApplicationSubmit: $("studentApplicationSubmit"),
   studentLoginForm: $("studentLoginForm"), googleLoginButton: $("googleLoginButton"),
   googleSwitchButton: $("googleSwitchButton"),
   refreshButton: $("refreshButton"), logoutButton: $("logoutButton"), status: $("status"),
@@ -31,6 +34,7 @@ export const els = {
   questionForm: $("questionForm"), studentQuestionList: $("studentQuestionList"),
   teacherQuestionList: $("teacherQuestionList"), teacherQuestionCount: $("teacherQuestionCount"),
   teacherRequestList: $("teacherRequestList"), approvedTeacherList: $("approvedTeacherList"),
+  studentApprovalPanel: $("studentApprovalPanel"), studentApplicationList: $("studentApplicationList"),
   studentDirectorySummary: $("studentDirectorySummary"), studentDirectorySearch: $("studentDirectorySearch"),
   studentDirectoryList: $("studentDirectoryList"), selectedStudentTitle: $("selectedStudentTitle"),
   selectedStudentHelp: $("selectedStudentHelp"), teacherPermissionBadges: $("teacherPermissionBadges")

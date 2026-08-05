@@ -1,3 +1,4 @@
+const crypto = require("node:crypto");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const { initializeApp } = require("firebase-admin/app");
@@ -325,4 +326,247 @@ exports.resetStudentPassword = onCall(async (request) => {
   await batch.commit();
 
   return { ok: true, uid, campus: target.campus };
+});
+
+
+function normalizeApplicationCampus(value) {
+  const campus = typeof value === "string" ? value.trim() : "";
+  if (!VALID_CAMPUSES.has(campus)) {
+    throw new HttpsError("invalid-argument", "신청 소속관이 올바르지 않습니다.");
+  }
+  return campus;
+}
+
+function normalizeApplicationContact(value) {
+  const contactLast4 = typeof value === "string" ? value.trim() : "";
+  if (!/^\d{4}$/.test(contactLast4)) {
+    throw new HttpsError("invalid-argument", "연락처 뒤 4자리를 숫자로 입력하세요.");
+  }
+  return contactLast4;
+}
+
+function studentApplicationId(campus, name, contactLast4) {
+  return crypto.createHash("sha256")
+    .update([campus, name.toLowerCase(), contactLast4].join("|"))
+    .digest("hex");
+}
+
+function canReviewStudentApplications(profile, campus) {
+  return canCreateStudent(profile, campus);
+}
+
+exports.requestStudentApplication = onCall(async (request) => {
+  const campus = normalizeApplicationCampus(request.data?.campus);
+  const name = normalizeStudentName(request.data?.name);
+  const contactLast4 = normalizeApplicationContact(request.data?.contactLast4);
+  const id = studentApplicationId(campus, name, contactLast4);
+  const applicationCode = id.slice(0, 8).toUpperCase();
+  const ref = db.doc(`studentApplications/${id}`);
+  const existing = await ref.get();
+
+  if (existing.exists) {
+    const previous = existing.data();
+    if (previous.status === "pending") {
+      return { ok: true, id, applicationCode, campus, name, status: "pending", duplicate: true };
+    }
+    if (previous.status === "approved") {
+      throw new HttpsError("already-exists", "이미 승인된 학생 신청입니다.");
+    }
+  }
+
+  await ref.set({
+    campus,
+    name,
+    contactLast4,
+    applicationCode,
+    status: "pending",
+    requestedAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  });
+
+  return { ok: true, id, applicationCode, campus, name, status: "pending" };
+});
+
+exports.listStudentApplications = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
+  const caller = await getProfile(request.auth.uid);
+  const master = caller.role === "master" && caller.active === true;
+  const teacherApprover = caller.role === "teacher"
+    && caller.active === true
+    && caller.canApproveStudents === true;
+  if (!master && !teacherApprover) {
+    throw new HttpsError("permission-denied", "학생 신청을 확인할 권한이 없습니다.");
+  }
+
+  const allowed = master
+    ? [...VALID_CAMPUSES]
+    : (Array.isArray(caller.allowedCampuses) ? caller.allowedCampuses : []).filter((campus) => VALID_CAMPUSES.has(campus));
+  if (!allowed.length) return { ok: true, applications: [] };
+
+  const snap = await db.collection("studentApplications")
+    .where("status", "==", "pending")
+    .limit(100)
+    .get();
+
+  const applications = snap.docs
+    .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+    .filter((row) => allowed.includes(row.campus))
+    .sort((a, b) => (a.requestedAt?.toMillis?.() ?? 0) - (b.requestedAt?.toMillis?.() ?? 0))
+    .map((row) => ({
+      id: row.id,
+      applicationCode: row.applicationCode || row.id.slice(0, 8).toUpperCase(),
+      campus: row.campus,
+      name: row.name,
+      contactLast4: row.contactLast4,
+      status: row.status,
+      requestedAt: row.requestedAt?.toDate?.().toISOString() ?? null
+    }));
+
+  return { ok: true, applications };
+});
+
+exports.approveStudentApplication = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
+
+  const applicationId = typeof request.data?.applicationId === "string" ? request.data.applicationId.trim() : "";
+  if (!/^[a-f0-9]{64}$/.test(applicationId)) {
+    throw new HttpsError("invalid-argument", "학생 신청번호가 올바르지 않습니다.");
+  }
+
+  const studentId = normalizeStudentId(request.data?.studentId);
+  const campus = campusFromStudentId(studentId);
+  const password = typeof request.data?.password === "string" ? request.data.password : "";
+  if (password.length < 8 || password.length > 64) {
+    throw new HttpsError("invalid-argument", "임시 비밀번호는 8~64자로 입력하세요.");
+  }
+
+  const applicationRef = db.doc(`studentApplications/${applicationId}`);
+  const [caller, applicationSnap] = await Promise.all([
+    getProfile(request.auth.uid),
+    applicationRef.get()
+  ]);
+  if (!applicationSnap.exists) throw new HttpsError("not-found", "학생 신청을 찾을 수 없습니다.");
+  const application = applicationSnap.data();
+  if (application.status !== "pending") {
+    throw new HttpsError("failed-precondition", "이미 처리된 학생 신청입니다.");
+  }
+  if (!VALID_CAMPUSES.has(application.campus) || campus !== application.campus) {
+    throw new HttpsError("invalid-argument", `${campusLabel(application.campus)} 학생코드와 소속관이 일치하지 않습니다.`);
+  }
+  if (!canReviewStudentApplications(caller, application.campus)) {
+    throw new HttpsError("permission-denied", "이 소속관의 학생 신청을 승인할 권한이 없습니다.");
+  }
+
+  const name = normalizeStudentName(request.data?.name || application.name);
+  const email = studentAccountEmail(studentId);
+  await ensureStudentCodeAvailable(studentId);
+  try {
+    await auth.getUserByEmail(email);
+    throw new HttpsError("already-exists", `${studentId} 로그인 계정이 이미 있습니다.`);
+  } catch (error) {
+    if (error instanceof HttpsError) throw error;
+    if (error.code !== "auth/user-not-found") throw error;
+  }
+
+  let userRecord;
+  try {
+    userRecord = await auth.createUser({
+      email,
+      emailVerified: true,
+      password,
+      displayName: `${studentId} ${name}`,
+      disabled: false
+    });
+
+    const batch = db.batch();
+    batch.set(db.doc(`users/${userRecord.uid}`), {
+      role: "student",
+      active: true,
+      campus,
+      studentId,
+      name,
+      email,
+      loginKey: studentId,
+      mustChangePassword: true,
+      studentApplicationId: applicationId,
+      approvedAt: FieldValue.serverTimestamp(),
+      approvedBy: request.auth.uid,
+      createdAt: FieldValue.serverTimestamp(),
+      createdBy: request.auth.uid,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: request.auth.uid
+    });
+    batch.update(applicationRef, {
+      status: "approved",
+      assignedStudentId: studentId,
+      studentUid: userRecord.uid,
+      approvedName: name,
+      reviewedAt: FieldValue.serverTimestamp(),
+      reviewedBy: request.auth.uid,
+      updatedAt: FieldValue.serverTimestamp()
+    });
+    batch.set(db.collection("auditLogs").doc(), {
+      action: "student_application_approved",
+      applicationId,
+      targetUid: userRecord.uid,
+      targetStudentId: studentId,
+      campus,
+      actorUid: request.auth.uid,
+      actorRole: caller.role,
+      createdAt: FieldValue.serverTimestamp()
+    });
+    await batch.commit();
+  } catch (error) {
+    if (userRecord?.uid) {
+      try { await auth.deleteUser(userRecord.uid); }
+      catch (cleanupError) { console.error("학생 승인 계정 정리 실패", cleanupError); }
+    }
+    if (error.code === "auth/email-already-exists") {
+      throw new HttpsError("already-exists", `${studentId} 로그인 계정이 이미 있습니다.`);
+    }
+    if (error instanceof HttpsError) throw error;
+    console.error(error);
+    throw new HttpsError("internal", "학생 신청 승인 중 오류가 발생했습니다.");
+  }
+
+  return { ok: true, uid: userRecord.uid, campus, studentId, name };
+});
+
+exports.rejectStudentApplication = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
+  const applicationId = typeof request.data?.applicationId === "string" ? request.data.applicationId.trim() : "";
+  if (!/^[a-f0-9]{64}$/.test(applicationId)) {
+    throw new HttpsError("invalid-argument", "학생 신청번호가 올바르지 않습니다.");
+  }
+
+  const applicationRef = db.doc(`studentApplications/${applicationId}`);
+  const [caller, applicationSnap] = await Promise.all([
+    getProfile(request.auth.uid),
+    applicationRef.get()
+  ]);
+  if (!applicationSnap.exists) throw new HttpsError("not-found", "학생 신청을 찾을 수 없습니다.");
+  const application = applicationSnap.data();
+  if (application.status !== "pending") {
+    throw new HttpsError("failed-precondition", "이미 처리된 학생 신청입니다.");
+  }
+  if (!canReviewStudentApplications(caller, application.campus)) {
+    throw new HttpsError("permission-denied", "이 소속관의 학생 신청을 반려할 권한이 없습니다.");
+  }
+
+  await applicationRef.update({
+    status: "rejected",
+    reviewedAt: FieldValue.serverTimestamp(),
+    reviewedBy: request.auth.uid,
+    updatedAt: FieldValue.serverTimestamp()
+  });
+  await db.collection("auditLogs").add({
+    action: "student_application_rejected",
+    applicationId,
+    campus: application.campus,
+    actorUid: request.auth.uid,
+    actorRole: caller.role,
+    createdAt: FieldValue.serverTimestamp()
+  });
+
+  return { ok: true };
 });
