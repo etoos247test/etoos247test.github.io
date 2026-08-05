@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>교사 등록 요청</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;padding:28px 16px;background:#f3f6fa;color:#172033;font-family:Pretendard,"Noto Sans KR",Arial,sans-serif}main{width:min(100%,620px);margin:38px auto;padding:30px;background:#fff;border:1px solid #dbe2ec;border-radius:18px;box-shadow:0 16px 42px rgba(15,23,42,.09)}h1{margin:0 0 10px;font-size:28px}p{line-height:1.7;color:#5f6b7c}.card{margin-top:20px;padding:18px;border:1px solid #d6deea;border-radius:12px;background:#f8fafc;line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere}.success{border-color:#16a34a;background:#f0fdf4}.warning{border-color:#d97706;background:#fff7ed}.error{border-color:#dc2626;background:#fef2f2}button{width:100%;min-height:52px;margin-top:12px;border:0;border-radius:10px;padding:13px 18px;font-size:16px;font-weight:700;cursor:pointer}button:disabled{opacity:.55;cursor:wait}#loginButton{background:#2563eb;color:#fff}#requestButton{background:#0f766e;color:#fff}#logoutButton{background:#475467;color:#fff}.notice{margin-top:18px;padding:14px;border-radius:10px;background:#eff6ff;color:#1e40af;line-height:1.65;font-size:14px}
+  </style>
+</head>
+<body>
+<main>
+  <h1>교사 등록 요청</h1>
+  <p>교사는 Google 계정으로 로그인한 뒤 마스터 관리자에게 교사 권한 승인을 요청합니다.</p>
+  <button id="loginButton" type="button">Google 계정으로 로그인</button>
+  <button id="requestButton" type="button" hidden>교사 권한 승인 요청</button>
+  <button id="logoutButton" type="button" hidden>로그아웃</button>
+  <div id="result" class="card" role="status" aria-live="polite">로그인하지 않았습니다.</div>
+  <div class="notice">요청만으로 교사 권한이 생기지 않습니다. 마스터 관리자가 승인해야 모든 질문을 열람하고 답변할 수 있습니다.</div>
+</main>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+  const firebaseConfig={
+    apiKey:"AIzaSyAg6PnWUVfvlc10R81wb2liVxyGMbqbw78",
+    authDomain:"etoos247test-10ffa.firebaseapp.com",
+    projectId:"etoos247test-10ffa",
+    storageBucket:"etoos247test-10ffa.firebasestorage.app",
+    messagingSenderId:"795523938504",
+    appId:"1:795523938504:web:1f5815dc67dd0906310dfd",
+    measurementId:"G-NS4NCBBG4S"
+  };
+
+  const app=initializeApp(firebaseConfig);
+  const auth=getAuth(app);
+  const db=getFirestore(app);
+  auth.languageCode="ko";
+  const provider=new GoogleAuthProvider();
+  provider.setCustomParameters({prompt:"select_account"});
+
+  const loginButton=document.getElementById("loginButton");
+  const requestButton=document.getElementById("requestButton");
+  const logoutButton=document.getElementById("logoutButton");
+  const result=document.getElementById("result");
+  let currentUser=null;
+
+  function show(message,type=""){
+    result.className=`card ${type}`.trim();
+    result.textContent=message;
+  }
+
+  async function refreshState(user){
+    currentUser=user;
+    if(!user){
+      loginButton.hidden=false;
+      requestButton.hidden=true;
+      logoutButton.hidden=true;
+      show("로그인하지 않았습니다.");
+      return;
+    }
+
+    loginButton.hidden=true;
+    logoutButton.hidden=false;
+    requestButton.hidden=false;
+    requestButton.disabled=false;
+
+    try{
+      const profileSnap=await getDoc(doc(db,"users",user.uid));
+      if(profileSnap.exists()){
+        const profile=profileSnap.data();
+        if(profile.active===true&&(profile.role==="teacher"||profile.role==="master")){
+          requestButton.hidden=true;
+          show([
+            "로그인 성공",
+            `이름: ${user.displayName??profile.name??""}`,
+            `이메일: ${user.email??profile.email??""}`,
+            "",
+            `현재 권한: ${profile.role}`,
+            "계정 상태: 활성",
+            "",
+            "이미 승인된 계정입니다."
+          ].join("\n"),"success");
+          return;
+        }
+      }
+
+      const requestSnap=await getDoc(doc(db,"teacherRequests",user.uid));
+      if(requestSnap.exists()){
+        const data=requestSnap.data();
+        if(data.status==="pending"){
+          requestButton.textContent="등록 요청 다시 저장";
+          show([
+            "Google 로그인 성공",
+            `이름: ${user.displayName??""}`,
+            `이메일: ${user.email??""}`,
+            `UID: ${user.uid}`,
+            "",
+            "현재 상태: 마스터 승인 대기"
+          ].join("\n"),"warning");
+          return;
+        }
+        if(data.status==="rejected"){
+          show([
+            "Google 로그인 성공",
+            `이름: ${user.displayName??""}`,
+            `이메일: ${user.email??""}`,
+            "",
+            "이전 요청이 반려되었습니다. 필요하면 다시 요청할 수 있습니다."
+          ].join("\n"),"warning");
+          return;
+        }
+      }
+
+      show([
+        "Google 로그인 성공",
+        `이름: ${user.displayName??""}`,
+        `이메일: ${user.email??""}`,
+        `UID: ${user.uid}`,
+        "",
+        "아래 버튼을 눌러 교사 권한 승인을 요청하세요."
+      ].join("\n"));
+    }catch(error){
+      console.error(error);
+      show(`상태 확인 실패\n${error.code??""}\n${error.message??String(error)}`,"error");
+    }
+  }
+
+  loginButton.addEventListener("click",async()=>{
+    loginButton.disabled=true;
+    try{await signInWithPopup(auth,provider)}catch(error){show(`로그인 실패\n${error.code??""}\n${error.message??String(error)}`,"error")}finally{loginButton.disabled=false}
+  });
+
+  requestButton.addEventListener("click",async()=>{
+    if(!currentUser)return;
+    requestButton.disabled=true;
+    show("교사 등록 요청을 저장하는 중입니다.");
+    try{
+      await setDoc(doc(db,"teacherRequests",currentUser.uid),{
+        uid:currentUser.uid,
+        name:currentUser.displayName??"",
+        email:currentUser.email??"",
+        status:"pending",
+        requestedAt:serverTimestamp(),
+        updatedAt:serverTimestamp()
+      },{merge:true});
+      show([
+        "교사 등록 요청이 저장되었습니다.",
+        "",
+        `이름: ${currentUser.displayName??""}`,
+        `이메일: ${currentUser.email??""}`,
+        "상태: 마스터 승인 대기"
+      ].join("\n"),"success");
+    }catch(error){
+      console.error(error);
+      show(`요청 저장 실패\n${error.code??""}\n${error.message??String(error)}`,"error");
+    }finally{requestButton.disabled=false}
+  });
+
+  logoutButton.addEventListener("click",()=>signOut(auth));
+  onAuthStateChanged(auth,refreshState);
+</script>
+</body>
+</html>
