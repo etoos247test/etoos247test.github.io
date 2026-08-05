@@ -4,90 +4,152 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <title>이투스247 질문 시스템 권한센터</title>
+  <title>이투스247 질문 시스템</title>
   <style>
     *{box-sizing:border-box}
     :root{color-scheme:light}
-    body{margin:0;min-height:100vh;padding:28px 14px;background:#eef2f7;color:#172033;font-family:Pretendard,"Noto Sans KR",Arial,sans-serif}
-    main{width:min(100%,980px);margin:20px auto}
+    body{margin:0;min-height:100vh;padding:24px 14px;background:#eef2f7;color:#172033;font-family:Pretendard,"Noto Sans KR",Arial,sans-serif}
+    main{width:min(100%,1080px);margin:16px auto}
     .hero{padding:28px;background:linear-gradient(135deg,#102a43,#1f5f74);color:#fff;border-radius:20px;box-shadow:0 18px 46px rgba(15,23,42,.16)}
     .hero h1{margin:0 0 10px;font-size:clamp(27px,4vw,38px)}
     .hero p{margin:0;line-height:1.75;color:#dbeafe}
     .shell{margin-top:18px;padding:24px;background:#fff;border:1px solid #d8e0eb;border-radius:18px;box-shadow:0 14px 38px rgba(15,23,42,.08)}
-    .toolbar,.actions{display:flex;gap:10px;flex-wrap:wrap}
-    button{min-height:48px;border:0;border-radius:10px;padding:11px 18px;font-size:15px;font-weight:800;cursor:pointer}
-    button:disabled{opacity:.55;cursor:wait}
-    #loginButton,#refreshButton{background:#2563eb;color:#fff}
+    .login-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .login-card,.panel{padding:20px;border:1px solid #d8e0eb;border-radius:14px;background:#fff}
+    .login-card h2,.panel h2{margin:0 0 8px;font-size:22px}
+    .login-card p,.panel p{margin:0;color:#64748b;line-height:1.7}
+    label{display:block;margin-top:14px;font-weight:800;color:#334155}
+    input,select,textarea{width:100%;margin-top:7px;border:1px solid #cbd5e1;border-radius:10px;padding:12px 13px;font:inherit;background:#fff;color:#0f172a}
+    textarea{min-height:130px;resize:vertical;line-height:1.65}
+    .toolbar,.actions,.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+    button{min-height:46px;border:0;border-radius:10px;padding:11px 17px;font-size:15px;font-weight:800;cursor:pointer}
+    button:disabled{opacity:.5;cursor:wait}
+    .primary,#googleLoginButton,#refreshButton{background:#2563eb;color:#fff}
+    .student-login,#questionSubmitButton,#requestButton,.approve,.answer-button{background:#0f766e;color:#fff}
     #logoutButton{background:#475569;color:#fff}
-    #requestButton,.approve{background:#0f766e;color:#fff}
     .reject{background:#b91c1c;color:#fff}
     .status{margin-top:18px;padding:17px;border:1px solid #d6deea;border-radius:12px;background:#f8fafc;line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere}
     .success{border-color:#16a34a;background:#f0fdf4}
     .warning{border-color:#d97706;background:#fff7ed}
     .error{border-color:#dc2626;background:#fef2f2}
-    .panel{margin-top:18px;padding:20px;border:1px solid #d8e0eb;border-radius:14px;background:#fff}
-    .panel h2{margin:0 0 8px;font-size:22px}
-    .panel p{margin:0;color:#64748b;line-height:1.7}
-    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
-    .step{padding:16px;border-radius:13px;background:#f8fafc;border:1px solid #e2e8f0}
-    .step b{display:block;margin-bottom:7px;color:#0f172a}
-    .step span{color:#64748b;line-height:1.55;font-size:14px}
+    .panel{margin-top:18px}
     .list{display:grid;gap:14px;margin-top:16px}
-    .item{padding:18px;border:1px solid #d8e0eb;border-radius:13px;background:#f8fafc;transition:opacity .2s ease,transform .2s ease}
-    .item.processing{opacity:.62;transform:scale(.995)}
+    .item{padding:18px;border:1px solid #d8e0eb;border-radius:13px;background:#f8fafc}
     .item h3{margin:0 0 8px;font-size:18px}
     .meta{color:#475569;line-height:1.75;overflow-wrap:anywhere;white-space:pre-wrap}
+    .question-text,.answer-text{margin-top:12px;padding:14px;border-radius:10px;white-space:pre-wrap;line-height:1.7}
+    .question-text{background:#fff;border:1px solid #dbe3ed}
+    .answer-text{background:#ecfdf5;border:1px solid #a7f3d0}
+    .answer-empty{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412}
     .badge{display:inline-block;margin-left:7px;padding:4px 8px;border-radius:999px;background:#fff7ed;color:#9a3412;font-size:12px;font-weight:800}
+    .badge.answered{background:#ecfdf5;color:#047857}
     .hidden{display:none!important}
     .foot{margin-top:16px;padding:14px;border-radius:11px;background:#eff6ff;color:#1e40af;line-height:1.65;font-size:14px}
-    .small{font-size:13px;color:#64748b;margin-top:9px}
-    @media(max-width:720px){.steps{grid-template-columns:1fr}.toolbar button,.actions button{width:100%}.shell{padding:18px}.hero{padding:22px}}
+    .filters>div{flex:1;min-width:160px}
+    .count{margin-top:10px;color:#475569;font-weight:700}
+    code{background:#f1f5f9;padding:2px 5px;border-radius:5px}
+    @media(max-width:760px){.login-grid{grid-template-columns:1fr}.toolbar button,.actions button{width:100%}.shell{padding:17px}.hero{padding:22px}.filters{display:block}.filters>div{margin-top:10px}}
   </style>
 </head>
 <body>
 <main>
   <section class="hero">
-    <h1>이투스247 질문 시스템 권한센터</h1>
-    <p>한 주소에서 Google 로그인, 교사 등록 요청, 승인 상태 확인, 마스터의 교사 승인·반려를 처리합니다.</p>
+    <h1>이투스247 질문 시스템</h1>
+    <p>한 주소에서 학생 로그인·과목별 질문·자기 답변 확인, 교사의 전체 질문 열람·답변, 마스터의 교사 승인까지 처리합니다.</p>
   </section>
 
   <section class="shell">
-    <div class="toolbar">
-      <button id="loginButton" type="button">Google 계정으로 로그인</button>
-      <button id="refreshButton" type="button" class="hidden">현재 상태 새로고침</button>
-      <button id="logoutButton" type="button" class="hidden">로그아웃</button>
+    <div id="loginArea" class="login-grid">
+      <section class="login-card">
+        <h2>학생 로그인</h2>
+        <p>학생번호 M001~M100과 발급받은 비밀번호를 입력합니다.</p>
+        <form id="studentLoginForm">
+          <label for="studentId">학생번호</label>
+          <input id="studentId" type="text" inputmode="text" autocomplete="username" placeholder="예: M001" maxlength="4" required>
+          <label for="studentPassword">비밀번호</label>
+          <input id="studentPassword" type="password" autocomplete="current-password" minlength="6" required>
+          <button class="student-login" type="submit">학생 로그인</button>
+        </form>
+      </section>
+
+      <section class="login-card">
+        <h2>교사·마스터 로그인</h2>
+        <p>교사와 마스터는 승인된 Google 계정으로 로그인합니다.</p>
+        <button id="googleLoginButton" type="button">Google 계정으로 로그인</button>
+      </section>
+    </div>
+
+    <div id="accountToolbar" class="toolbar hidden">
+      <button id="refreshButton" type="button">현재 화면 새로고침</button>
+      <button id="logoutButton" type="button">로그아웃</button>
     </div>
 
     <div id="status" class="status" role="status" aria-live="polite">로그인하지 않았습니다.</div>
 
-    <section id="guidePanel" class="panel">
-      <h2>한 페이지 이용 흐름</h2>
-      <p>같은 주소를 교사와 마스터가 함께 사용합니다.</p>
-      <div class="steps">
-        <div class="step"><b>1. Google 로그인</b><span>교사 또는 마스터가 자신의 Google 계정을 선택합니다.</span></div>
-        <div class="step"><b>2. 권한 자동 판정</b><span>Firestore의 users/{UID} 문서와 교사 등록 요청 상태를 확인합니다.</span></div>
-        <div class="step"><b>3. 즉시 처리</b><span>승인 결과를 화면에 먼저 반영하고 목록 갱신은 뒤에서 처리합니다.</span></div>
-      </div>
-    </section>
-
     <section id="requestPanel" class="panel hidden">
       <h2>교사 등록 요청</h2>
-      <p id="requestText">교사 권한이 아직 없습니다. 마스터에게 승인을 요청할 수 있습니다.</p>
+      <p id="requestText">교사 권한이 아직 없습니다.</p>
       <button id="requestButton" type="button">교사 권한 승인 요청</button>
     </section>
 
+    <section id="studentPanel" class="panel hidden">
+      <h2>학생 질문 등록</h2>
+      <p>과목을 선택하고 질문을 작성하세요. 학생은 자기 질문과 답변만 볼 수 있습니다.</p>
+      <form id="questionForm">
+        <label for="subject">과목 선택</label>
+        <select id="subject" required>
+          <option value="">과목을 선택하세요</option>
+          <option value="국어">국어</option>
+          <option value="수학">수학</option>
+          <option value="영어">영어</option>
+          <option value="사탐">사탐</option>
+          <option value="과탐">과탐</option>
+          <option value="입시">입시</option>
+        </select>
+        <label for="questionText">질문 내용</label>
+        <textarea id="questionText" maxlength="3000" placeholder="문제의 조건, 막힌 부분, 궁금한 내용을 구체적으로 적으세요." required></textarea>
+        <button id="questionSubmitButton" type="submit">질문 등록</button>
+      </form>
+      <h2 style="margin-top:28px">내 질문과 답변</h2>
+      <div id="studentQuestionList" class="list"></div>
+    </section>
+
     <section id="teacherPanel" class="panel hidden">
-      <h2>교사 권한 확인 완료</h2>
-      <p>현재 계정은 활성 교사입니다. 다음 구축 단계에서 전체 질문 열람·답변 화면으로 연결합니다.</p>
+      <h2>교사 질문 확인·답변</h2>
+      <p>모든 학생 질문을 열람하고 답변할 수 있습니다.</p>
+      <div class="filters">
+        <div>
+          <label for="teacherSubjectFilter">과목</label>
+          <select id="teacherSubjectFilter">
+            <option value="all">전체</option>
+            <option value="국어">국어</option>
+            <option value="수학">수학</option>
+            <option value="영어">영어</option>
+            <option value="사탐">사탐</option>
+            <option value="과탐">과탐</option>
+            <option value="입시">입시</option>
+          </select>
+        </div>
+        <div>
+          <label for="teacherStatusFilter">상태</label>
+          <select id="teacherStatusFilter">
+            <option value="all">전체</option>
+            <option value="waiting">답변 대기</option>
+            <option value="answered">답변 완료</option>
+          </select>
+        </div>
+      </div>
+      <div id="teacherQuestionCount" class="count"></div>
+      <div id="teacherQuestionList" class="list"></div>
     </section>
 
     <section id="masterPanel" class="panel hidden">
-      <h2>마스터 관리 화면</h2>
-      <p>승인 대기 중인 교사 요청을 처리합니다. 목록 조회가 10초를 넘기면 오류 원인을 바로 표시합니다.</p>
-      <div id="requestList" class="list"></div>
+      <h2>마스터 교사 승인</h2>
+      <p>승인 대기 중인 교사 요청을 확인하고 승인하거나 반려합니다.</p>
+      <div id="teacherRequestList" class="list"></div>
     </section>
 
-    <div class="foot">교사 요청만으로 권한이 생기지 않습니다. 마스터 승인 시 users/{교사 UID}에 role: teacher, active: true가 저장됩니다.</div>
+    <div class="foot">학생 계정은 Firebase Authentication의 이메일/비밀번호 계정과 Firestore <code>users/{UID}</code>의 <code>role: student</code>, <code>active: true</code>가 함께 준비되어야 로그인 후 질문 화면이 열립니다.</div>
   </section>
 </main>
 
@@ -97,6 +159,7 @@
     getAuth,
     GoogleAuthProvider,
     signInWithPopup,
+    signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
@@ -105,13 +168,15 @@
     doc,
     getDoc,
     setDoc,
+    updateDoc,
+    addDoc,
     collection,
     query,
     where,
-    limit,
     getDocs,
     writeBatch,
-    serverTimestamp
+    serverTimestamp,
+    limit
   } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -133,340 +198,403 @@
   provider.setCustomParameters({prompt:"select_account"});
 
   const $ = (id) => document.getElementById(id);
-  const loginButton = $("loginButton");
+  const loginArea = $("loginArea");
+  const accountToolbar = $("accountToolbar");
+  const studentLoginForm = $("studentLoginForm");
+  const googleLoginButton = $("googleLoginButton");
   const refreshButton = $("refreshButton");
   const logoutButton = $("logoutButton");
-  const requestButton = $("requestButton");
   const statusBox = $("status");
-  const guidePanel = $("guidePanel");
   const requestPanel = $("requestPanel");
   const requestText = $("requestText");
+  const requestButton = $("requestButton");
+  const studentPanel = $("studentPanel");
   const teacherPanel = $("teacherPanel");
   const masterPanel = $("masterPanel");
-  const requestList = $("requestList");
+  const questionForm = $("questionForm");
+  const studentQuestionList = $("studentQuestionList");
+  const teacherQuestionList = $("teacherQuestionList");
+  const teacherQuestionCount = $("teacherQuestionCount");
+  const teacherRequestList = $("teacherRequestList");
+  const teacherSubjectFilter = $("teacherSubjectFilter");
+  const teacherStatusFilter = $("teacherStatusFilter");
 
   let currentUser = null;
-  let currentRole = null;
-  let loading = false;
+  let currentProfile = null;
+  let teacherQuestions = [];
 
   function showStatus(message,type=""){
-    statusBox.className=`status ${type}`.trim();
-    statusBox.textContent=message;
+    statusBox.className = `status ${type}`.trim();
+    statusBox.textContent = message;
   }
 
-  function withTimeout(promise,ms,label){
-    let timer;
-    const timeout=new Promise((_,reject)=>{
-      timer=setTimeout(()=>{
-        const error=new Error(`${label} 작업이 ${Math.round(ms/1000)}초를 넘겼습니다.`);
-        error.code="client-timeout";
-        reject(error);
-      },ms);
-    });
-    return Promise.race([promise,timeout]).finally(()=>clearTimeout(timer));
-  }
-
-  function hideRolePanels(){
+  function hidePanels(){
     requestPanel.classList.add("hidden");
+    studentPanel.classList.add("hidden");
     teacherPanel.classList.add("hidden");
     masterPanel.classList.add("hidden");
-    requestList.innerHTML="";
+    studentQuestionList.innerHTML = "";
+    teacherQuestionList.innerHTML = "";
+    teacherRequestList.innerHTML = "";
   }
 
   function userSummary(user){
     return [
-      `이름: ${user.displayName??"이름 정보 없음"}`,
-      `이메일: ${user.email??"이메일 정보 없음"}`,
+      `이름: ${user.displayName ?? currentProfile?.name ?? "이름 정보 없음"}`,
+      `이메일: ${user.email ?? "이메일 정보 없음"}`,
       `UID: ${user.uid}`
     ].join("\n");
   }
 
-  function errorMessage(error,context){
-    if(error?.code==="client-timeout"){
-      return `${context} 시간이 길어 중단했습니다.\n인터넷 연결을 확인한 뒤 ‘현재 상태 새로고침’을 누르세요.`;
+  function studentEmail(studentId){
+    const id = studentId.trim().toUpperCase();
+    if(!/^M(00[1-9]|0[1-9][0-9]|100)$/.test(id)){
+      throw new Error("학생번호는 M001부터 M100까지 입력할 수 있습니다.");
     }
-    if(error?.code==="permission-denied"){
-      return `${context} 권한이 거부되었습니다.\nFirestore 규칙이 최신 상태인지 확인하세요.`;
-    }
-    return `${context} 실패했습니다.\n오류 코드: ${error?.code??"확인 불가"}\n${error?.message??String(error)}`;
+    return `${id.toLowerCase()}@etoos247test.local`;
   }
 
-  async function loadPendingRequests(){
-    if(!currentUser||currentRole!=="master") return;
+  function timestampValue(value){
+    return value?.toMillis?.() ?? 0;
+  }
 
-    const started=performance.now();
-    requestList.innerHTML="<div class='status'>승인 대기 요청을 불러오는 중입니다.</div>";
+  function formatDate(value){
+    if(!value?.toDate) return "시간 확인 중";
+    return value.toDate().toLocaleString("ko-KR",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+  }
 
+  function timeout(promise,ms,message){
+    return Promise.race([
+      promise,
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error(message)),ms))
+    ]);
+  }
+
+  async function loadStudentQuestions(){
+    studentQuestionList.innerHTML = "<div class='status'>내 질문을 불러오는 중입니다.</div>";
     try{
-      const pendingQuery=query(
-        collection(db,"teacherRequests"),
-        where("status","==","pending"),
-        limit(50)
-      );
-      const snapshot=await withTimeout(getDocs(pendingQuery),10000,"승인 대기 목록 조회");
-      const elapsed=((performance.now()-started)/1000).toFixed(1);
-      requestList.innerHTML="";
-
-      if(snapshot.empty){
-        requestList.innerHTML=`<div class='status success'>현재 승인 대기 중인 교사 요청이 없습니다.<div class='small'>조회 ${elapsed}초</div></div>`;
+      const q = query(collection(db,"questions"),where("studentUid","==",currentUser.uid));
+      const snap = await timeout(getDocs(q),10000,"질문 조회 시간이 초과되었습니다.");
+      const rows = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>timestampValue(b.createdAt)-timestampValue(a.createdAt));
+      studentQuestionList.innerHTML = "";
+      if(!rows.length){
+        studentQuestionList.innerHTML = "<div class='status success'>등록한 질문이 없습니다.</div>";
         return;
       }
+      rows.forEach(data=>{
+        const item=document.createElement("article");
+        item.className="item";
+        const answered=data.status==="answered" && data.answer;
+        item.innerHTML=`
+          <h3>${data.subject ?? "과목 미지정"}<span class="badge ${answered?"answered":""}">${answered?"답변 완료":"답변 대기"}</span></h3>
+          <div class="meta">등록: ${formatDate(data.createdAt)}</div>
+          <div class="question-text"></div>
+          <div class="answer-text ${answered?"":"answer-empty"}"></div>`;
+        item.querySelector(".question-text").textContent=data.questionText ?? "";
+        item.querySelector(".answer-text").textContent=answered?data.answer:"아직 답변이 등록되지 않았습니다.";
+        studentQuestionList.appendChild(item);
+      });
+    }catch(error){
+      console.error(error);
+      studentQuestionList.innerHTML=`<div class="status error">내 질문을 읽지 못했습니다.\n${error.code ?? ""} ${error.message ?? String(error)}</div>`;
+    }
+  }
 
-      snapshot.forEach((requestDoc)=>{
+  async function submitQuestion(event){
+    event.preventDefault();
+    const subject=$("subject").value;
+    const questionText=$("questionText").value.trim();
+    if(!subject || questionText.length<2){
+      showStatus("과목과 질문 내용을 확인하세요.","warning");
+      return;
+    }
+    const button=$("questionSubmitButton");
+    button.disabled=true;
+    showStatus("질문을 등록하는 중입니다.");
+    try{
+      await timeout(addDoc(collection(db,"questions"),{
+        studentUid:currentUser.uid,
+        studentId:currentProfile.studentId ?? "",
+        studentName:currentProfile.name ?? currentUser.displayName ?? "",
+        subject,
+        questionText,
+        status:"waiting",
+        answer:"",
+        createdAt:serverTimestamp(),
+        updatedAt:serverTimestamp()
+      }),12000,"질문 등록 시간이 초과되었습니다.");
+      questionForm.reset();
+      showStatus("질문이 등록되었습니다.","success");
+      await loadStudentQuestions();
+    }catch(error){
+      console.error(error);
+      showStatus(`질문 등록에 실패했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${error.message ?? String(error)}`,"error");
+    }finally{
+      button.disabled=false;
+    }
+  }
+
+  async function loadTeacherQuestions(){
+    teacherQuestionList.innerHTML="<div class='status'>전체 질문을 불러오는 중입니다.</div>";
+    try{
+      const snap=await timeout(getDocs(query(collection(db,"questions"),limit(100))),10000,"질문 목록 조회 시간이 초과되었습니다.");
+      teacherQuestions=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>timestampValue(b.createdAt)-timestampValue(a.createdAt));
+      renderTeacherQuestions();
+    }catch(error){
+      console.error(error);
+      teacherQuestionList.innerHTML=`<div class="status error">질문 목록을 읽지 못했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${error.message ?? String(error)}</div>`;
+    }
+  }
+
+  function renderTeacherQuestions(){
+    const subject=teacherSubjectFilter.value;
+    const status=teacherStatusFilter.value;
+    const rows=teacherQuestions.filter(q=>(subject==="all"||q.subject===subject)&&(status==="all"||q.status===status));
+    teacherQuestionCount.textContent=`표시 ${rows.length}건 / 최근 조회 ${teacherQuestions.length}건`;
+    teacherQuestionList.innerHTML="";
+    if(!rows.length){
+      teacherQuestionList.innerHTML="<div class='status success'>조건에 맞는 질문이 없습니다.</div>";
+      return;
+    }
+    rows.forEach(data=>{
+      const item=document.createElement("article");
+      item.className="item";
+      const answered=data.status==="answered" && data.answer;
+      const heading=document.createElement("h3");
+      heading.textContent=`${data.subject ?? "과목 미지정"} · ${data.studentId || data.studentName || "학생"}`;
+      const badge=document.createElement("span");
+      badge.className=`badge ${answered?"answered":""}`;
+      badge.textContent=answered?"답변 완료":"답변 대기";
+      heading.appendChild(badge);
+      const meta=document.createElement("div");
+      meta.className="meta";
+      meta.textContent=[`학생: ${data.studentName || "이름 없음"}`,`학생 UID: ${data.studentUid ?? "없음"}`,`등록: ${formatDate(data.createdAt)}`].join("\n");
+      const question=document.createElement("div");
+      question.className="question-text";
+      question.textContent=data.questionText ?? "";
+      const answer=document.createElement("textarea");
+      answer.value=data.answer ?? "";
+      answer.placeholder="학생에게 전달할 답변을 입력하세요.";
+      const action=document.createElement("div");
+      action.className="actions";
+      const button=document.createElement("button");
+      button.type="button";
+      button.className="answer-button";
+      button.textContent=answered?"답변 수정 저장":"답변 저장";
+      button.addEventListener("click",()=>saveAnswer(data.id,answer,button));
+      action.appendChild(button);
+      item.append(heading,meta,question,answer,action);
+      teacherQuestionList.appendChild(item);
+    });
+  }
+
+  async function saveAnswer(questionId,textarea,button){
+    const answer=textarea.value.trim();
+    if(answer.length<2){
+      showStatus("답변 내용을 입력하세요.","warning");
+      return;
+    }
+    button.disabled=true;
+    button.textContent="저장 중…";
+    try{
+      await timeout(updateDoc(doc(db,"questions",questionId),{
+        answer,
+        status:"answered",
+        answeredAt:serverTimestamp(),
+        answeredBy:currentUser.uid,
+        updatedAt:serverTimestamp()
+      }),12000,"답변 저장 시간이 초과되었습니다.");
+      const target=teacherQuestions.find(q=>q.id===questionId);
+      if(target){target.answer=answer;target.status="answered";}
+      showStatus("답변이 저장되었습니다.","success");
+      renderTeacherQuestions();
+    }catch(error){
+      console.error(error);
+      showStatus(`답변 저장에 실패했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${error.message ?? String(error)}`,"error");
+      button.disabled=false;
+      button.textContent="답변 저장";
+    }
+  }
+
+  async function loadTeacherRequests(){
+    teacherRequestList.innerHTML="<div class='status'>교사 승인 요청을 불러오는 중입니다.</div>";
+    try{
+      const q=query(collection(db,"teacherRequests"),where("status","==","pending"),limit(50));
+      const snap=await timeout(getDocs(q),10000,"승인 요청 조회 시간이 초과되었습니다.");
+      teacherRequestList.innerHTML="";
+      if(snap.empty){
+        teacherRequestList.innerHTML="<div class='status success'>승인 대기 중인 교사 요청이 없습니다.</div>";
+        return;
+      }
+      snap.forEach(requestDoc=>{
         const data=requestDoc.data();
         const item=document.createElement("article");
         item.className="item";
-        item.dataset.uid=requestDoc.id;
-
         const title=document.createElement("h3");
         title.textContent=data.name||"이름 정보 없음";
-        const badge=document.createElement("span");
-        badge.className="badge";
-        badge.textContent="승인 대기";
-        title.appendChild(badge);
-
         const meta=document.createElement("div");
         meta.className="meta";
-        meta.textContent=[
-          `이메일: ${data.email??"없음"}`,
-          `UID: ${data.uid??requestDoc.id}`
-        ].join("\n");
-
+        meta.textContent=`이메일: ${data.email ?? "없음"}\nUID: ${data.uid ?? requestDoc.id}`;
         const actions=document.createElement("div");
         actions.className="actions";
-        const approveButton=document.createElement("button");
-        const rejectButton=document.createElement("button");
-        approveButton.type="button";
-        approveButton.className="approve";
-        approveButton.textContent="교사 승인";
-        rejectButton.type="button";
-        rejectButton.className="reject";
-        rejectButton.textContent="요청 반려";
-        approveButton.addEventListener("click",()=>reviewTeacher(requestDoc.id,data,"approved",item,approveButton,rejectButton));
-        rejectButton.addEventListener("click",()=>reviewTeacher(requestDoc.id,data,"rejected",item,approveButton,rejectButton));
-
-        actions.append(approveButton,rejectButton);
+        const approve=document.createElement("button");
+        approve.className="approve";
+        approve.textContent="교사 승인";
+        const reject=document.createElement("button");
+        reject.className="reject";
+        reject.textContent="요청 반려";
+        approve.addEventListener("click",()=>reviewTeacher(requestDoc.id,data,"approved",item,approve,reject));
+        reject.addEventListener("click",()=>reviewTeacher(requestDoc.id,data,"rejected",item,approve,reject));
+        actions.append(approve,reject);
         item.append(title,meta,actions);
-        requestList.appendChild(item);
+        teacherRequestList.appendChild(item);
       });
-
-      const timing=document.createElement("div");
-      timing.className="small";
-      timing.textContent=`${snapshot.size}건 조회 · ${elapsed}초`;
-      requestList.prepend(timing);
     }catch(error){
       console.error(error);
-      requestList.innerHTML=`<div class="status error">${errorMessage(error,"승인 대기 목록 조회").replaceAll("\n","<br>")}</div>`;
+      teacherRequestList.innerHTML=`<div class="status error">교사 요청을 읽지 못했습니다.\n${error.code ?? ""} ${error.message ?? String(error)}</div>`;
     }
   }
 
-  async function reviewTeacher(uid,data,decision,item,approveButton,rejectButton){
-    const originalApprove=approveButton.textContent;
-    const originalReject=rejectButton.textContent;
-    approveButton.disabled=true;
-    rejectButton.disabled=true;
-    item.classList.add("processing");
-    if(decision==="approved") approveButton.textContent="승인 저장 중…";
-    else rejectButton.textContent="반려 저장 중…";
-
-    const started=performance.now();
+  async function reviewTeacher(uid,data,decision,item,approve,reject){
+    approve.disabled=true;reject.disabled=true;
     try{
       const batch=writeBatch(db);
-      const requestRef=doc(db,"teacherRequests",uid);
-
       if(decision==="approved"){
         batch.set(doc(db,"users",uid),{
-          role:"teacher",
-          active:true,
-          name:data.name??"",
-          email:data.email??"",
-          approvedAt:serverTimestamp(),
-          approvedBy:currentUser.uid
+          role:"teacher",active:true,name:data.name??"",email:data.email??"",approvedAt:serverTimestamp(),approvedBy:currentUser.uid
         },{merge:true});
       }
-
-      batch.update(requestRef,{
-        status:decision,
-        reviewedAt:serverTimestamp(),
-        reviewedBy:currentUser.uid,
-        updatedAt:serverTimestamp()
+      batch.update(doc(db,"teacherRequests",uid),{
+        status:decision,reviewedAt:serverTimestamp(),reviewedBy:currentUser.uid,updatedAt:serverTimestamp()
       });
-
-      await withTimeout(batch.commit(),15000,"교사 승인 저장");
-      const elapsed=((performance.now()-started)/1000).toFixed(1);
-
+      await timeout(batch.commit(),15000,"승인 저장 시간이 초과되었습니다.");
       item.remove();
-      const remaining=requestList.querySelectorAll(".item").length;
-      if(remaining===0){
-        requestList.innerHTML="<div class='status success'>현재 승인 대기 중인 교사 요청이 없습니다.</div>";
-      }
-
-      showStatus(
-        decision==="approved"
-          ? `${data.name??data.email??uid} 교사를 승인했습니다.\n처리 시간: ${elapsed}초`
-          : `${data.name??data.email??uid} 요청을 반려했습니다.\n처리 시간: ${elapsed}초`,
-        decision==="approved"?"success":"warning"
-      );
-
-      setTimeout(()=>loadPendingRequests(),500);
+      showStatus(decision==="approved"?"교사 승인이 완료되었습니다.":"교사 요청을 반려했습니다.",decision==="approved"?"success":"warning");
+      if(!teacherRequestList.children.length) teacherRequestList.innerHTML="<div class='status success'>승인 대기 중인 교사 요청이 없습니다.</div>";
     }catch(error){
       console.error(error);
-      showStatus(errorMessage(error,decision==="approved"?"교사 승인":"요청 반려"),"error");
-      item.classList.remove("processing");
-      approveButton.disabled=false;
-      rejectButton.disabled=false;
-      approveButton.textContent=originalApprove;
-      rejectButton.textContent=originalReject;
+      showStatus(`교사 승인 처리에 실패했습니다.\n${error.code ?? ""} ${error.message ?? String(error)}`,"error");
+      approve.disabled=false;reject.disabled=false;
     }
   }
 
   async function requestTeacherRole(){
-    if(!currentUser) return;
     requestButton.disabled=true;
-    showStatus("교사 권한 요청을 저장하는 중입니다.");
     try{
-      await withTimeout(setDoc(doc(db,"teacherRequests",currentUser.uid),{
-        uid:currentUser.uid,
-        name:currentUser.displayName??"",
-        email:currentUser.email??"",
-        status:"pending",
-        requestedAt:serverTimestamp(),
-        updatedAt:serverTimestamp()
-      },{merge:true}),12000,"교사 권한 요청 저장");
-      await loadAccountView(currentUser);
+      await setDoc(doc(db,"teacherRequests",currentUser.uid),{
+        uid:currentUser.uid,name:currentUser.displayName??"",email:currentUser.email??"",status:"pending",requestedAt:serverTimestamp(),updatedAt:serverTimestamp()
+      });
+      requestText.textContent="교사 등록 요청이 접수되었습니다. 마스터 승인을 기다리고 있습니다.";
+      requestButton.textContent="승인 대기 중";
+      requestButton.disabled=true;
+      showStatus("교사 등록 요청이 완료되었습니다.","success");
     }catch(error){
       console.error(error);
-      showStatus(errorMessage(error,"교사 권한 요청"),"error");
-    }finally{
+      showStatus(`교사 등록 요청에 실패했습니다.\n${error.code ?? ""} ${error.message ?? String(error)}`,"error");
       requestButton.disabled=false;
     }
   }
 
   async function loadAccountView(user){
-    if(loading) return;
-    loading=true;
     currentUser=user;
-    currentRole=null;
-    hideRolePanels();
-    showStatus(`로그인 계정과 권한을 확인하는 중입니다.\n\n${userSummary(user)}`);
-
+    currentProfile=null;
+    hidePanels();
+    showStatus(`계정 권한을 확인하는 중입니다.\n\n${userSummary(user)}`);
     try{
-      const profileSnap=await withTimeout(getDoc(doc(db,"users",user.uid)),10000,"사용자 권한 조회");
+      const profileSnap=await timeout(getDoc(doc(db,"users",user.uid)),10000,"사용자 권한 조회 시간이 초과되었습니다.");
+      if(profileSnap.exists()) currentProfile=profileSnap.data();
+      const role=currentProfile?.role;
+      const active=currentProfile?.active===true;
 
-      if(profileSnap.exists()){
-        const profile=profileSnap.data();
-        currentRole=profile.role??null;
-        const active=profile.active===true;
-
-        if(currentRole==="master"&&active){
-          sessionStorage.setItem(`etoos-role-${user.uid}`,"master");
-          guidePanel.classList.add("hidden");
-          masterPanel.classList.remove("hidden");
-          showStatus(`${userSummary(user)}\n\n권한: master\n계정 상태: 활성\n현재 화면: 교사 승인 관리`,"success");
-          loadPendingRequests();
-          return;
-        }
-
-        if(currentRole==="teacher"&&active){
-          guidePanel.classList.add("hidden");
-          teacherPanel.classList.remove("hidden");
-          showStatus(`${userSummary(user)}\n\n권한: teacher\n계정 상태: 활성\n최종 판정: 교사 권한 확인 완료`,"success");
-          return;
-        }
-
-        if(currentRole==="student"&&active){
-          guidePanel.classList.add("hidden");
-          showStatus(`${userSummary(user)}\n\n권한: student\n계정 상태: 활성\n학생용 질문 화면은 다음 단계에서 연결합니다.`,"success");
-          return;
-        }
+      if(role==="student"&&active){
+        studentPanel.classList.remove("hidden");
+        showStatus(`${userSummary(user)}\n\n권한: student\n계정 상태: 활성\n학생 질문 화면이 열렸습니다.`,"success");
+        await loadStudentQuestions();
+        return;
       }
 
-      const requestSnap=await withTimeout(getDoc(doc(db,"teacherRequests",user.uid)),10000,"교사 등록 상태 조회");
-      guidePanel.classList.add("hidden");
-      requestPanel.classList.remove("hidden");
+      if(role==="teacher"&&active){
+        teacherPanel.classList.remove("hidden");
+        showStatus(`${userSummary(user)}\n\n권한: teacher\n계정 상태: 활성\n교사 질문 확인 화면이 열렸습니다.`,"success");
+        await loadTeacherQuestions();
+        return;
+      }
 
+      if(role==="master"&&active){
+        masterPanel.classList.remove("hidden");
+        teacherPanel.classList.remove("hidden");
+        showStatus(`${userSummary(user)}\n\n권한: master\n계정 상태: 활성\n교사 승인과 전체 질문 관리 화면이 열렸습니다.`,"success");
+        await Promise.all([loadTeacherRequests(),loadTeacherQuestions()]);
+        return;
+      }
+
+      const providerId=user.providerData?.[0]?.providerId;
+      if(providerId==="password"){
+        showStatus(`${userSummary(user)}\n\n학생 사용자 문서가 없거나 활성화되지 않았습니다. 마스터가 users/{UID}에 student 권한을 등록해야 합니다.`,"error");
+        return;
+      }
+
+      requestPanel.classList.remove("hidden");
+      const requestSnap=await getDoc(doc(db,"teacherRequests",user.uid));
       if(!requestSnap.exists()){
         requestText.textContent="교사 권한이 아직 없습니다. 아래 버튼으로 마스터에게 승인을 요청하세요.";
         requestButton.textContent="교사 권한 승인 요청";
         requestButton.disabled=false;
         showStatus(`${userSummary(user)}\n\n교사 등록 요청: 아직 없음`,"warning");
-        return;
-      }
-
-      const requestStatus=requestSnap.data().status??"확인 불가";
-      if(requestStatus==="pending"){
-        requestText.textContent="교사 등록 요청이 접수되었습니다. 마스터 승인을 기다리고 있습니다.";
-        requestButton.textContent="승인 대기 중";
-        requestButton.disabled=true;
-        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: 승인 대기`,"warning");
-      }else if(requestStatus==="rejected"){
-        requestText.textContent="이전 요청이 반려되었습니다. 필요하면 다시 승인을 요청할 수 있습니다.";
-        requestButton.textContent="교사 권한 다시 요청";
-        requestButton.disabled=false;
-        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: 반려`,"error");
-      }else if(requestStatus==="approved"){
-        requestText.textContent="승인 처리는 완료됐습니다. 현재 상태 새로고침을 눌러 교사 권한을 다시 확인하세요.";
-        requestButton.textContent="승인 처리 확인 중";
-        requestButton.disabled=true;
-        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: 승인됨`,"warning");
       }else{
-        requestText.textContent=`현재 요청 상태를 확인할 수 없습니다: ${requestStatus}`;
-        requestButton.disabled=true;
-        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: ${requestStatus}`,"warning");
+        const state=requestSnap.data().status;
+        requestText.textContent=state==="pending"?"교사 등록 요청이 접수되었습니다. 마스터 승인을 기다리고 있습니다.":`교사 요청 상태: ${state}`;
+        requestButton.textContent=state==="pending"?"승인 대기 중":"교사 권한 다시 요청";
+        requestButton.disabled=state==="pending";
+        showStatus(`${userSummary(user)}\n\n교사 등록 요청 상태: ${state}`,state==="pending"?"warning":"error");
       }
     }catch(error){
       console.error(error);
-      showStatus(errorMessage(error,"권한 확인"),"error");
-    }finally{
-      loading=false;
+      showStatus(`권한 확인에 실패했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${error.message ?? String(error)}`,"error");
     }
   }
 
-  loginButton.addEventListener("click",async()=>{
-    loginButton.disabled=true;
+  studentLoginForm.addEventListener("submit",async(event)=>{
+    event.preventDefault();
+    const submit=studentLoginForm.querySelector("button");
+    submit.disabled=true;
+    try{
+      const email=studentEmail($("studentId").value);
+      await signInWithEmailAndPassword(auth,email,$("studentPassword").value);
+    }catch(error){
+      console.error(error);
+      const message=error.code==="auth/operation-not-allowed"
+        ? "Firebase에서 이메일/비밀번호 로그인 기능이 아직 켜지지 않았습니다."
+        : error.message ?? String(error);
+      showStatus(`학생 로그인에 실패했습니다.\n오류 코드: ${error.code ?? "확인 불가"}\n${message}`,"error");
+    }finally{submit.disabled=false;}
+  });
+
+  googleLoginButton.addEventListener("click",async()=>{
+    googleLoginButton.disabled=true;
     try{await signInWithPopup(auth,provider)}
-    catch(error){console.error(error);showStatus(errorMessage(error,"Google 로그인"),"error")}
-    finally{loginButton.disabled=false}
+    catch(error){console.error(error);showStatus(`Google 로그인에 실패했습니다.\n${error.code ?? ""} ${error.message ?? String(error)}`,"error")}
+    finally{googleLoginButton.disabled=false;}
   });
 
   logoutButton.addEventListener("click",()=>signOut(auth));
-  refreshButton.addEventListener("click",()=>{
-    if(!currentUser) return;
-    loading=false;
-    loadAccountView(currentUser);
-  });
+  refreshButton.addEventListener("click",()=>currentUser&&loadAccountView(currentUser));
   requestButton.addEventListener("click",requestTeacherRole);
-
-  window.addEventListener("offline",()=>showStatus("인터넷 연결이 끊어졌습니다. 연결 후 현재 상태 새로고침을 누르세요.","error"));
+  questionForm.addEventListener("submit",submitQuestion);
+  teacherSubjectFilter.addEventListener("change",renderTeacherQuestions);
+  teacherStatusFilter.addEventListener("change",renderTeacherQuestions);
 
   onAuthStateChanged(auth,async(user)=>{
     if(!user){
-      currentUser=null;
-      currentRole=null;
-      loading=false;
-      loginButton.classList.remove("hidden");
-      refreshButton.classList.add("hidden");
-      logoutButton.classList.add("hidden");
-      guidePanel.classList.remove("hidden");
-      hideRolePanels();
+      currentUser=null;currentProfile=null;teacherQuestions=[];
+      loginArea.classList.remove("hidden");
+      accountToolbar.classList.add("hidden");
+      hidePanels();
       showStatus("로그인하지 않았습니다.");
       return;
     }
-
-    loginButton.classList.add("hidden");
-    refreshButton.classList.remove("hidden");
-    logoutButton.classList.remove("hidden");
-
-    const cachedRole=sessionStorage.getItem(`etoos-role-${user.uid}`);
-    if(cachedRole==="master"){
-      currentUser=user;
-      currentRole="master";
-      guidePanel.classList.add("hidden");
-      masterPanel.classList.remove("hidden");
-      showStatus(`${userSummary(user)}\n\n마스터 권한을 재확인하면서 승인 목록을 먼저 불러옵니다.`,"success");
-      loadPendingRequests();
-    }
-
+    loginArea.classList.add("hidden");
+    accountToolbar.classList.remove("hidden");
     await loadAccountView(user);
   });
 </script>
