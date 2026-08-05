@@ -1,5 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+import {
+  browserSessionPersistence, getAuth, GoogleAuthProvider, setPersistence
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-functions.js";
 
@@ -15,6 +17,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const authPersistenceReady = setPersistence(auth, browserSessionPersistence).catch((error) => {
+  console.error("Firebase 세션 유지 방식 설정 실패", error);
+});
 export const db = getFirestore(app);
 const functions = getFunctions(app, "asia-northeast3");
 export const createStudentAccountCallable = httpsCallable(functions, "createStudentAccount");
