@@ -24,22 +24,30 @@
       </section>
 
       <section class="login-card student-entry-card">
-        <h2>학생 이용 신청</h2>
-        <p>처음 이용하는 학생은 신청서를 먼저 제출합니다. 승인 담당자가 확인한 뒤 학생코드와 임시 비밀번호를 부여합니다.</p>
-        <form id="studentApplicationForm">
-          <label for="studentApplicationCampus">신청 소속관</label>
-          <select id="studentApplicationCampus" required>
-            <option value="">소속관을 선택하세요</option>
-            <option value="suseong1">수성1관</option>
-            <option value="suseong2">수성2관</option>
-          </select>
-          <label for="studentApplicationName">학생 이름</label>
-          <input id="studentApplicationName" type="text" maxlength="40" autocomplete="name" required>
-          <label for="studentApplicationContact">연락처 뒤 4자리</label>
-          <input id="studentApplicationContact" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="동명이인 확인용" required>
-          <button id="studentApplicationSubmit" class="student-login" type="submit">학생 이용 신청</button>
-        </form>
-        <div id="studentApplicationResult" class="status hidden" aria-live="polite"></div>
+        <h2>학생</h2>
+        <p>처음 이용하는 학생은 가입을 신청하고, 승인받은 학생은 발급받은 코드로 로그인합니다.</p>
+
+        <button id="studentApplicationOpenButton" class="student-login" type="button">학생 가입</button>
+
+        <div id="studentApplicationBox" class="hidden">
+          <form id="studentApplicationForm">
+            <label for="studentApplicationCampus">신청 소속관</label>
+            <select id="studentApplicationCampus" required>
+              <option value="">소속관을 선택하세요</option>
+              <option value="suseong1">수성1관</option>
+              <option value="suseong2">수성2관</option>
+            </select>
+            <label for="studentApplicationName">학생 이름</label>
+            <input id="studentApplicationName" type="text" maxlength="40" autocomplete="name" required>
+            <label for="studentApplicationContact">연락처 뒤 4자리</label>
+            <input id="studentApplicationContact" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="동명이인 확인용" required>
+            <div class="actions">
+              <button id="studentApplicationSubmit" class="student-login" type="submit">가입 신청</button>
+              <button id="studentApplicationCancelButton" type="button">취소</button>
+            </div>
+          </form>
+          <div id="studentApplicationResult" class="status hidden" aria-live="polite"></div>
+        </div>
 
         <details class="student-login-details">
           <summary>이미 승인받은 학생 로그인</summary>
