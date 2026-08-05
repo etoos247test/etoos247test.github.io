@@ -24,6 +24,7 @@ export function codeForCampus(campus, value = "001") {
 export const els = {
   loginArea: $("loginArea"), accountToolbar: $("accountToolbar"),
   studentLoginForm: $("studentLoginForm"), googleLoginButton: $("googleLoginButton"),
+  googleSwitchButton: $("googleSwitchButton"),
   refreshButton: $("refreshButton"), logoutButton: $("logoutButton"), status: $("status"),
   requestPanel: $("requestPanel"), requestText: $("requestText"), requestButton: $("requestButton"),
   studentPanel: $("studentPanel"), teacherPanel: $("teacherPanel"), masterPanel: $("masterPanel"),
