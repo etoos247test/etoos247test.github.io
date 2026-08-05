@@ -18,6 +18,7 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 const functions = getFunctions(app, "asia-northeast3");
 export const createStudentAccountCallable = httpsCallable(functions, "createStudentAccount");
+export const updateStudentIdentityCallable = httpsCallable(functions, "updateStudentIdentity");
 export const resetStudentPasswordCallable = httpsCallable(functions, "resetStudentPassword");
 export const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ prompt: "select_account" });
