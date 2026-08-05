@@ -6,7 +6,7 @@
   <title>Firebase Google 로그인 시험</title>
   <meta name="robots" content="noindex,nofollow">
   <style>
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;padding:32px 16px;background:#f4f6f8;color:#172033;font-family:Pretendard,"Noto Sans KR",Arial,sans-serif}main{width:min(100%,560px);margin:48px auto;padding:30px;background:#fff;border:1px solid #d9dee8;border-radius:18px;box-shadow:0 16px 40px rgba(17,24,39,.09)}h1{margin:0 0 12px;font-size:28px}p{line-height:1.7;color:#5f6b7c}button{width:100%;min-height:52px;margin-top:12px;border:0;border-radius:10px;padding:13px 18px;font-size:16px;font-weight:700;cursor:pointer}#loginButton{background:#2563eb;color:#fff}#logoutButton{background:#475467;color:#fff}button:disabled{opacity:.55;cursor:wait}#result{margin-top:22px;min-height:120px;padding:18px;border:1px solid #cfd6e2;border-radius:12px;background:#f9fafb;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7}#result.success{border-color:#16a34a;background:#f0fdf4}#result.error{border-color:#dc2626;background:#fef2f2}.notice{margin-top:18px;padding:14px;border-radius:10px;background:#fff7ed;color:#9a3412;font-size:14px;line-height:1.6}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;padding:32px 16px;background:#f4f6f8;color:#172033;font-family:Pretendard,"Noto Sans KR",Arial,sans-serif}main{width:min(100%,560px);margin:48px auto;padding:30px;background:#fff;border:1px solid #d9dee8;border-radius:18px;box-shadow:0 16px 40px rgba(17,24,39,.09)}h1{margin:0 0 12px;font-size:28px}p{line-height:1.7;color:#5f6b7c}button{width:100%;min-height:52px;margin-top:12px;border:0;border-radius:10px;padding:13px 18px;font-size:16px;font-weight:700;cursor:pointer}#loginButton{background:#2563eb;color:#fff}#logoutButton{background:#475467;color:#fff}button:disabled{opacity:.55;cursor:wait}#result{margin-top:22px;min-height:120px;padding:18px;border:1px solid #cfd6e2;border-radius:12px;background:#f9fafb;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7}#result.success{border-color:#16a34a;background:#f0fdf4}#result.error{border-color:#dc2626;background:#fef2f2}.notice{margin-top:18px;padding:14px;border-radius:10px;background:#eff6ff;color:#1e40af;font-size:14px;line-height:1.6}
   </style>
 </head>
 <body>
@@ -15,8 +15,8 @@
     <p>Firebase Authentication과 Google 계정 연결 상태를 확인하는 시험용 페이지입니다.</p>
     <button id="loginButton" type="button">Google 계정으로 로그인</button>
     <button id="logoutButton" type="button" hidden>로그아웃</button>
-    <div id="result" role="status" aria-live="polite">Firebase API 키 입력 전입니다.</div>
-    <div class="notice">이 파일의 FIREBASE_API_KEY_HERE 한 곳만 실제 API 키로 바꾼 뒤 로그인 시험을 진행합니다.</div>
+    <div id="result" role="status" aria-live="polite">Firebase 연결을 확인하는 중입니다.</div>
+    <div class="notice">로그인에 성공하면 이름, 이메일, Firebase 사용자 UID가 표시됩니다.</div>
   </main>
 
   <script type="module">
@@ -24,7 +24,7 @@
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "FIREBASE_API_KEY_HERE",
+      apiKey: "AIzaSyAg6PnWUVfvlc10R81wb2liVxyGMbqbw78",
       authDomain: "etoos247test-10ffa.firebaseapp.com",
       projectId: "etoos247test-10ffa",
       storageBucket: "etoos247test-10ffa.firebasestorage.app",
@@ -39,10 +39,7 @@
 
     function show(message,type=""){result.className=type;result.textContent=message}
 
-    if(firebaseConfig.apiKey==="FIREBASE_API_KEY_HERE"){
-      loginButton.disabled=true;
-      show("Firebase API 키가 아직 입력되지 않았습니다.","error");
-    }else{
+    try {
       const app=initializeApp(firebaseConfig);
       const auth=getAuth(app);
       auth.languageCode="ko";
@@ -61,6 +58,10 @@
         if(!user){loginButton.hidden=false;logoutButton.hidden=true;show("아직 로그인하지 않았습니다.");return}
         loginButton.hidden=true;logoutButton.hidden=false;show(["Google 로그인 성공","",`이름: ${user.displayName??"이름 정보 없음"}`,`이메일: ${user.email??"이메일 정보 없음"}`,`UID: ${user.uid}`,"","위 UID가 Firebase 사용자 고유번호입니다."].join("\n"),"success")
       });
+    } catch (error) {
+      console.error(error);
+      loginButton.disabled=true;
+      show(["Firebase 초기화에 실패했습니다.","",`오류 내용: ${error.message??String(error)}`].join("\n"),"error");
     }
   </script>
 </body>
