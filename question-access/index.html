@@ -18,21 +18,15 @@
     <div id="loginArea" class="login-grid">
       <section class="login-card">
         <h2>학생 로그인</h2>
-        <p>소속관을 선택하고 학생번호 M001~M100과 발급받은 비밀번호를 입력합니다.</p>
+        <p>학생코드와 발급받은 비밀번호를 입력합니다.</p>
         <form id="studentLoginForm">
-          <label for="studentCampus">소속관</label>
-          <select id="studentCampus" autocomplete="organization" required>
-            <option value="">소속관을 선택하세요</option>
-            <option value="suseong1">수성1관</option>
-            <option value="suseong2">수성2관</option>
-          </select>
-          <label for="studentId">학생번호</label>
-          <input id="studentId" type="text" autocomplete="username" placeholder="예: M001" maxlength="4" required>
+          <label for="studentId">학생코드</label>
+          <input id="studentId" type="text" autocomplete="username" placeholder="1관 M001 / 2관 S001" maxlength="4" required>
           <label for="studentPassword">비밀번호</label>
           <input id="studentPassword" type="password" autocomplete="current-password" minlength="8" required>
           <button class="student-login" type="submit">학생 로그인</button>
         </form>
-        <p class="login-rule">같은 학생번호라도 수성1관과 수성2관에서 각각 사용할 수 있습니다.</p>
+        <p class="login-rule">수성1관은 M001~M199, 수성2관은 S001~S199를 사용합니다. 코드 첫 글자로 소속관을 자동 구분합니다.</p>
       </section>
       <section class="login-card">
         <h2>교사·마스터 로그인</h2>
@@ -83,15 +77,11 @@
 
       <section id="studentAccountPanel" class="account-create-box hidden">
         <h2>학생 계정 등록</h2>
-        <p>학생 승인 권한이 있는 마스터·준마스터가 소속관, 번호, 이름과 초기 비밀번호를 등록합니다.</p>
+        <p>학생 승인 권한이 있는 마스터·준마스터가 학생코드, 이름과 초기 비밀번호를 등록합니다.</p>
         <form id="studentAccountForm" class="account-create-form">
           <div>
-            <label for="newStudentCampus">소속관</label>
-            <select id="newStudentCampus" required></select>
-          </div>
-          <div>
-            <label for="newStudentId">학생번호</label>
-            <input id="newStudentId" type="text" placeholder="M001" maxlength="4" required>
+            <label for="newStudentId">학생코드</label>
+            <input id="newStudentId" type="text" placeholder="M001 또는 S001" maxlength="4" required>
           </div>
           <div>
             <label for="newStudentName">학생 이름</label>
@@ -110,7 +100,7 @@
         <div id="studentDirectorySummary" class="directory-summary">승인 학생과 질문 현황을 불러오는 중입니다.</div>
         <div class="directory-search">
           <label for="studentDirectorySearch">학생 검색</label>
-          <input id="studentDirectorySearch" type="search" placeholder="소속관·학생번호·이름">
+          <input id="studentDirectorySearch" type="search" placeholder="소속관·학생코드·이름">
         </div>
       </div>
 
@@ -162,7 +152,7 @@
     </section>
 
     <div class="foot">
-      학생 로그인 계정은 <code>소속관 + 학생번호</code> 조합으로 구분됩니다.
+      학생코드는 수성1관 <code>M001~M199</code>, 수성2관 <code>S001~S199</code>로 구분합니다.
       교사 권한은 관리 지점과 업무 권한으로 분리되며, 학생 계정 생성·비밀번호 재발급은 서버 함수가 배포되어야 작동합니다.
     </div>
   </section>
