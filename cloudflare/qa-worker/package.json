@@ -1,0 +1,19 @@
+{
+  "name": "etoos247-qa-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "types": "wrangler types",
+    "db:local": "wrangler d1 migrations apply etoos247-qa --local",
+    "db:remote": "wrangler d1 migrations apply etoos247-qa --remote"
+  },
+  "dependencies": {
+    "jose": "^6.1.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.28.0"
+  }
+}
