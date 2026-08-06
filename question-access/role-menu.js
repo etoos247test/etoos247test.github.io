@@ -1,5 +1,6 @@
 import {
-  canApproveStudents, isMaster, isQuasiMaster, state
+  canApproveStudents, canAnswerQuestions, canManageCounseling, canManageNotices,
+  canManageSchedules, canManageScores, isMaster, isQuasiMaster, state
 } from "./shared.js";
 
 const MENU_ID = "roleMenu";
@@ -20,6 +21,7 @@ function ensureMenu() {
     .role-dashboard h2{margin:0;font-size:23px}.role-dashboard>p{margin:7px 0 0;color:#64748b;line-height:1.65}
     .teacher-approval-state{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-top:14px;padding:13px 15px;border:1px solid #86efac;border-radius:12px;background:#f0fdf4;color:#166534}
     .teacher-approval-state strong{font-size:13px}.teacher-approval-state span{font-size:12px;font-weight:850;text-align:right}
+    .teacher-permission-summary{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.teacher-permission-summary span{padding:6px 9px;border-radius:999px;background:#dcfce7;color:#166534;font-size:11px;font-weight:850}.teacher-permission-summary span.off{background:#e2e8f0;color:#64748b}
     .cloud-separation{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
     .cloud-separation span{padding:7px 10px;border-radius:999px;background:#fff;color:#334155;font-size:12px;font-weight:850;border:1px solid #dbe3ed}
     .cloud-separation strong{color:#1d4ed8}
@@ -27,6 +29,7 @@ function ensureMenu() {
     .teacher-work-tab{flex:1 1 145px;min-height:50px;border:1px solid #d7e0eb;border-radius:11px;background:#f8fafc;color:#334155;font-size:13px;font-weight:900;cursor:pointer}
     .teacher-work-tab:hover{border-color:#60a5fa;background:#eff6ff}.teacher-work-tab.active{border-color:#2563eb;background:#2563eb;color:#fff;box-shadow:0 7px 18px rgba(37,99,235,.2)}
     .teacher-work-summary{margin-top:12px;padding:12px 14px;border-radius:11px;background:#eaf2ff;color:#1e40af;font-size:13px;line-height:1.65;font-weight:750}
+    .teacher-no-work{margin-top:14px;padding:16px;border:1px solid #fbbf24;border-radius:13px;background:#fffbeb;color:#92400e;line-height:1.7}
     .teacher-frame-wrap{margin-top:16px;border:1px solid #cbd5e1;border-radius:15px;background:#fff;overflow:hidden}
     .teacher-frame-head{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 15px;border-bottom:1px solid #e2e8f0;background:#f8fafc;color:#334155;font-size:13px;font-weight:850}
     .teacher-frame-head a{padding:7px 10px;border-radius:9px;background:#e2e8f0;color:#334155;font-size:12px}.teacher-work-frame{display:block;width:100%;height:780px;border:0;background:#eef3f9}
@@ -69,10 +72,21 @@ function hasApprovalManagementPermission() {
   return isMaster() || canApproveStudents();
 }
 
+function permissionMap() {
+  return {
+    approval: hasApprovalManagementPermission(),
+    notice: canManageNotices(),
+    schedule: canManageSchedules(),
+    score: canManageScores(),
+    counseling: canManageCounseling(),
+    questions: canAnswerQuestions()
+  };
+}
+
 function setNativeVisibility(mode) {
   const parts = nativeTeacherParts();
   const approvalMode = mode === "approval" && hasApprovalManagementPermission();
-  const questionMode = mode === "questions";
+  const questionMode = mode === "questions" && canAnswerQuestions();
 
   parts.teacherPanel?.classList.toggle("hidden", !(approvalMode || questionMode));
   parts.heading?.classList.toggle("teacher-native-section-hidden", approvalMode);
@@ -95,10 +109,14 @@ function tabInfo(tab) {
   return map[tab] || map.notice;
 }
 
+function firstAllowedTab(permissions) {
+  return ["approval", "notice", "schedule", "score", "counseling", "questions"]
+    .find((key) => permissions[key]) || "";
+}
+
 function activateTeacherTab(requestedTab) {
-  const tab = requestedTab === "approval" && !hasApprovalManagementPermission()
-    ? "notice"
-    : requestedTab;
+  const permissions = permissionMap();
+  const tab = permissions[requestedTab] ? requestedTab : firstAllowedTab(permissions);
   activeTeacherTab = tab;
   const menu = ensureMenu();
 
@@ -106,11 +124,17 @@ function activateTeacherTab(requestedTab) {
     button.classList.toggle("active", button.dataset.teacherTab === tab);
   });
 
+  const frameWrap = document.getElementById("teacherFrameWrap");
+  if (!tab) {
+    frameWrap?.classList.add("hidden");
+    setNativeVisibility("none");
+    return;
+  }
+
   const [label, help, src] = tabInfo(tab);
   const summary = document.getElementById("teacherWorkSummary");
   if (summary) summary.textContent = `${label} · ${help}`;
 
-  const frameWrap = document.getElementById("teacherFrameWrap");
   const frame = document.getElementById("teacherWorkFrame");
   const open = document.getElementById("teacherFrameOpen");
 
@@ -145,30 +169,46 @@ function teacherRoleLabel() {
   return "일반 교사";
 }
 
+function permissionBadge(label, enabled) {
+  return `<span class="${enabled ? "" : "off"}">${label} ${enabled ? "허용" : "차단"}</span>`;
+}
+
+function tabButton(tab, label, enabled) {
+  return enabled
+    ? `<button class="teacher-work-tab" type="button" data-teacher-tab="${tab}">${label}</button>`
+    : "";
+}
+
 export function showTeacherRoleMenu() {
   const menu = ensureMenu();
-  const canManageApprovals = hasApprovalManagementPermission();
-  const approvalTab = canManageApprovals
-    ? '<button class="teacher-work-tab" type="button" data-teacher-tab="approval">승인관리</button>'
-    : "";
+  const permissions = permissionMap();
+  const firstTab = firstAllowedTab(permissions);
 
   menu.innerHTML = `<h2>교사용 통합 업무화면</h2>
-    <p>교사 승인을 완료한 계정만 업무화면에 진입합니다. 승인관리 탭은 실제 승인 권한이 있는 계정에만 표시됩니다.</p>
+    <p>교사 승인을 완료한 계정만 진입하며, 마스터가 허용한 업무 탭만 표시됩니다.</p>
     <div class="teacher-approval-state" role="status">
       <strong>교사 승인 상태</strong>
       <span>승인 완료 (approved) · ${teacherRoleLabel()} · ${state.currentProfile?.active === true ? "이용 중" : "이용 중지"}</span>
+    </div>
+    <div class="teacher-permission-summary" aria-label="현재 업무 권한">
+      ${permissionBadge("공지", permissions.notice)}
+      ${permissionBadge("시험일정", permissions.schedule)}
+      ${permissionBadge("성적", permissions.score)}
+      ${permissionBadge("상담", permissions.counseling)}
+      ${permissionBadge("질의응답", permissions.questions)}
+      ${permissionBadge("승인관리", permissions.approval)}
     </div>
     <div class="cloud-separation">
       <span><strong>외부 화면·양식</strong> GitHub Pages 보관</span>
       <span><strong>학생·업무 데이터</strong> Firebase·Cloudflare 보관</span>
     </div>
-    <nav class="teacher-work-tabs" aria-label="교사용 업무 탭">
-      ${approvalTab}
-      <button class="teacher-work-tab" type="button" data-teacher-tab="notice">공지입력</button>
-      <button class="teacher-work-tab" type="button" data-teacher-tab="schedule">시험일정</button>
-      <button class="teacher-work-tab" type="button" data-teacher-tab="score">성적입력</button>
-      <button class="teacher-work-tab" type="button" data-teacher-tab="counseling">상담입력</button>
-      <button class="teacher-work-tab" type="button" data-teacher-tab="questions">질의응답</button>
+    ${firstTab ? `<nav class="teacher-work-tabs" aria-label="교사용 업무 탭">
+      ${tabButton("approval", "승인관리", permissions.approval)}
+      ${tabButton("notice", "공지입력", permissions.notice)}
+      ${tabButton("schedule", "시험일정", permissions.schedule)}
+      ${tabButton("score", "성적입력", permissions.score)}
+      ${tabButton("counseling", "상담입력", permissions.counseling)}
+      ${tabButton("questions", "질의응답", permissions.questions)}
     </nav>
     <div id="teacherWorkSummary" class="teacher-work-summary"></div>
     <div id="teacherFrameWrap" class="teacher-frame-wrap hidden">
@@ -177,20 +217,17 @@ export function showTeacherRoleMenu() {
         <a id="teacherFrameOpen" href="#" target="_blank" rel="noopener">새 창으로 열기 ↗</a>
       </div>
       <iframe id="teacherWorkFrame" class="teacher-work-frame" title="교사용 입력 화면"></iframe>
-    </div>${commonLinks()}`;
+    </div>` : `<div class="teacher-no-work">현재 계정에 허용된 업무 기능이 없습니다. 마스터가 관리권한을 지정한 뒤 다시 로그인하세요.</div>`}
+    ${commonLinks()}`;
 
   menu.classList.remove("hidden");
   bindTeacherTabs();
 
   const requestedStart = sessionStorage.getItem("etoos247TeacherStartTab") || "";
   sessionStorage.removeItem("etoos247TeacherStartTab");
-  const allowedTabs = new Set(["notice", "schedule", "score", "counseling", "questions"]);
-  if (canManageApprovals) allowedTabs.add("approval");
-  const startTab = allowedTabs.has(requestedStart)
-    ? requestedStart
-    : (canManageApprovals ? "approval" : "notice");
-
-  queueMicrotask(() => activateTeacherTab(startTab));
+  const startTab = permissions[requestedStart] ? requestedStart : firstTab;
+  if (startTab) queueMicrotask(() => activateTeacherTab(startTab));
+  else setNativeVisibility("none");
 }
 
 export function showStudentRoleMenu() {
