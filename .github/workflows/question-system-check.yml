@@ -10,6 +10,7 @@ on:
       - "firebase.json"
       - "firestore.indexes.json"
       - "firebase-rules/**"
+      - "storage.rules"
       - ".github/workflows/question-system-check.yml"
   workflow_dispatch:
 
@@ -45,15 +46,15 @@ jobs:
           python -m json.tool .firebaserc >/dev/null
       - name: Install Firebase CLI
         run: npm install --global firebase-tools
-      - name: Parse Firestore rules in emulator
+      - name: Parse Firestore and Storage rules in emulators
         shell: bash
         run: |
           set +e
-          output=$(firebase emulators:exec --only firestore --project demo-etoos247 "echo Firestore rules OK" 2>&1)
+          output=$(firebase emulators:exec --only firestore,storage --project demo-etoos247 "echo Firebase rules OK" 2>&1)
           status=$?
           echo "$output"
           if [ "$status" -ne 0 ]; then
             message=$(printf '%s' "$output" | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g; s/\n/%0A/g')
-            echo "::error title=Firestore rules validation::$message"
+            echo "::error title=Firebase rules validation::$message"
             exit "$status"
           fi
