@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "npm run db:remote && wrangler deploy",
+    "deploy": "wrangler deploy",
+    "release": "npm run db:remote && npm run deploy",
     "types": "wrangler types",
     "db:local": "wrangler d1 migrations apply DB --local",
     "db:remote": "wrangler d1 migrations apply DB --remote"
