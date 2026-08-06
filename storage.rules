@@ -35,9 +35,21 @@ service firebase.storage {
         && campus in userData().allowedCampuses;
     }
 
-    function canWriteCampus(campus) {
+    function canManageNotices() {
       return isMaster()
-        || (campus != 'all' && teacherHasCampus(campus));
+        || (
+          isActive()
+          && userData().role == 'teacher'
+          && userData().get('canManageNotices', true) == true
+        );
+    }
+
+    function canWriteCampus(campus) {
+      return canManageNotices()
+        && (
+          isMaster()
+          || (campus != 'all' && teacherHasCampus(campus))
+        );
     }
 
     function validNoticeImage() {
@@ -73,7 +85,6 @@ service firebase.storage {
         );
     }
 
-    /* 기존 1장 공지 사진과의 호환 경로 */
     match /academy-notices/v1/{campus}/{noticeId}/{fileName} {
       allow read: if validCampus(campus) && canReadNoticeImage(campus, noticeId);
       allow create, update: if validCampus(campus)
@@ -82,7 +93,6 @@ service firebase.storage {
       allow delete: if validCampus(campus) && canWriteCampus(campus);
     }
 
-    /* 새 공지 사진은 한 묶음에 slot-1, slot-2, slot-3만 허용 */
     match /academy-notices/v2/{campus}/{noticeId}/{batchId}/{slot} {
       allow read: if validCampus(campus) && canReadNoticeImage(campus, noticeId);
       allow create, update: if validCampus(campus)
