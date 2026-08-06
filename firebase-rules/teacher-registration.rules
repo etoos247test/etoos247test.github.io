@@ -20,6 +20,10 @@ service cloud.firestore {
       return campus == "suseong1" || campus == "suseong2";
     }
 
+    function validBoardCampus(campus) {
+      return campus == "all" || validCampus(campus);
+    }
+
     function validStudentCode(studentId) {
       return studentId is string
         && studentId.matches('^[MS](00[1-9]|0[1-9][0-9]|1[0-9]{2})$');
@@ -55,6 +59,15 @@ service cloud.firestore {
           isTeacher()
           && currentUserData().allowedCampuses is list
           && campus in currentUserData().allowedCampuses
+        );
+    }
+
+    function canManageBoardCampus(campus) {
+      return isMaster()
+        || (
+          isTeacher()
+          && campus != "all"
+          && hasCampusAccess(campus)
         );
     }
 
@@ -403,6 +416,55 @@ service cloud.firestore {
         );
 
       allow delete: if isMaster();
+    }
+
+    match /academyNotices/{noticeId} {
+      allow read: if isActiveUser();
+
+      allow create: if canManageBoardCampus(request.resource.data.campus)
+        && validBoardCampus(request.resource.data.campus)
+        && request.resource.data.title is string
+        && request.resource.data.content is string
+        && request.resource.data.pinned is bool
+        && request.resource.data.visible is bool
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if canManageBoardCampus(resource.data.campus)
+        && request.resource.data.campus == resource.data.campus
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt;
+
+      allow delete: if canManageBoardCampus(resource.data.campus);
+    }
+
+    match /examSchedules/{scheduleId} {
+      allow read: if isActiveUser();
+
+      allow create: if canManageBoardCampus(request.resource.data.campus)
+        && validBoardCampus(request.resource.data.campus)
+        && request.resource.data.examDate is string
+        && request.resource.data.periodLabel is string
+        && request.resource.data.title is string
+        && request.resource.data.description is string
+        && request.resource.data.visible is bool
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if canManageBoardCampus(resource.data.campus)
+        && request.resource.data.campus == resource.data.campus
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt;
+
+      allow delete: if canManageBoardCampus(resource.data.campus);
     }
 
     match /auditLogs/{logId} {
