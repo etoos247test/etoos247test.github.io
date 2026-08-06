@@ -8,6 +8,7 @@ import {
 import { auth, authPersistenceReady, db, storage } from "../question-access/firebase-client.js";
 
 const MAX_IMAGE_BYTES = 1024 * 1024;
+const MAX_NOTICE_IMAGES = 3;
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp"]);
 const $ = (id) => document.getElementById(id);
@@ -17,15 +18,25 @@ let user = null;
 let tab = new URLSearchParams(location.search).get("tab") === "schedule" ? "schedule" : "notice";
 let notices = [];
 let schedules = [];
-let previewObjectUrl = "";
+let removeAllNoticeImages = false;
+const previewObjectUrls = new Set();
 const renderedObjectUrls = new Set();
 
-const campusName = (value) => value === "suseong1" ? "수성1관" : value === "suseong2" ? "수성2관" : "전체";
-const isStaff = () => profile?.active === true && (profile.role === "teacher" || profile.role === "master");
-const staffCampuses = () => profile?.role === "master"
-  ? ["all", "suseong1", "suseong2"]
-  : (Array.isArray(profile?.allowedCampuses) ? profile.allowedCampuses : []);
-const canManageCampus = (campus) => profile?.role === "master"
+const campusName = (value) =>
+  value === "suseong1" ? "수성1관" :
+  value === "suseong2" ? "수성2관" :
+  "1·2관 공통";
+
+const isStaff = () =>
+  profile?.active === true && (profile.role === "teacher" || profile.role === "master");
+
+const staffCampuses = () =>
+  profile?.role === "master"
+    ? ["all", "suseong1", "suseong2"]
+    : (Array.isArray(profile?.allowedCampuses) ? profile.allowedCampuses : []);
+
+const canManageCampus = (campus) =>
+  profile?.role === "master"
   || (isStaff() && campus !== "all" && staffCampuses().includes(campus));
 
 function status(text, type = "") {
@@ -37,16 +48,23 @@ function status(text, type = "") {
 function formatTimestamp(value) {
   return value?.toDate
     ? value.toDate().toLocaleString("ko-KR", {
-        year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit"
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
       })
     : "저장 중";
 }
 
 function visibleToMe(row) {
   if (isStaff()) {
-    return profile.role === "master" || row.campus === "all" || staffCampuses().includes(row.campus);
+    return profile.role === "master"
+      || row.campus === "all"
+      || staffCampuses().includes(row.campus);
   }
-  return row.visible === true && (row.campus === "all" || row.campus === profile?.campus);
+  return row.visible === true
+    && (row.campus === "all" || row.campus === profile?.campus);
 }
 
 function setupCampusSelect() {
@@ -54,13 +72,17 @@ function setupCampusSelect() {
     const select = $(id);
     const current = select.value;
     select.innerHTML = "";
+
     staffCampuses().forEach((campus) => {
       const option = document.createElement("option");
       option.value = campus;
       option.textContent = campusName(campus);
       select.appendChild(option);
     });
-    if ([...select.options].some((option) => option.value === current)) select.value = current;
+
+    if ([...select.options].some((option) => option.value === current)) {
+      select.value = current;
+    }
   }
 }
 
@@ -78,7 +100,11 @@ function setTab(next) {
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (character) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
   })[character]);
 }
 
@@ -86,14 +112,19 @@ function appendLinkedText(container, value) {
   const text = String(value ?? "");
   const pattern = /(https?:\/\/[^\s<>"']+)/gi;
   let lastIndex = 0;
+
   for (const match of text.matchAll(pattern)) {
-    if (match.index > lastIndex) container.append(document.createTextNode(text.slice(lastIndex, match.index)));
+    if (match.index > lastIndex) {
+      container.append(document.createTextNode(text.slice(lastIndex, match.index)));
+    }
+
     let urlText = match[0];
     let trailing = "";
     while (/[.,!?;:)}\]]$/.test(urlText)) {
       trailing = urlText.slice(-1) + trailing;
       urlText = urlText.slice(0, -1);
     }
+
     try {
       const url = new URL(urlText);
       if (url.protocol === "http:" || url.protocol === "https:") {
@@ -109,58 +140,106 @@ function appendLinkedText(container, value) {
     } catch {
       container.append(document.createTextNode(urlText));
     }
+
     if (trailing) container.append(document.createTextNode(trailing));
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < text.length) container.append(document.createTextNode(text.slice(lastIndex)));
+
+  if (lastIndex < text.length) {
+    container.append(document.createTextNode(text.slice(lastIndex)));
+  }
 }
 
 function normalizeUrl(value) {
   const input = String(value ?? "").trim();
   if (!input) return "";
   const parsed = new URL(input);
-  if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error("관련 주소는 http:// 또는 https:// 주소만 사용할 수 있습니다.");
+  if (!["http:", "https:"].includes(parsed.protocol)) {
+    throw new Error("관련 주소는 http:// 또는 https:// 주소만 사용할 수 있습니다.");
+  }
   return parsed.href;
 }
 
-function clearRenderedObjectUrls() {
-  renderedObjectUrls.forEach((url) => URL.revokeObjectURL(url));
-  renderedObjectUrls.clear();
+function getNoticeImages(row) {
+  if (Array.isArray(row?.images)) {
+    return row.images
+      .filter((image) => image && typeof image.path === "string" && image.path)
+      .slice(0, MAX_NOTICE_IMAGES)
+      .map((image) => ({
+        path: image.path,
+        name: String(image.name || "공지 사진"),
+        type: String(image.type || ""),
+        size: Number(image.size || 0)
+      }));
+  }
+
+  if (row?.imagePath) {
+    return [{
+      path: row.imagePath,
+      name: String(row.imageName || "공지 사진"),
+      type: String(row.imageType || ""),
+      size: Number(row.imageSize || 0)
+    }];
+  }
+
+  return [];
 }
 
-async function attachStoredImage(container, row) {
-  if (!row.imagePath) return;
-  const wrap = document.createElement("div");
-  wrap.className = "notice-image-wrap";
-  const loading = document.createElement("div");
-  loading.className = "image-loading";
-  loading.textContent = "공지 사진을 불러오는 중입니다.";
-  wrap.appendChild(loading);
-  container.appendChild(wrap);
-  try {
-    const blob = await getBlob(storageRef(storage, row.imagePath), MAX_IMAGE_BYTES + 1);
-    const objectUrl = URL.createObjectURL(blob);
-    renderedObjectUrls.add(objectUrl);
-    const image = document.createElement("img");
-    image.className = "notice-image";
-    image.src = objectUrl;
-    image.alt = `${row.title || "학원공지"} 첨부 사진`;
-    image.loading = "lazy";
-    wrap.replaceChildren(image);
-  } catch (error) {
-    loading.textContent = `사진을 불러오지 못했습니다. ${error.code || ""}`.trim();
-  }
+function revokeObjectUrls(set) {
+  set.forEach((url) => URL.revokeObjectURL(url));
+  set.clear();
+}
+
+async function attachStoredImages(container, row) {
+  const images = getNoticeImages(row);
+  if (!images.length) return;
+
+  const gallery = document.createElement("div");
+  gallery.className = `notice-image-gallery count-${images.length}`;
+  container.appendChild(gallery);
+
+  await Promise.all(images.map(async (imageMeta, index) => {
+    const item = document.createElement("div");
+    item.className = "notice-image-item";
+    const loading = document.createElement("div");
+    loading.className = "image-loading";
+    loading.textContent = `공지 사진 ${index + 1}을 불러오는 중입니다.`;
+    item.appendChild(loading);
+    gallery.appendChild(item);
+
+    try {
+      const blob = await getBlob(storageRef(storage, imageMeta.path), MAX_IMAGE_BYTES + 1);
+      const objectUrl = URL.createObjectURL(blob);
+      renderedObjectUrls.add(objectUrl);
+
+      const image = document.createElement("img");
+      image.className = "notice-image";
+      image.src = objectUrl;
+      image.alt = `${row.title || "학원공지"} 첨부 사진 ${index + 1}`;
+      image.loading = "lazy";
+      item.replaceChildren(image);
+    } catch (error) {
+      loading.textContent = `사진 ${index + 1}을 불러오지 못했습니다. ${error.code || ""}`.trim();
+    }
+  }));
 }
 
 function renderNotices() {
-  clearRenderedObjectUrls();
+  revokeObjectUrls(renderedObjectUrls);
+
   const rows = notices
     .filter(visibleToMe)
-    .sort((a, b) => (b.pinned === true) - (a.pinned === true)
-      || ((b.updatedAt?.toMillis?.() || 0) - (a.updatedAt?.toMillis?.() || 0)));
+    .sort((a, b) =>
+      (b.pinned === true) - (a.pinned === true)
+      || ((b.updatedAt?.toMillis?.() || 0) - (a.updatedAt?.toMillis?.() || 0))
+    );
 
-  $("noticeView").innerHTML = rows.length ? "" : '<div class="empty">등록된 학원공지가 없습니다.</div>';
+  $("noticeView").innerHTML = rows.length
+    ? ""
+    : '<div class="empty">등록된 학원공지가 없습니다.</div>';
+
   rows.forEach((row) => {
+    const images = getNoticeImages(row);
     const article = document.createElement("article");
     article.className = `card ${row.pinned ? "pinned" : ""}`;
     article.innerHTML = `
@@ -171,7 +250,7 @@ function renderNotices() {
         </div>
         <div class="tags">
           ${row.pinned ? '<span class="tag">고정</span>' : ""}
-          ${row.imagePath ? '<span class="tag">사진</span>' : ""}
+          ${images.length ? `<span class="tag">사진 ${images.length}장</span>` : ""}
           <span class="tag ${row.visible ? "" : "hidden-tag"}">${row.visible ? "학생 공개" : "비공개"}</span>
         </div>
       </div>`;
@@ -191,7 +270,7 @@ function renderNotices() {
       article.appendChild(link);
     }
 
-    void attachStoredImage(article, row);
+    void attachStoredImages(article, row);
 
     if (isStaff() && canManageCampus(row.campus)) {
       const actions = document.createElement("div");
@@ -201,6 +280,7 @@ function renderNotices() {
       actions.children[1].addEventListener("click", () => removeRecord("academyNotices", row));
       article.appendChild(actions);
     }
+
     $("noticeView").appendChild(article);
   });
 }
@@ -210,7 +290,10 @@ function renderSchedules() {
     .filter(visibleToMe)
     .sort((a, b) => String(a.examDate).localeCompare(String(b.examDate)));
 
-  $("scheduleView").innerHTML = rows.length ? "" : '<div class="empty">등록된 시험일정이 없습니다.</div>';
+  $("scheduleView").innerHTML = rows.length
+    ? ""
+    : '<div class="empty">등록된 시험일정이 없습니다.</div>';
+
   rows.forEach((row) => {
     const article = document.createElement("article");
     article.className = "card";
@@ -237,6 +320,7 @@ function renderSchedules() {
       actions.children[1].addEventListener("click", () => removeRecord("examSchedules", row));
       article.appendChild(actions);
     }
+
     $("scheduleView").appendChild(article);
   });
 }
@@ -260,75 +344,107 @@ async function load() {
   }
 }
 
-function revokePreviewUrl() {
-  if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
-  previewObjectUrl = "";
-}
-
 function hideImagePreview() {
-  revokePreviewUrl();
+  revokeObjectUrls(previewObjectUrls);
   $("noticeImagePreview").replaceChildren();
   $("noticeImagePreview").classList.add("hidden");
 }
 
-function showPreviewUrl(url, label) {
-  const preview = $("noticeImagePreview");
-  preview.replaceChildren();
+function addPreviewCard(container, url, label, index) {
+  const card = document.createElement("div");
+  card.className = "image-preview-card";
+
   const image = document.createElement("img");
   image.src = url;
-  image.alt = "공지 사진 미리보기";
+  image.alt = `공지 사진 미리보기 ${index + 1}`;
+
   const meta = document.createElement("div");
   meta.className = "image-preview-meta";
   meta.textContent = label;
-  preview.append(image, meta);
-  preview.classList.remove("hidden");
+
+  card.append(image, meta);
+  container.appendChild(card);
 }
 
 function validateImageFile(file) {
-  if (!file) return;
   const extension = file.name.split(".").pop()?.toLowerCase() || "";
+
   if (!IMAGE_TYPES.has(file.type) || !IMAGE_EXTENSIONS.has(extension)) {
     throw new Error("JPG·PNG·WebP 사진만 업로드할 수 있습니다. 일반 파일 업로드는 금지됩니다.");
   }
+
   if (!file.size || file.size > MAX_IMAGE_BYTES) {
-    throw new Error("공지 사진은 1MB 이하여야 합니다.");
+    throw new Error(`'${file.name}' 사진은 1MB 이하여야 합니다.`);
   }
 }
 
-function previewSelectedFile(file) {
-  validateImageFile(file);
-  revokePreviewUrl();
-  previewObjectUrl = URL.createObjectURL(file);
-  showPreviewUrl(previewObjectUrl, `${file.name} · ${(file.size / 1024).toFixed(1)}KB`);
-  $("noticeImageRemoveButton").classList.remove("hidden");
-  $("noticeRemoveImage").value = "0";
+function validateImageFiles(files) {
+  if (files.length > MAX_NOTICE_IMAGES) {
+    throw new Error(`공지 사진은 최대 ${MAX_NOTICE_IMAGES}장까지만 업로드할 수 있습니다.`);
+  }
+  files.forEach(validateImageFile);
 }
 
-async function previewStoredImage(path, name, size) {
-  if (!path) {
-    hideImagePreview();
+function previewSelectedFiles(files) {
+  validateImageFiles(files);
+  hideImagePreview();
+
+  const preview = $("noticeImagePreview");
+  files.forEach((file, index) => {
+    const url = URL.createObjectURL(file);
+    previewObjectUrls.add(url);
+    addPreviewCard(
+      preview,
+      url,
+      `${index + 1}. ${file.name} · ${(file.size / 1024).toFixed(1)}KB`,
+      index
+    );
+  });
+
+  preview.classList.toggle("hidden", files.length === 0);
+  $("noticeImageRemoveButton").classList.toggle("hidden", files.length === 0);
+  removeAllNoticeImages = false;
+}
+
+async function previewStoredImages(images) {
+  hideImagePreview();
+  if (!images.length) {
+    $("noticeImageRemoveButton").classList.add("hidden");
     return;
   }
-  try {
-    const blob = await getBlob(storageRef(storage, path), MAX_IMAGE_BYTES + 1);
-    revokePreviewUrl();
-    previewObjectUrl = URL.createObjectURL(blob);
-    showPreviewUrl(previewObjectUrl, `${name || "현재 공지 사진"}${size ? ` · ${(Number(size) / 1024).toFixed(1)}KB` : ""}`);
-    $("noticeImageRemoveButton").classList.remove("hidden");
-  } catch (error) {
-    hideImagePreview();
-    status(`기존 공지 사진을 불러오지 못했습니다.\n${error.message || String(error)}`, "warning");
-  }
+
+  const preview = $("noticeImagePreview");
+
+  await Promise.all(images.map(async (imageMeta, index) => {
+    try {
+      const blob = await getBlob(storageRef(storage, imageMeta.path), MAX_IMAGE_BYTES + 1);
+      const url = URL.createObjectURL(blob);
+      previewObjectUrls.add(url);
+      addPreviewCard(
+        preview,
+        url,
+        `${index + 1}. ${imageMeta.name || "현재 공지 사진"}${imageMeta.size ? ` · ${(imageMeta.size / 1024).toFixed(1)}KB` : ""}`,
+        index
+      );
+    } catch (error) {
+      const card = document.createElement("div");
+      card.className = "image-preview-card";
+      card.textContent = `기존 사진 ${index + 1}을 불러오지 못했습니다. ${error.code || ""}`.trim();
+      preview.appendChild(card);
+    }
+  }));
+
+  preview.classList.remove("hidden");
+  $("noticeImageRemoveButton").classList.remove("hidden");
 }
 
 function resetNotice() {
   $("noticeForm").reset();
   $("noticeId").value = "";
-  $("noticeOriginalCampus").value = "";
-  $("noticeImagePath").value = "";
-  $("noticeRemoveImage").value = "0";
   $("noticeVisible").checked = true;
+  $("noticeCampus").disabled = false;
   $("noticeImageRemoveButton").classList.add("hidden");
+  removeAllNoticeImages = false;
   hideImagePreview();
   setupCampusSelect();
 }
@@ -343,21 +459,16 @@ function resetSchedule() {
 function editNotice(row) {
   setTab("notice");
   $("noticeId").value = row.id;
-  $("noticeOriginalCampus").value = row.campus;
   $("noticeCampus").value = row.campus;
+  $("noticeCampus").disabled = true;
   $("noticeTitle").value = row.title;
   $("noticeContent").value = row.content;
   $("noticeUrl").value = row.relatedUrl || "";
-  $("noticeImagePath").value = row.imagePath || "";
-  $("noticeRemoveImage").value = "0";
   $("noticeImage").value = "";
   $("noticePinned").checked = Boolean(row.pinned);
   $("noticeVisible").checked = Boolean(row.visible);
-  if (row.imagePath) void previewStoredImage(row.imagePath, row.imageName, row.imageSize);
-  else {
-    hideImagePreview();
-    $("noticeImageRemoveButton").classList.add("hidden");
-  }
+  removeAllNoticeImages = false;
+  void previewStoredImages(getNoticeImages(row));
   scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 }
 
@@ -382,54 +493,78 @@ async function removeStorageImage(path) {
   }
 }
 
+async function removeStorageImages(images) {
+  await Promise.allSettled(images.map((image) => removeStorageImage(image.path)));
+}
+
 async function removeRecord(collectionName, row) {
   if (!confirm("이 자료를 삭제할까요?")) return;
+
   try {
     await deleteDoc(doc(db, collectionName, row.id));
-    if (collectionName === "academyNotices" && row.imagePath) {
-      try {
-        await removeStorageImage(row.imagePath);
-      } catch (imageError) {
-        status(`공지는 삭제했지만 사진 원본 정리가 필요합니다.\n${imageError.message}`, "warning");
+
+    if (collectionName === "academyNotices") {
+      const images = getNoticeImages(row);
+      if (images.length) {
+        const results = await Promise.allSettled(images.map((image) => removeStorageImage(image.path)));
+        if (results.some((result) => result.status === "rejected")) {
+          status("공지는 삭제했지만 일부 사진 원본 정리가 필요합니다.", "warning");
+        }
       }
     }
+
     await load();
   } catch (error) {
     status(`삭제하지 못했습니다.\n${error.message}`, "error");
   }
 }
 
-function extensionForType(contentType) {
-  if (contentType === "image/jpeg") return "jpg";
-  if (contentType === "image/png") return "png";
-  return "webp";
-}
+async function uploadNoticeImages(files, campus, noticeId) {
+  validateImageFiles(files);
+  if (!files.length) return [];
 
-async function uploadNoticeImage(file, campus, noticeId) {
-  validateImageFile(file);
-  const path = `academy-notices/v1/${campus}/${noticeId}/${crypto.randomUUID()}.${extensionForType(file.type)}`;
-  await uploadBytes(storageRef(storage, path), file, {
-    contentType: file.type,
-    customMetadata: {
-      noticeId,
-      campus,
-      uploaderUid: user.uid
+  const batchId = crypto.randomUUID();
+  const uploaded = [];
+
+  try {
+    for (let index = 0; index < files.length; index += 1) {
+      const file = files[index];
+      const path = `academy-notices/v2/${campus}/${noticeId}/${batchId}/slot-${index + 1}`;
+
+      await uploadBytes(storageRef(storage, path), file, {
+        contentType: file.type,
+        customMetadata: {
+          noticeId,
+          campus,
+          slot: String(index + 1),
+          uploaderUid: user.uid
+        }
+      });
+
+      uploaded.push({
+        path,
+        name: file.name.slice(0, 160),
+        type: file.type,
+        size: file.size
+      });
     }
-  });
-  return {
-    imagePath: path,
-    imageName: file.name.slice(0, 160),
-    imageType: file.type,
-    imageSize: file.size
-  };
+
+    return uploaded;
+  } catch (error) {
+    await removeStorageImages(uploaded);
+    throw error;
+  }
 }
 
 $("noticeImage").addEventListener("change", (event) => {
-  const file = event.target.files?.[0];
-  if (!file) return;
+  const files = Array.from(event.target.files || []);
+
   try {
-    previewSelectedFile(file);
-    status("공지 사진이 선택되었습니다. 공지 저장을 누르면 클라우드에 업로드됩니다.", "success");
+    previewSelectedFiles(files);
+    status(
+      `${files.length}장의 공지 사진이 선택되었습니다. 공지 저장을 누르면 클라우드에 업로드됩니다.`,
+      "success"
+    );
   } catch (error) {
     event.target.value = "";
     hideImagePreview();
@@ -440,49 +575,58 @@ $("noticeImage").addEventListener("change", (event) => {
 
 $("noticeImageRemoveButton").addEventListener("click", () => {
   $("noticeImage").value = "";
-  $("noticeRemoveImage").value = "1";
+  removeAllNoticeImages = true;
   hideImagePreview();
   $("noticeImageRemoveButton").classList.add("hidden");
-  status("현재 공지 사진을 삭제하도록 표시했습니다. 공지 저장을 눌러 확정하세요.", "warning");
+  status("현재 공지 사진을 모두 삭제하도록 표시했습니다. 공지 저장을 눌러 확정하세요.", "warning");
 });
 
 $("noticeForm").addEventListener("submit", async (event) => {
   event.preventDefault();
+
   const saveButton = $("noticeSaveButton");
   const existingId = $("noticeId").value;
-  const noticeReference = existingId ? doc(db, "academyNotices", existingId) : doc(collection(db, "academyNotices"));
-  const existing = existingId ? notices.find((row) => row.id === existingId) : null;
+  const noticeReference = existingId
+    ? doc(db, "academyNotices", existingId)
+    : doc(collection(db, "academyNotices"));
+  const existing = existingId
+    ? notices.find((row) => row.id === existingId)
+    : null;
   const campus = $("noticeCampus").value;
-  const selectedFile = $("noticeImage").files?.[0] || null;
-  const removeImage = $("noticeRemoveImage").value === "1";
-  const oldImagePath = existing?.imagePath || "";
-  let uploaded = null;
+  const selectedFiles = Array.from($("noticeImage").files || []);
+  const oldImages = getNoticeImages(existing);
+  let uploadedImages = [];
 
   saveButton.disabled = true;
   status("학원공지를 저장하는 중입니다.");
+
   try {
     const relatedUrl = normalizeUrl($("noticeUrl").value);
-    if (selectedFile) validateImageFile(selectedFile);
-    if (oldImagePath && existing?.campus !== campus && !selectedFile && !removeImage) {
-      throw new Error("사진이 있는 공지의 대상관을 변경하려면 사진을 다시 선택하거나 기존 사진을 삭제해야 합니다.");
+    validateImageFiles(selectedFiles);
+
+    if (existing && existing.campus !== campus) {
+      throw new Error("등록 후에는 공지 구분을 변경할 수 없습니다. 새 공지로 등록해 주세요.");
     }
 
-    if (selectedFile) uploaded = await uploadNoticeImage(selectedFile, campus, noticeReference.id);
-    const imageData = uploaded || (removeImage
-      ? { imagePath: "", imageName: "", imageType: "", imageSize: 0 }
-      : {
-          imagePath: existing?.imagePath || "",
-          imageName: existing?.imageName || "",
-          imageType: existing?.imageType || "",
-          imageSize: Number(existing?.imageSize || 0)
-        });
+    if (selectedFiles.length) {
+      uploadedImages = await uploadNoticeImages(selectedFiles, campus, noticeReference.id);
+    }
 
+    const finalImages = selectedFiles.length
+      ? uploadedImages
+      : (removeAllNoticeImages ? [] : oldImages);
+
+    const firstImage = finalImages[0] || null;
     const data = {
       campus,
       title: $("noticeTitle").value.trim(),
       content: $("noticeContent").value.trim(),
       relatedUrl,
-      ...imageData,
+      images: finalImages,
+      imagePath: firstImage?.path || "",
+      imageName: firstImage?.name || "",
+      imageType: firstImage?.type || "",
+      imageSize: firstImage?.size || 0,
       pinned: $("noticePinned").checked,
       visible: $("noticeVisible").checked,
       updatedAt: serverTimestamp(),
@@ -501,20 +645,16 @@ $("noticeForm").addEventListener("submit", async (event) => {
       });
     }
 
-    if (oldImagePath && (removeImage || uploaded) && oldImagePath !== uploaded?.imagePath) {
-      try {
-        await removeStorageImage(oldImagePath);
-      } catch (imageError) {
-        status(`공지는 저장했지만 이전 사진 정리가 필요합니다.\n${imageError.message}`, "warning");
-      }
+    if ((selectedFiles.length || removeAllNoticeImages) && oldImages.length) {
+      await removeStorageImages(oldImages);
     }
 
     resetNotice();
     status("학원공지가 저장되었습니다.", "success");
     await load();
   } catch (error) {
-    if (uploaded?.imagePath) {
-      try { await removeStorageImage(uploaded.imagePath); } catch { /* cleanup best effort */ }
+    if (uploadedImages.length) {
+      await removeStorageImages(uploadedImages);
     }
     status(`공지를 저장하지 못했습니다.\n${error.message || String(error)}`, "error");
   } finally {
@@ -524,6 +664,7 @@ $("noticeForm").addEventListener("submit", async (event) => {
 
 $("scheduleForm").addEventListener("submit", async (event) => {
   event.preventDefault();
+
   const id = $("scheduleId").value;
   const data = {
     campus: $("scheduleCampus").value,
@@ -536,6 +677,7 @@ $("scheduleForm").addEventListener("submit", async (event) => {
     updatedBy: user.uid,
     updatedByName: user.displayName || profile.name || ""
   };
+
   try {
     if (id) {
       await updateDoc(doc(db, "examSchedules", id), data);
@@ -548,6 +690,7 @@ $("scheduleForm").addEventListener("submit", async (event) => {
         createdByName: user.displayName || profile.name || ""
       });
     }
+
     resetSchedule();
     status("시험일정이 저장되었습니다.", "success");
     await load();
@@ -558,6 +701,7 @@ $("scheduleForm").addEventListener("submit", async (event) => {
 
 $("noticeCancel").addEventListener("click", resetNotice);
 $("scheduleCancel").addEventListener("click", resetSchedule);
+
 document.querySelectorAll(".tab").forEach((button) => {
   button.addEventListener("click", () => setTab(button.dataset.tab));
 });
@@ -565,21 +709,28 @@ document.querySelectorAll(".tab").forEach((button) => {
 window.addEventListener("dragover", (event) => {
   if ([...(event.dataTransfer?.types || [])].includes("Files")) event.preventDefault();
 });
+
 window.addEventListener("drop", (event) => {
   if ((event.dataTransfer?.files?.length || 0) > 0) {
     event.preventDefault();
-    status("끌어놓기 파일 업로드는 지원하지 않습니다. 공지 사진 선택창에서 JPG·PNG·WebP 사진 1장만 선택하세요.", "warning");
+    status(
+      `끌어놓기 파일 업로드는 지원하지 않습니다. 사진 선택창에서 JPG·PNG·WebP 사진을 최대 ${MAX_NOTICE_IMAGES}장 선택하세요.`,
+      "warning"
+    );
   }
 });
+
 window.addEventListener("beforeunload", () => {
-  revokePreviewUrl();
-  clearRenderedObjectUrls();
+  revokeObjectUrls(previewObjectUrls);
+  revokeObjectUrls(renderedObjectUrls);
 });
 
 setTab(tab);
 await authPersistenceReady;
+
 onAuthStateChanged(auth, async (currentUser) => {
   user = currentUser;
+
   if (!currentUser) {
     status("로그인이 필요합니다. 교사용 또는 학생용 로그인 화면에서 먼저 로그인하세요.", "error");
     return;
@@ -587,15 +738,21 @@ onAuthStateChanged(auth, async (currentUser) => {
 
   const snapshot = await getDoc(doc(db, "users", currentUser.uid));
   profile = snapshot.exists() ? snapshot.data() : null;
+
   if (!profile?.active) {
     status("활성 사용자 권한이 없습니다. 관리자에게 문의하세요.", "error");
     return;
   }
 
-  status(`${profile.role === "student" ? "학생" : "교사"} 권한 확인 완료 · ${campusName(profile.campus || "all")}`, "success");
+  status(
+    `${profile.role === "student" ? "학생" : "교사"} 권한 확인 완료 · ${campusName(profile.campus || "all")}`,
+    "success"
+  );
+
   if (isStaff()) {
     setupCampusSelect();
     $("editor").classList.remove("hidden");
   }
+
   await load();
 });
