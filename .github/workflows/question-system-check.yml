@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "question-access/**"
+      - "academy-board/**"
       - "functions/**"
       - "firebase.json"
       - "firestore.indexes.json"
@@ -30,7 +31,7 @@ jobs:
       - name: Check browser JavaScript modules
         run: |
           set -e
-          for file in question-access/*.js; do
+          for file in question-access/*.js academy-board/*.js; do
             echo "Checking $file"
             node --input-type=module --check < "$file"
           done
