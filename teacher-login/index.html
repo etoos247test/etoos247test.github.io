@@ -25,11 +25,13 @@
     .auth-card{padding:26px;border:1px solid rgba(255,255,255,.14);border-radius:26px;background:linear-gradient(145deg,rgba(255,255,255,.12),rgba(255,255,255,.035));backdrop-filter:blur(18px);box-shadow:0 25px 65px rgba(0,0,0,.28)}
     .step-row{display:grid;grid-template-columns:1fr 44px 1fr;align-items:center;gap:10px;margin-bottom:22px}.step{padding:15px;border:1px solid rgba(255,255,255,.12);border-radius:17px;background:rgba(4,12,24,.44)}.step b{display:block;color:var(--cyan);font-size:10px;letter-spacing:.12em}.step strong{display:block;margin-top:6px;font-size:15px}.arrow{text-align:center;color:rgba(255,255,255,.38);font-size:20px}
     .login-button{width:100%;min-height:54px;border:0;border-radius:14px;background:linear-gradient(135deg,#fff,#e8f4ff);color:#102033;font-size:15px;font-weight:950;cursor:pointer;box-shadow:0 13px 28px rgba(0,0,0,.18)}.login-button:disabled{opacity:.58;cursor:wait}
+    .approval-state{display:flex;justify-content:space-between;gap:15px;align-items:center;margin-top:15px;padding:15px 16px;border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(3,10,20,.45)}
+    .approval-state strong{font-size:13px}.approval-state span{font-size:13px;font-weight:900;text-align:right}.approval-state.pending{border-color:rgba(255,190,79,.48);background:rgba(105,67,8,.24);color:#ffe4aa}.approval-state.approved{border-color:rgba(53,208,160,.48);background:rgba(14,87,68,.25);color:#c7ffe9}.approval-state.rejected,.approval-state.suspended{border-color:rgba(255,112,112,.5);background:rgba(120,25,38,.24);color:#ffd6da}.approval-state.none{color:rgba(255,255,255,.76)}
     .status{margin-top:15px;padding:15px 16px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(3,10,20,.45);color:rgba(255,255,255,.75);font-size:13px;line-height:1.7;white-space:pre-wrap}.status.success{border-color:rgba(53,208,160,.48);background:rgba(14,87,68,.25);color:#c7ffe9}.status.error{border-color:rgba(255,112,112,.5);background:rgba(120,25,38,.24);color:#ffd6da}.status.warning{border-color:rgba(255,190,79,.48);background:rgba(105,67,8,.24);color:#ffe4aa}
-    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:13px}.actions a,.actions button{flex:1;min-width:180px;min-height:46px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(255,255,255,.075);color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:13px}.actions a,.actions button{flex:1;min-width:180px;min-height:46px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(255,255,255,.075);color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer}.actions button.primary{border:0;background:linear-gradient(135deg,#326dff,#7658ff)}.actions button:disabled{opacity:.55;cursor:not-allowed}
     .security{margin:18px 0 0;padding:14px;border-radius:14px;background:rgba(255,190,79,.11);color:rgba(255,255,255,.68);font-size:12px;line-height:1.65}.security strong{color:#ffda91}.hidden{display:none!important}
     footer{text-align:center;color:rgba(255,255,255,.33);font-size:10px;letter-spacing:.06em}
-    @media(max-width:620px){.shell{width:min(100% - 22px,1080px);padding-top:16px}.step-row{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.auth-card{padding:18px}h1{font-size:40px}.back{font-size:11px}}
+    @media(max-width:620px){.shell{width:min(100% - 22px,1080px);padding-top:16px}.step-row{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.auth-card{padding:18px}h1{font-size:40px}.back{font-size:11px}.approval-state{align-items:flex-start;flex-direction:column}.approval-state span{text-align:left}}
   </style>
 </head>
 <body>
@@ -44,24 +46,29 @@
       <section class="auth-wrap" aria-labelledby="pageTitle">
         <p class="eyebrow">TEACHER ONLY ACCESS</p>
         <h1 id="pageTitle">교사용 전용 인증</h1>
-        <p class="lead">Google 계정과 Firebase 교사 권한을 확인합니다. 인증이 끝나면 별도 버튼 없이 승인 탭이 열린 교사용 통합 업무화면으로 바로 이동합니다.</p>
+        <p class="lead">Google 로그인 후 교사 승인 요청 여부와 현재 상태를 그대로 표시합니다. 승인 완료 계정만 교사용 통합 업무화면으로 이동합니다.</p>
 
         <div class="auth-card">
           <div class="step-row" aria-label="교사용 인증 단계">
             <div class="step"><b>STEP 01</b><strong>Google 계정 인증</strong></div>
             <div class="arrow">→</div>
-            <div class="step"><b>STEP 02</b><strong>권한 확인 후 자동 이동</strong></div>
+            <div class="step"><b>STEP 02</b><strong>교사 승인 상태 확인</strong></div>
           </div>
 
           <button id="teacherGoogleLogin" class="login-button" type="button">Google 계정으로 교사용 인증</button>
-          <div id="authStatus" class="status" role="status" aria-live="polite">승인된 교사·마스터 계정으로 로그인하세요.</div>
+          <div id="approvalState" class="approval-state none hidden" role="status"><strong>교사 승인 상태</strong><span>확인 전</span></div>
+          <div id="authStatus" class="status" role="status" aria-live="polite">Google 로그인 후 승인 상태를 확인합니다.</div>
+
+          <div id="requestActions" class="actions hidden">
+            <button id="teacherRequestButton" class="primary" type="button">교사 권한 승인 요청</button>
+          </div>
 
           <div id="failureActions" class="actions hidden">
             <button id="retryLogin" type="button">다른 Google 계정으로 다시 인증</button>
             <a href="../">대문으로 돌아가기</a>
           </div>
 
-          <p class="security"><strong>분리 저장 원칙</strong><br>업무화면과 입력 양식은 GitHub Pages에 보관하고, 학생정보·공지·시험일정·성적·상담 데이터는 Firebase 또는 Cloudflare 등 클라우드 저장소에만 보관합니다.</p>
+          <p class="security"><strong>승인 원칙</strong><br>교사 권한은 Google 로그인만으로 부여하지 않습니다. 승인 요청을 저장한 뒤 마스터가 관리 지점과 세부 권한을 지정해야 업무화면을 이용할 수 있습니다.</p>
         </div>
       </section>
     </main>
@@ -71,50 +78,135 @@
 
   <script type="module">
     import { onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
-    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+    import { doc, getDoc, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
     import { auth, authPersistenceReady, db, provider } from "../question-access/firebase-client.js";
 
     const loginButton = document.getElementById("teacherGoogleLogin");
+    const approvalState = document.getElementById("approvalState");
     const status = document.getElementById("authStatus");
+    const requestActions = document.getElementById("requestActions");
+    const requestButton = document.getElementById("teacherRequestButton");
     const failureActions = document.getElementById("failureActions");
     const retryLogin = document.getElementById("retryLogin");
     let redirecting = false;
+    let currentUser = null;
 
     function setStatus(message, type = "") {
       status.className = `status ${type}`.trim();
       status.textContent = message;
     }
 
+    function setApprovalState(label, code, type = "none") {
+      approvalState.className = `approval-state ${type}`.trim();
+      approvalState.classList.remove("hidden");
+      approvalState.querySelector("span").textContent = `${label} (${code})`;
+    }
+
+    function hideActions() {
+      requestActions.classList.add("hidden");
+      failureActions.classList.add("hidden");
+    }
+
     function goToWorkspace(profile, user) {
       if (redirecting) return;
       redirecting = true;
       sessionStorage.setItem("etoos247AuthIntent", "staff");
-      sessionStorage.setItem("etoos247TeacherStartTab", "approval");
+      const canApprove = profile.role === "master" || profile.canApproveStudents === true;
+      sessionStorage.setItem("etoos247TeacherStartTab", canApprove ? "approval" : "notice");
       const roleLabel = profile.role === "master" ? "마스터" : "교사";
-      setStatus(`${user.displayName || roleLabel}님 인증 완료\n권한: ${roleLabel}\n승인 탭이 열린 업무화면으로 이동합니다.`, "success");
-      window.setTimeout(() => location.replace("../question-access/?role=teacher"), 250);
+      setApprovalState("승인 완료", "approved", "approved");
+      setStatus(`${user.displayName || roleLabel}님\n교사 승인 완료 · 권한: ${roleLabel}\n교사용 업무화면으로 이동합니다.`, "success");
+      window.setTimeout(() => location.replace("../question-access/?role=teacher"), 900);
     }
 
     async function verifyTeacher(user) {
+      currentUser = user;
       loginButton.disabled = true;
-      failureActions.classList.add("hidden");
-      setStatus("Google 계정 확인 완료. 교사 권한을 확인하고 있습니다.");
+      hideActions();
+      setStatus("Google 계정 확인 완료. 교사 승인 상태를 확인하고 있습니다.");
+
       try {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        const profile = snap.exists() ? snap.data() : null;
+        const [profileSnap, requestSnap] = await Promise.all([
+          getDoc(doc(db, "users", user.uid)),
+          getDoc(doc(db, "teacherRequests", user.uid))
+        ]);
+        const profile = profileSnap.exists() ? profileSnap.data() : null;
+        const request = requestSnap.exists() ? requestSnap.data() : null;
         const allowedRole = profile?.role === "teacher" || profile?.role === "master";
+
         if (profile?.active === true && allowedRole) {
           goToWorkspace(profile, user);
           return;
         }
-        setStatus("이 Google 계정에는 활성 교사·마스터 권한이 없습니다.\n마스터 관리자에게 교사 승인을 요청하세요.", "warning");
-        failureActions.classList.remove("hidden");
+
+        if (allowedRole && profile?.active !== true) {
+          setApprovalState("승인 완료 · 이용 중지", "approved/suspended", "suspended");
+          setStatus("교사 승인은 완료되었지만 현재 계정 이용이 중지되어 있습니다. 마스터 관리자에게 이용 재개를 요청하세요.", "error");
+          failureActions.classList.remove("hidden");
+          return;
+        }
+
+        const requestStatus = String(request?.status || "none");
+        if (requestStatus === "pending") {
+          setApprovalState("승인 대기", "pending", "pending");
+          setStatus("교사 승인 요청이 접수되었습니다. 마스터가 관리 지점과 권한을 지정할 때까지 기다려 주세요.", "warning");
+          requestButton.textContent = "승인 대기 중";
+          requestButton.disabled = true;
+          requestActions.classList.remove("hidden");
+        } else if (requestStatus === "rejected") {
+          setApprovalState("승인 반려", "rejected", "rejected");
+          setStatus("교사 승인 요청이 반려되었습니다. 계정을 확인한 뒤 다시 승인 요청을 보낼 수 있습니다.", "error");
+          requestButton.textContent = "교사 권한 다시 요청";
+          requestButton.disabled = false;
+          requestActions.classList.remove("hidden");
+          failureActions.classList.remove("hidden");
+        } else if (requestStatus === "approved") {
+          setApprovalState("승인 완료 · 권한 반영 확인 필요", "approved", "pending");
+          setStatus("교사 승인 기록은 있으나 활성 교사 권한 문서가 확인되지 않습니다. 마스터 관리자에게 권한 반영을 요청하세요.", "warning");
+          failureActions.classList.remove("hidden");
+        } else {
+          setApprovalState("승인 요청 전", "none", "none");
+          setStatus("이 Google 계정은 아직 교사 승인 요청을 하지 않았습니다. 아래 버튼으로 승인 요청을 저장하세요.", "warning");
+          requestButton.textContent = "교사 권한 승인 요청";
+          requestButton.disabled = false;
+          requestActions.classList.remove("hidden");
+          failureActions.classList.remove("hidden");
+        }
       } catch (error) {
         console.error(error);
-        setStatus(`교사 권한을 확인하지 못했습니다.\n${error.message || String(error)}`, "error");
+        setApprovalState("상태 확인 실패", "error", "rejected");
+        setStatus(`교사 승인 상태를 확인하지 못했습니다.\n${error.message || String(error)}`, "error");
         failureActions.classList.remove("hidden");
       } finally {
         if (!redirecting) loginButton.disabled = false;
+      }
+    }
+
+    async function requestTeacherApproval() {
+      if (!currentUser) {
+        setStatus("먼저 Google 계정으로 로그인하세요.", "warning");
+        return;
+      }
+
+      requestButton.disabled = true;
+      setStatus("교사 승인 요청을 저장하는 중입니다.");
+      try {
+        await setDoc(doc(db, "teacherRequests", currentUser.uid), {
+          uid: currentUser.uid,
+          name: currentUser.displayName || "",
+          email: currentUser.email || "",
+          status: "pending",
+          requestedAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        setApprovalState("승인 대기", "pending", "pending");
+        setStatus("교사 승인 요청이 접수되었습니다. 마스터 승인을 기다려 주세요.", "success");
+        requestButton.textContent = "승인 대기 중";
+        requestButton.disabled = true;
+        failureActions.classList.remove("hidden");
+      } catch (error) {
+        setStatus(`교사 승인 요청을 저장하지 못했습니다.\n${error.message || String(error)}`, "error");
+        requestButton.disabled = false;
       }
     }
 
@@ -131,6 +223,7 @@
           : error.code === "auth/popup-closed-by-user"
             ? "Google 로그인 창을 닫았습니다. 다시 인증 버튼을 누르세요."
             : error.message || String(error);
+        setApprovalState("인증 실패", "error", "rejected");
         setStatus(`Google 인증에 실패했습니다.\n${message}`, "error");
         failureActions.classList.remove("hidden");
         loginButton.disabled = false;
@@ -139,13 +232,16 @@
 
     async function useAnotherAccount() {
       redirecting = false;
+      currentUser = null;
       await signOut(auth);
-      failureActions.classList.add("hidden");
-      setStatus("다른 승인 교사·마스터 계정으로 로그인하세요.");
+      approvalState.classList.add("hidden");
+      hideActions();
+      setStatus("다른 Google 계정으로 로그인하세요.");
       await login();
     }
 
     loginButton.addEventListener("click", login);
+    requestButton.addEventListener("click", requestTeacherApproval);
     retryLogin.addEventListener("click", useAnotherAccount);
 
     await authPersistenceReady;
