@@ -10,6 +10,9 @@ import { showStudentApplicationPanel, submitStudentApplication } from "./student
 import { configureStudentApprovalPanel, loadStudentApplications } from "./student-approval.js";
 import { resetTeacherView, loadTeacherWorkspace, bindTeacherFilters } from "./teacher.js";
 import { loadTeacherRequests, loadApprovedTeachers, requestTeacherRole } from "./master.js";
+import {
+  hideRoleMenu, showStudentRoleMenu, showTeacherRoleMenu, replaceSharedLinks
+} from "./role-menu.js";
 
 const AUTH_INTENT_KEY = "etoos247AuthIntent";
 
@@ -18,6 +21,7 @@ async function loadAccountView(user) {
   state.currentProfile = null;
   state.currentStudentApplication = null;
   hidePanels();
+  hideRoleMenu();
   configureStudentApprovalPanel();
   showStatus(`계정 권한을 확인하는 중입니다.\n\n${userSummary(user)}`);
 
@@ -45,9 +49,10 @@ async function loadAccountView(user) {
       }
 
       els.studentPanel.classList.remove("hidden");
+      showStudentRoleMenu();
       const campus = campusLabel(state.currentProfile.campus);
       showStatus(
-        `${userSummary(user)}\n\n권한: 학생\n내부 학생번호: ${studentId}\n소속: ${campus}\n학생 질문 화면이 열렸습니다.`,
+        `${userSummary(user)}\n\n권한: 학생\n내부 학생번호: ${studentId}\n소속: ${campus}\n학생 개인 메뉴가 열렸습니다.`,
         "success"
       );
       await loadStudentQuestions();
@@ -61,11 +66,12 @@ async function loadAccountView(user) {
 
     if (role === "teacher" && active) {
       els.teacherPanel.classList.remove("hidden");
+      showTeacherRoleMenu();
       resetTeacherView();
       configureStudentApprovalPanel();
       const campuses = allowedCampuses().map(campusLabel).join(" · ") || "미지정";
       const level = isQuasiMaster() ? "준마스터 교사" : "일반 교사";
-      showStatus(`${userSummary(user)}\n\n권한: ${level}\n관리 지점: ${campuses}\n허용된 지점 학생만 표시됩니다.`, "success");
+      showStatus(`${userSummary(user)}\n\n권한: ${level}\n관리 지점: ${campuses}\n교사용 업무 메뉴가 열렸습니다.`, "success");
       await Promise.all([loadTeacherWorkspace(), loadStudentApplications()]);
       return;
     }
@@ -73,9 +79,10 @@ async function loadAccountView(user) {
     if (isMaster() && active) {
       els.masterPanel.classList.remove("hidden");
       els.teacherPanel.classList.remove("hidden");
+      showTeacherRoleMenu();
       resetTeacherView();
       configureStudentApprovalPanel();
-      showStatus(`${userSummary(user)}\n\n권한: 마스터\n수성1관·수성2관 전체 관리 화면이 열렸습니다.`, "success");
+      showStatus(`${userSummary(user)}\n\n권한: 마스터\n수성1관·수성2관 전체 관리 메뉴가 열렸습니다.`, "success");
       await Promise.all([
         loadTeacherRequests(),
         loadApprovedTeachers(),
@@ -163,6 +170,7 @@ els.questionForm.addEventListener("submit", submitQuestion);
 els.requestButton.addEventListener("click", requestTeacherRole);
 els.logoutButton.addEventListener("click", async () => {
   sessionStorage.removeItem(AUTH_INTENT_KEY);
+  hideRoleMenu();
   await signOut(auth);
 });
 els.refreshButton.addEventListener("click", () => state.currentUser && loadAccountView(state.currentUser));
@@ -174,6 +182,7 @@ els.googleSwitchButton.addEventListener("click", () => googleLogin(
   sessionStorage.getItem(AUTH_INTENT_KEY) || "staff"
 ));
 
+replaceSharedLinks();
 bindTeacherFilters();
 
 onAuthStateChanged(auth, async (user) => {
@@ -186,6 +195,7 @@ onAuthStateChanged(auth, async (user) => {
     els.loginArea.classList.remove("hidden");
     els.accountToolbar.classList.add("hidden");
     hidePanels();
+    hideRoleMenu();
     configureStudentApprovalPanel();
     showStatus("로그인하지 않았습니다. 학생·교사·마스터 모두 Google 로그인 버튼을 사용합니다.");
     return;
