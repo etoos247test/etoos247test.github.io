@@ -66,12 +66,12 @@ async function loadAccountView(user) {
 
     if (role === "teacher" && active) {
       els.teacherPanel.classList.remove("hidden");
-      showTeacherRoleMenu();
       resetTeacherView();
       configureStudentApprovalPanel();
+      showTeacherRoleMenu();
       const campuses = allowedCampuses().map(campusLabel).join(" · ") || "미지정";
       const level = isQuasiMaster() ? "준마스터 교사" : "일반 교사";
-      showStatus(`${userSummary(user)}\n\n권한: ${level}\n관리 지점: ${campuses}\n교사용 업무 메뉴가 열렸습니다.`, "success");
+      showStatus(`${userSummary(user)}\n\n권한: ${level}\n관리 지점: ${campuses}\n교사용 업무 탭이 열렸습니다.`, "success");
       await Promise.all([loadTeacherWorkspace(), loadStudentApplications()]);
       return;
     }
@@ -79,10 +79,10 @@ async function loadAccountView(user) {
     if (isMaster() && active) {
       els.masterPanel.classList.remove("hidden");
       els.teacherPanel.classList.remove("hidden");
-      showTeacherRoleMenu();
       resetTeacherView();
       configureStudentApprovalPanel();
-      showStatus(`${userSummary(user)}\n\n권한: 마스터\n수성1관·수성2관 전체 관리 메뉴가 열렸습니다.`, "success");
+      showTeacherRoleMenu();
+      showStatus(`${userSummary(user)}\n\n권한: 마스터\n수성1관·수성2관 전체 업무 탭이 열렸습니다.`, "success");
       await Promise.all([
         loadTeacherRequests(),
         loadApprovedTeachers(),
