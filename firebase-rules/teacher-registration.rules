@@ -71,9 +71,29 @@ service cloud.firestore {
         );
     }
 
+    function canManageNotices() {
+      return isMaster()
+        || (isTeacher() && currentUserData().get("canManageNotices", true) == true);
+    }
+
+    function canManageSchedules() {
+      return isMaster()
+        || (isTeacher() && currentUserData().get("canManageSchedules", true) == true);
+    }
+
+    function canManageScores() {
+      return isMaster()
+        || (isTeacher() && currentUserData().get("canManageScores", true) == true);
+    }
+
+    function canManageCounseling() {
+      return isMaster()
+        || (isTeacher() && currentUserData().get("canManageCounseling", true) == true);
+    }
+
     function canAnswerQuestions() {
       return isMaster()
-        || (isTeacher() && currentUserData().canAnswerQuestions == true);
+        || (isTeacher() && currentUserData().get("canAnswerQuestions", true) == true);
     }
 
     function canApproveStudents() {
@@ -277,7 +297,15 @@ service cloud.firestore {
 
     match /studentCodes/{studentId} {
       allow get, list: if isMaster()
-        || (isTeacher() && (canApproveStudents() || canManageStudentInfo()));
+        || (
+          isTeacher()
+          && (
+            canApproveStudents()
+            || canManageStudentInfo()
+            || canManageScores()
+            || canManageCounseling()
+          )
+        );
 
       allow create, update: if validStudentCode(studentId)
         && request.resource.data.studentId == studentId
@@ -421,7 +449,8 @@ service cloud.firestore {
     match /academyNotices/{noticeId} {
       allow read: if isActiveUser();
 
-      allow create: if canManageBoardCampus(request.resource.data.campus)
+      allow create: if canManageNotices()
+        && canManageBoardCampus(request.resource.data.campus)
         && validBoardCampus(request.resource.data.campus)
         && request.resource.data.title is string
         && request.resource.data.content is string
@@ -432,20 +461,23 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
 
-      allow update: if canManageBoardCampus(resource.data.campus)
+      allow update: if canManageNotices()
+        && canManageBoardCampus(resource.data.campus)
         && request.resource.data.campus == resource.data.campus
         && request.resource.data.updatedBy == request.auth.uid
         && request.resource.data.updatedAt == request.time
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.createdAt == resource.data.createdAt;
 
-      allow delete: if canManageBoardCampus(resource.data.campus);
+      allow delete: if canManageNotices()
+        && canManageBoardCampus(resource.data.campus);
     }
 
     match /examSchedules/{scheduleId} {
       allow read: if isActiveUser();
 
-      allow create: if canManageBoardCampus(request.resource.data.campus)
+      allow create: if canManageSchedules()
+        && canManageBoardCampus(request.resource.data.campus)
         && validBoardCampus(request.resource.data.campus)
         && request.resource.data.examDate is string
         && request.resource.data.periodLabel is string
@@ -457,25 +489,25 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
 
-      allow update: if canManageBoardCampus(resource.data.campus)
+      allow update: if canManageSchedules()
+        && canManageBoardCampus(resource.data.campus)
         && request.resource.data.campus == resource.data.campus
         && request.resource.data.updatedBy == request.auth.uid
         && request.resource.data.updatedAt == request.time
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.createdAt == resource.data.createdAt;
 
-      allow delete: if canManageBoardCampus(resource.data.campus);
+      allow delete: if canManageSchedules()
+        && canManageBoardCampus(resource.data.campus);
     }
 
-
-    // TEACHER_RECORD_RULES_V1
     match /studentScores/{scoreId} {
       allow read: if isMaster()
-        || (isTeacher() && hasCampusAccess(resource.data.campus))
+        || (isTeacher() && canManageScores() && hasCampusAccess(resource.data.campus))
         || (isStudent() && resource.data.studentUid == request.auth.uid);
 
       allow create: if (isMaster()
-          || (isTeacher() && canManageStudentInfo() && hasCampusAccess(request.resource.data.campus)))
+          || (isTeacher() && canManageScores() && hasCampusAccess(request.resource.data.campus)))
         && validCampus(request.resource.data.campus)
         && codeMatchesCampus(request.resource.data.studentId, request.resource.data.campus)
         && request.resource.data.studentUid is string
@@ -483,22 +515,22 @@ service cloud.firestore {
         && request.resource.data.updatedBy == request.auth.uid;
 
       allow update: if (isMaster()
-          || (isTeacher() && canManageStudentInfo() && hasCampusAccess(resource.data.campus)))
+          || (isTeacher() && canManageScores() && hasCampusAccess(resource.data.campus)))
         && request.resource.data.campus == resource.data.campus
         && request.resource.data.studentId == resource.data.studentId
         && request.resource.data.studentUid == resource.data.studentUid
         && request.resource.data.updatedBy == request.auth.uid;
 
       allow delete: if isMaster()
-        || (isTeacher() && canManageStudentInfo() && hasCampusAccess(resource.data.campus));
+        || (isTeacher() && canManageScores() && hasCampusAccess(resource.data.campus));
     }
 
     match /counselingRecords/{recordId} {
       allow read: if isMaster()
-        || (isTeacher() && hasCampusAccess(resource.data.campus));
+        || (isTeacher() && canManageCounseling() && hasCampusAccess(resource.data.campus));
 
       allow create: if (isMaster()
-          || (isTeacher() && canManageStudentInfo() && hasCampusAccess(request.resource.data.campus)))
+          || (isTeacher() && canManageCounseling() && hasCampusAccess(request.resource.data.campus)))
         && validCampus(request.resource.data.campus)
         && codeMatchesCampus(request.resource.data.studentId, request.resource.data.campus)
         && request.resource.data.studentUid is string
@@ -508,7 +540,7 @@ service cloud.firestore {
         && request.resource.data.updatedBy == request.auth.uid;
 
       allow update: if (isMaster()
-          || (isTeacher() && canManageStudentInfo() && hasCampusAccess(resource.data.campus)))
+          || (isTeacher() && canManageCounseling() && hasCampusAccess(resource.data.campus)))
         && request.resource.data.campus == resource.data.campus
         && request.resource.data.studentId == resource.data.studentId
         && request.resource.data.studentUid == resource.data.studentUid
@@ -516,7 +548,7 @@ service cloud.firestore {
         && request.resource.data.updatedBy == request.auth.uid;
 
       allow delete: if isMaster()
-        || (isTeacher() && canManageStudentInfo() && hasCampusAccess(resource.data.campus));
+        || (isTeacher() && canManageCounseling() && hasCampusAccess(resource.data.campus));
     }
 
     match /auditLogs/{logId} {
