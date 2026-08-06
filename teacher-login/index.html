@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#071426">
+  <title>교사용 인증 | 이투스247 통합 포털</title>
+  <style>
+    *{box-sizing:border-box}
+    :root{--navy:#071426;--blue:#326dff;--cyan:#56ddff;--ink:#122033;--muted:#66758a;--line:#d8e1ec}
+    html,body{margin:0;min-height:100%}
+    body{font-family:Pretendard,"Noto Sans KR",system-ui,-apple-system,sans-serif;background:radial-gradient(circle at 80% 15%,rgba(50,109,255,.28),transparent 32%),linear-gradient(145deg,#040912,#0b1b31 60%,#102a48);color:#fff}
+    a{color:inherit;text-decoration:none}
+    button{font:inherit}
+    .grid{position:fixed;inset:0;pointer-events:none;opacity:.13;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:50px 50px}
+    .shell{position:relative;z-index:1;width:min(1080px,calc(100% - 30px));min-height:100svh;margin:auto;padding:24px 0 38px;display:flex;flex-direction:column}
+    header{display:flex;align-items:center;justify-content:space-between;gap:18px}
+    .brand{display:flex;align-items:center;gap:12px}.mark{display:grid;place-items:center;width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,var(--blue),#7658ff);font-weight:950;box-shadow:0 14px 38px rgba(50,109,255,.34)}
+    .brand-copy{display:flex;flex-direction:column}.brand-copy strong{font-size:15px}.brand-copy small{margin-top:4px;color:rgba(255,255,255,.5);font-size:10px;letter-spacing:.09em}
+    .back{padding:9px 13px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(255,255,255,.055);color:rgba(255,255,255,.75);font-size:12px;font-weight:800}
+    main{flex:1;display:grid;place-items:center;padding:52px 0}
+    .auth-wrap{width:min(100%,760px)}
+    .eyebrow{margin:0 0 13px;text-align:center;color:var(--cyan);font-size:10px;font-weight:950;letter-spacing:.2em}
+    h1{margin:0;text-align:center;font-size:clamp(38px,6vw,62px);letter-spacing:-.065em;line-height:1.08}
+    .lead{max-width:650px;margin:19px auto 27px;text-align:center;color:rgba(255,255,255,.62);font-size:14px;line-height:1.78}
+    .auth-card{padding:26px;border:1px solid rgba(255,255,255,.14);border-radius:26px;background:linear-gradient(145deg,rgba(255,255,255,.12),rgba(255,255,255,.035));backdrop-filter:blur(18px);box-shadow:0 25px 65px rgba(0,0,0,.28)}
+    .step-row{display:grid;grid-template-columns:1fr 44px 1fr;align-items:center;gap:10px;margin-bottom:22px}.step{padding:15px;border:1px solid rgba(255,255,255,.12);border-radius:17px;background:rgba(4,12,24,.44)}.step b{display:block;color:var(--cyan);font-size:10px;letter-spacing:.12em}.step strong{display:block;margin-top:6px;font-size:15px}.arrow{text-align:center;color:rgba(255,255,255,.38);font-size:20px}
+    .login-button{width:100%;min-height:54px;border:0;border-radius:14px;background:linear-gradient(135deg,#fff,#e8f4ff);color:#102033;font-size:15px;font-weight:950;cursor:pointer;box-shadow:0 13px 28px rgba(0,0,0,.18)}.login-button:hover{transform:translateY(-1px);filter:brightness(1.03)}.login-button:disabled{opacity:.58;cursor:wait;transform:none}
+    .status{margin-top:15px;padding:15px 16px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(3,10,20,.45);color:rgba(255,255,255,.75);font-size:13px;line-height:1.7;white-space:pre-wrap}.status.success{border-color:rgba(53,208,160,.48);background:rgba(14,87,68,.25);color:#c7ffe9}.status.error{border-color:rgba(255,112,112,.5);background:rgba(120,25,38,.24);color:#ffd6da}.status.warning{border-color:rgba(255,190,79,.48);background:rgba(105,67,8,.24);color:#ffe4aa}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:13px}.actions a,.actions button{flex:1;min-width:180px;min-height:46px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(255,255,255,.075);color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer}.actions .primary{border:0;background:var(--blue)}
+    .security{margin:18px 0 0;padding:14px;border-radius:14px;background:rgba(255,190,79,.11);color:rgba(255,255,255,.68);font-size:12px;line-height:1.65}.security strong{color:#ffda91}
+    .hidden{display:none!important}
+    footer{text-align:center;color:rgba(255,255,255,.33);font-size:10px;letter-spacing:.06em}
+    @media(max-width:620px){.shell{width:min(100% - 22px,1080px);padding-top:16px}.step-row{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.auth-card{padding:18px}h1{font-size:40px}.back{font-size:11px}}
+  </style>
+</head>
+<body>
+  <div class="grid" aria-hidden="true"></div>
+  <div class="shell">
+    <header>
+      <a class="brand" href="../"><span class="mark">247</span><span class="brand-copy"><strong>이투스247학원</strong><small>TEACHER AUTHENTICATION</small></span></a>
+      <a class="back" href="../">통합 대문으로</a>
+    </header>
+
+    <main>
+      <section class="auth-wrap" aria-labelledby="pageTitle">
+        <p class="eyebrow">TEACHER ONLY ACCESS</p>
+        <h1 id="pageTitle">교사용 전용 인증</h1>
+        <p class="lead">학생용 로그인과 분리된 교사용 인증 화면입니다. Google 계정을 확인한 뒤, Firebase에 등록된 교사 또는 마스터 권한이 있어야 교사용 화면으로 이동합니다.</p>
+
+        <div class="auth-card">
+          <div class="step-row" aria-label="교사용 인증 단계">
+            <div class="step"><b>STEP 01</b><strong>Google 계정 인증</strong></div>
+            <div class="arrow">→</div>
+            <div class="step"><b>STEP 02</b><strong>교사·마스터 권한 확인</strong></div>
+          </div>
+
+          <button id="teacherGoogleLogin" class="login-button" type="button">Google 계정으로 교사용 인증</button>
+          <div id="authStatus" class="status" role="status" aria-live="polite">승인된 교사·마스터 계정으로 로그인하세요.</div>
+
+          <div id="successActions" class="actions hidden">
+            <a class="primary" href="../question-access/?role=teacher">교사용 업무 화면 열기</a>
+            <button id="switchAccount" type="button">다른 Google 계정 사용</button>
+          </div>
+          <div id="failureActions" class="actions hidden">
+            <button id="retryLogin" type="button">다른 Google 계정으로 다시 인증</button>
+            <a href="../">대문으로 돌아가기</a>
+          </div>
+
+          <p class="security"><strong>보안 원칙</strong><br>이 화면을 통과하는 것만으로 권한이 생기지 않습니다. Firebase 사용자 문서의 <code>role</code>이 <code>teacher</code> 또는 <code>master</code>이고, <code>active</code>가 활성 상태인 계정만 승인됩니다.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>ETOOS247 · DAEGU SUSEONG · TEACHER AUTH</footer>
+  </div>
+
+  <script type="module">
+    import { onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+    import { auth, authPersistenceReady, db, provider } from "../question-access/firebase-client.js";
+
+    const loginButton = document.getElementById("teacherGoogleLogin");
+    const status = document.getElementById("authStatus");
+    const successActions = document.getElementById("successActions");
+    const failureActions = document.getElementById("failureActions");
+    const switchAccount = document.getElementById("switchAccount");
+    const retryLogin = document.getElementById("retryLogin");
+
+    function setStatus(message, type = "") {
+      status.className = `status ${type}`.trim();
+      status.textContent = message;
+    }
+
+    async function verifyTeacher(user) {
+      loginButton.disabled = true;
+      successActions.classList.add("hidden");
+      failureActions.classList.add("hidden");
+      setStatus("Google 계정 확인 완료. 교사 권한을 확인하고 있습니다.");
+      try {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        const profile = snap.exists() ? snap.data() : null;
+        const allowedRole = profile?.role === "teacher" || profile?.role === "master";
+        if (profile?.active === true && allowedRole) {
+          sessionStorage.setItem("etoos247AuthIntent", "staff");
+          setStatus(`${user.displayName || "교사"}님 인증이 완료되었습니다.\n권한: ${profile.role === "master" ? "마스터" : "교사"}`, "success");
+          successActions.classList.remove("hidden");
+          return;
+        }
+        setStatus("이 Google 계정에는 활성 교사·마스터 권한이 없습니다.\n교사 등록 승인이 필요한 경우 마스터 관리자에게 요청하세요.", "warning");
+        failureActions.classList.remove("hidden");
+      } catch (error) {
+        console.error(error);
+        setStatus(`교사 권한을 확인하지 못했습니다.\n${error.message || String(error)}`, "error");
+        failureActions.classList.remove("hidden");
+      } finally {
+        loginButton.disabled = false;
+      }
+    }
+
+    async function login() {
+      loginButton.disabled = true;
+      try {
+        await authPersistenceReady;
+        sessionStorage.setItem("etoos247AuthIntent", "staff");
+        const result = await signInWithPopup(auth, provider);
+        await verifyTeacher(result.user);
+      } catch (error) {
+        const message = error.code === "auth/popup-blocked"
+          ? "로그인 팝업이 차단되었습니다. 브라우저에서 팝업을 허용하세요."
+          : error.code === "auth/popup-closed-by-user"
+            ? "Google 로그인 창을 닫았습니다. 다시 인증 버튼을 누르세요."
+            : error.message || String(error);
+        setStatus(`Google 인증에 실패했습니다.\n${message}`, "error");
+        failureActions.classList.remove("hidden");
+      } finally {
+        loginButton.disabled = false;
+      }
+    }
+
+    async function useAnotherAccount() {
+      await signOut(auth);
+      successActions.classList.add("hidden");
+      failureActions.classList.add("hidden");
+      setStatus("다른 승인 교사·마스터 계정으로 로그인하세요.");
+      await login();
+    }
+
+    loginButton.addEventListener("click", login);
+    switchAccount.addEventListener("click", useAnotherAccount);
+    retryLogin.addEventListener("click", useAnotherAccount);
+
+    await authPersistenceReady;
+    onAuthStateChanged(auth, (user) => {
+      if (user) verifyTeacher(user);
+    });
+  </script>
+</body>
+</html>
