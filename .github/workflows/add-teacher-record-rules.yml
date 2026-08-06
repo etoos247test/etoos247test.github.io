@@ -1,0 +1,34 @@
+name: Add teacher record rules
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/add-teacher-record-rules.mjs"
+      - ".github/workflows/add-teacher-record-rules.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Add score and counseling rules
+        run: node scripts/add-teacher-record-rules.mjs
+      - name: Commit patched rules
+        run: |
+          if git diff --quiet; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add firebase-rules/teacher-registration.rules
+          git commit -m "Allow teacher score and counseling records"
+          git push
