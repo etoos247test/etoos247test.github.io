@@ -3,6 +3,7 @@ import {
   browserSessionPersistence, getAuth, GoogleAuthProvider, setPersistence
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAg6PnWUVfvlc10R81wb2liVxyGMbqbw78",
@@ -20,6 +21,7 @@ export const authPersistenceReady = setPersistence(auth, browserSessionPersisten
   console.error("Firebase 세션 유지 방식 설정 실패", error);
 });
 export const db = getFirestore(app);
+export const storage = getStorage(app);
 export const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ prompt: "select_account" });
 auth.languageCode = "ko";
@@ -27,3 +29,4 @@ auth.languageCode = "ko";
 // Students, teachers, and masters all authenticate with Google.
 // M001~M199 and S001~S199 are internal student numbers, not login accounts.
 // Student signup requests and administrator approvals are stored directly in Firestore.
+// Static screens stay on GitHub Pages; notice images are stored in cloud storage only.
