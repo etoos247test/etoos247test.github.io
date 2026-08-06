@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cloudflare 마스터 인증 시험</title>
+  <style>
+    :root { color-scheme: light; --bg:#f4f7fb; --card:#fff; --line:#d9e1ea; --ink:#172033; --muted:#617086; --accent:#1d6fe8; --ok:#087a42; --bad:#b42318; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif; background:var(--bg); color:var(--ink); }
+    main { width:min(820px, calc(100% - 32px)); margin:42px auto; }
+    h1 { margin:0 0 8px; font-size:clamp(1.6rem,4vw,2.25rem); }
+    p { line-height:1.65; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px; margin-top:18px; box-shadow:0 10px 30px rgba(30,55,90,.06); }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; }
+    button { border:0; border-radius:11px; padding:12px 16px; font-weight:700; cursor:pointer; }
+    .primary { background:var(--accent); color:#fff; }
+    .secondary { background:#e8eef7; color:var(--ink); }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    .status { margin-top:16px; padding:13px 15px; border:1px solid var(--line); border-radius:12px; background:#f8fafc; white-space:pre-wrap; word-break:break-word; }
+    .ok { color:var(--ok); border-color:#a8dfc1; background:#f0fbf5; }
+    .bad { color:var(--bad); border-color:#f3b8b3; background:#fff4f3; }
+    dl { display:grid; grid-template-columns:150px 1fr; gap:10px 16px; margin:0; }
+    dt { color:var(--muted); font-weight:700; }
+    dd { margin:0; word-break:break-all; }
+    pre { overflow:auto; background:#101828; color:#e5eefb; padding:16px; border-radius:12px; font-size:.88rem; }
+    .small { color:var(--muted); font-size:.92rem; }
+    @media (max-width:600px) { dl { grid-template-columns:1fr; gap:3px; } dd { margin-bottom:10px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Cloudflare 마스터 인증 시험</h1>
+    <p class="small">Firebase Google 로그인 토큰을 Cloudflare Worker로 보내 D1의 마스터 권한이 실제로 연결되는지 확인합니다.</p>
+
+    <section class="card">
+      <div class="actions">
+        <button id="loginBtn" class="primary">Google 마스터 로그인</button>
+        <button id="testBtn" class="secondary" disabled>마스터 권한 다시 확인</button>
+        <button id="logoutBtn" class="secondary" disabled>로그아웃</button>
+      </div>
+      <div id="status" class="status">로그인 전입니다.</div>
+    </section>
+
+    <section class="card">
+      <h2>Firebase 로그인 정보</h2>
+      <dl>
+        <dt>이메일</dt><dd id="email">-</dd>
+        <dt>Firebase UID</dt><dd id="uid">-</dd>
+      </dl>
+    </section>
+
+    <section class="card">
+      <h2>Cloudflare D1 권한 결과</h2>
+      <dl>
+        <dt>역할</dt><dd id="role">-</dd>
+        <dt>활성 상태</dt><dd id="active">-</dd>
+        <dt>질문 답변</dt><dd id="answer">-</dd>
+        <dt>학생 승인</dt><dd id="approve">-</dd>
+        <dt>학생정보 관리</dt><dd id="manage">-</dd>
+      </dl>
+      <pre id="raw">아직 조회하지 않았습니다.</pre>
+    </section>
+  </main>
+
+  <script type="module">
+    import { auth, authPersistenceReady, provider } from "../question-access/firebase-client.js";
+    import {
+      onAuthStateChanged,
+      signInWithPopup,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+
+    const API_BASE = "https://etoos247-qa-api.etoos247test.workers.dev";
+    const MASTER_UID = "ekysfPsgHFRwTZZr8ufhOfStAUf2";
+
+    const $ = (id) => document.getElementById(id);
+    const loginBtn = $("loginBtn");
+    const testBtn = $("testBtn");
+    const logoutBtn = $("logoutBtn");
+    const status = $("status");
+
+    function setStatus(message, type = "") {
+      status.textContent = message;
+      status.className = `status ${type}`.trim();
+    }
+
+    function resetResult() {
+      $("email").textContent = "-";
+      $("uid").textContent = "-";
+      $("role").textContent = "-";
+      $("active").textContent = "-";
+      $("answer").textContent = "-";
+      $("approve").textContent = "-";
+      $("manage").textContent = "-";
+      $("raw").textContent = "아직 조회하지 않았습니다.";
+    }
+
+    async function callMe(user) {
+      setStatus("Firebase 토큰을 발급받아 Worker와 D1 권한을 확인하는 중입니다...");
+      const token = await user.getIdToken(true);
+      const response = await fetch(`${API_BASE}/api/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store"
+      });
+      const data = await response.json().catch(() => ({}));
+      $("raw").textContent = JSON.stringify(data, null, 2);
+      if (!response.ok) {
+        throw new Error(data.message || `API 오류: ${response.status}`);
+      }
+
+      const identity = data.identity || {};
+      const profile = data.profile || {};
+      $("email").textContent = identity.email || user.email || "-";
+      $("uid").textContent = identity.uid || user.uid || "-";
+      $("role").textContent = profile.role || "등록 없음";
+      $("active").textContent = profile.active === 1 ? "활성(1)" : `비활성(${profile.active ?? "없음"})`;
+      $("answer").textContent = profile.can_answer_questions === 1 ? "허용" : "미허용";
+      $("approve").textContent = profile.can_approve_students === 1 ? "허용" : "미허용";
+      $("manage").textContent = profile.can_manage_student_info === 1 ? "허용" : "미허용";
+
+      const valid = identity.uid === MASTER_UID && profile.role === "master" && profile.active === 1
+        && profile.can_answer_questions === 1
+        && profile.can_approve_students === 1
+        && profile.can_manage_student_info === 1;
+
+      if (!valid) {
+        throw new Error("로그인은 성공했지만 D1 마스터 권한값이 완전하지 않습니다. 원시 결과를 확인하세요.");
+      }
+      setStatus("성공: Firebase 로그인 사용자와 D1 마스터 권한이 정확히 연결됐습니다.", "ok");
+    }
+
+    loginBtn.addEventListener("click", async () => {
+      loginBtn.disabled = true;
+      try {
+        await authPersistenceReady;
+        const result = await signInWithPopup(auth, provider);
+        await callMe(result.user);
+      } catch (error) {
+        console.error(error);
+        setStatus(`실패: ${error.message}`, "bad");
+      } finally {
+        loginBtn.disabled = false;
+      }
+    });
+
+    testBtn.addEventListener("click", async () => {
+      testBtn.disabled = true;
+      try {
+        if (!auth.currentUser) throw new Error("먼저 Google 로그인을 해야 합니다.");
+        await callMe(auth.currentUser);
+      } catch (error) {
+        console.error(error);
+        setStatus(`실패: ${error.message}`, "bad");
+      } finally {
+        testBtn.disabled = !auth.currentUser;
+      }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+      resetResult();
+      setStatus("로그아웃했습니다.");
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      testBtn.disabled = !user;
+      logoutBtn.disabled = !user;
+      if (!user) return;
+      $("email").textContent = user.email || "-";
+      $("uid").textContent = user.uid || "-";
+      try {
+        await callMe(user);
+      } catch (error) {
+        console.error(error);
+        setStatus(`실패: ${error.message}`, "bad");
+      }
+    });
+  </script>
+</body>
+</html>
