@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cloudflare 학생 가입 요청 시험</title>
+  <style>
+    :root{color-scheme:light;--bg:#f4f7fb;--card:#fff;--line:#d9e1ea;--ink:#172033;--muted:#617086;--accent:#1d6fe8;--ok:#087a42;--bad:#b42318;--warn:#9a6700}
+    *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink)}
+    main{width:min(860px,calc(100% - 32px));margin:38px auto 70px}h1{margin:0 0 8px;font-size:clamp(1.65rem,4vw,2.35rem)}p{line-height:1.65}
+    .small{color:var(--muted);font-size:.94rem}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;margin-top:18px;box-shadow:0 10px 30px rgba(30,55,90,.06)}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}button{border:0;border-radius:11px;padding:12px 16px;font-weight:750;cursor:pointer}.primary{background:var(--accent);color:#fff}.secondary{background:#e8eef7;color:var(--ink)}button:disabled{opacity:.55;cursor:not-allowed}
+    .status{margin-top:16px;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:#f8fafc;white-space:pre-wrap;word-break:break-word}.ok{color:var(--ok);border-color:#a8dfc1;background:#f0fbf5}.bad{color:var(--bad);border-color:#f3b8b3;background:#fff4f3}.warn{color:var(--warn);border-color:#ead49b;background:#fff9e8}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}label{font-weight:750}input,select{width:100%;border:1px solid #cdd6e2;border-radius:11px;padding:12px 13px;font:inherit;background:#fff}input:focus,select:focus{outline:3px solid rgba(29,111,232,.14);border-color:var(--accent)}
+    dl{display:grid;grid-template-columns:155px 1fr;gap:10px 16px;margin:0}dt{color:var(--muted);font-weight:750}dd{margin:0;word-break:break-all}pre{overflow:auto;background:#101828;color:#e5eefb;padding:16px;border-radius:12px;font-size:.87rem;min-height:90px}
+    .notice{border-left:4px solid #f59e0b;padding:10px 14px;background:#fff9e8;border-radius:8px;margin:14px 0}.hidden{display:none}
+    @media(max-width:640px){.grid{grid-template-columns:1fr}.field.full{grid-column:auto}dl{grid-template-columns:1fr;gap:3px}dd{margin-bottom:10px}}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Cloudflare 학생 가입 요청 시험</h1>
+  <p class="small">학생 Google 로그인 → Firebase ID 토큰 발급 → Cloudflare Worker → D1의 <code>users</code>와 <code>student_applications</code> 저장 흐름을 확인합니다.</p>
+
+  <section class="card">
+    <div class="notice"><strong>중요:</strong> 마스터 계정이 아닌 별도의 시험 학생 Google 계정을 사용하세요. 마스터 계정은 이 화면에서 가입 요청을 차단합니다.</div>
+    <div class="actions">
+      <button id="loginBtn" class="primary">시험 학생 Google 로그인</button>
+      <button id="logoutBtn" class="secondary" disabled>로그아웃</button>
+      <button id="profileBtn" class="secondary" disabled>D1 상태 다시 확인</button>
+    </div>
+    <div id="status" class="status">학생 계정으로 로그인하기 전입니다.</div>
+  </section>
+
+  <section class="card">
+    <h2>로그인 계정</h2>
+    <dl>
+      <dt>이메일</dt><dd id="email">-</dd>
+      <dt>Firebase UID</dt><dd id="uid">-</dd>
+    </dl>
+  </section>
+
+  <section class="card">
+    <h2>학생 가입 요청</h2>
+    <form id="applicationForm">
+      <div class="grid">
+        <div class="field">
+          <label for="campus">신청 소속관</label>
+          <select id="campus" required>
+            <option value="suseong1">수성1관</option>
+            <option value="suseong2">수성2관</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="contactLast4">연락처 뒤 4자리</label>
+          <input id="contactLast4" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="예: 1234" required>
+        </div>
+        <div class="field full">
+          <label for="name">학생 이름</label>
+          <input id="name" maxlength="40" placeholder="실제 시험 학생 이름" required>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:16px">
+        <button id="submitBtn" type="submit" class="primary" disabled>D1 가입 요청 저장</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>D1 저장 결과</h2>
+    <dl>
+      <dt>사용자 역할</dt><dd id="role">-</dd>
+      <dt>활성 상태</dt><dd id="active">-</dd>
+      <dt>신청 상태</dt><dd id="applicationStatus">-</dd>
+    </dl>
+    <pre id="raw">아직 저장하거나 조회하지 않았습니다.</pre>
+  </section>
+</main>
+
+<script type="module">
+  import { auth, authPersistenceReady, provider } from "../question-access/firebase-client.js";
+  import { onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+
+  const API_BASE = "https://etoos247-qa-api.etoos247test.workers.dev";
+  const MASTER_UID = "ekysfPsgHFRwTZZr8ufhOfStAUf2";
+  const $ = (id) => document.getElementById(id);
+  const status = $("status");
+  const loginBtn = $("loginBtn");
+  const logoutBtn = $("logoutBtn");
+  const profileBtn = $("profileBtn");
+  const submitBtn = $("submitBtn");
+  const form = $("applicationForm");
+
+  function setStatus(message,type=""){status.textContent=message;status.className=`status ${type}`.trim()}
+  function setUser(user){$("email").textContent=user?.email||"-";$("uid").textContent=user?.uid||"-";logoutBtn.disabled=!user;profileBtn.disabled=!user;submitBtn.disabled=!user||user.uid===MASTER_UID}
+  async function tokenFor(user){return user.getIdToken(true)}
+  async function readProfile(user){
+    const token=await tokenFor(user);
+    const response=await fetch(`${API_BASE}/api/me`,{headers:{Authorization:`Bearer ${token}`},cache:"no-store"});
+    const data=await response.json().catch(()=>({}));
+    $("raw").textContent=JSON.stringify(data,null,2);
+    if(!response.ok) throw new Error(data.message||`API 오류: ${response.status}`);
+    const profile=data.profile||{};
+    $("role").textContent=profile.role||"D1 등록 없음";
+    $("active").textContent=profile.active===1?"활성(1)":profile.active===0?"비활성(0)":"등록 없음";
+    return data;
+  }
+
+  loginBtn.addEventListener("click",async()=>{
+    loginBtn.disabled=true;
+    try{
+      await authPersistenceReady;
+      const result=await signInWithPopup(auth,provider);
+      setUser(result.user);
+      if(result.user.uid===MASTER_UID){
+        setStatus("마스터 계정으로 로그인했습니다. 이 시험에는 별도의 학생 Google 계정이 필요합니다. 로그아웃 후 학생 계정으로 다시 로그인하세요.","warn");
+        return;
+      }
+      $("name").value=result.user.displayName||"";
+      await readProfile(result.user);
+      setStatus("학생 계정 로그인 성공. 소속관·이름·연락처 뒤 4자리를 확인한 뒤 가입 요청을 저장하세요.","ok");
+    }catch(error){console.error(error);setStatus(`실패: ${error.message}`,"bad")}
+    finally{loginBtn.disabled=false}
+  });
+
+  logoutBtn.addEventListener("click",async()=>{await signOut(auth);setUser(null);$("role").textContent="-";$("active").textContent="-";$("applicationStatus").textContent="-";$("raw").textContent="아직 저장하거나 조회하지 않았습니다.";setStatus("로그아웃했습니다.")});
+
+  profileBtn.addEventListener("click",async()=>{
+    profileBtn.disabled=true;
+    try{if(!auth.currentUser)throw new Error("먼저 로그인하세요.");await readProfile(auth.currentUser);setStatus("D1 사용자 상태를 다시 조회했습니다.","ok")}
+    catch(error){setStatus(`실패: ${error.message}`,"bad")}
+    finally{profileBtn.disabled=!auth.currentUser}
+  });
+
+  form.addEventListener("submit",async(event)=>{
+    event.preventDefault();
+    const user=auth.currentUser;
+    if(!user){setStatus("먼저 시험 학생 계정으로 로그인하세요.","bad");return}
+    if(user.uid===MASTER_UID){setStatus("마스터 계정으로는 학생 가입 요청을 보낼 수 없습니다.","bad");return}
+    const name=$("name").value.trim();
+    const campus=$("campus").value;
+    const contactLast4=$("contactLast4").value.trim();
+    if(name.length<2){setStatus("학생 이름을 2자 이상 입력하세요.","bad");return}
+    if(!/^\d{4}$/.test(contactLast4)){setStatus("연락처 뒤 4자리를 숫자로 입력하세요.","bad");return}
+    submitBtn.disabled=true;
+    try{
+      setStatus("Firebase 토큰을 Worker로 보내 D1 가입 요청을 저장하는 중입니다...");
+      const token=await tokenFor(user);
+      const response=await fetch(`${API_BASE}/api/student-applications`,{
+        method:"POST",
+        headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},
+        body:JSON.stringify({campus,name,contactLast4})
+      });
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data.message||`API 오류: ${response.status}`);
+      $("applicationStatus").textContent=data.status||"pending";
+      await readProfile(user);
+      $("applicationStatus").textContent=data.status||"pending";
+      setStatus(`성공: ${campus==="suseong1"?"수성1관":"수성2관"} 학생 가입 요청이 D1에 저장됐습니다.`,"ok");
+    }catch(error){console.error(error);setStatus(`실패: ${error.message}`,"bad")}
+    finally{submitBtn.disabled=!auth.currentUser||auth.currentUser.uid===MASTER_UID}
+  });
+
+  onAuthStateChanged(auth,async(user)=>{
+    setUser(user);
+    if(!user)return;
+    if(user.uid===MASTER_UID){setStatus("현재 마스터 계정으로 로그인돼 있습니다. 로그아웃 후 별도의 시험 학생 계정을 선택하세요.","warn");return}
+    $("name").value=$("name").value||user.displayName||"";
+    try{await readProfile(user);setStatus("학생 계정 로그인 상태를 확인했습니다. 가입 요청을 저장할 수 있습니다.","ok")}
+    catch(error){setStatus(`상태 확인 실패: ${error.message}`,"bad")}
+  });
+</script>
+</body>
+</html>
