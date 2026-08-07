@@ -1,3 +1,4 @@
+import "./retention-policy-labels.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import { auth } from "./firebase-client.js";
 
