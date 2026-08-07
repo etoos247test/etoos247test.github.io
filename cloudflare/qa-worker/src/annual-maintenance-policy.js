@@ -152,10 +152,22 @@ async function parseResponse(response) {
   return response.clone().json().catch(() => null);
 }
 
+function responseWithJson(response, data) {
+  const headers = new Headers(response.headers);
+  headers.set('Content-Type', 'application/json; charset=utf-8');
+  headers.set('Cache-Control', 'no-store');
+  return new Response(JSON.stringify(data), {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
+
 export async function handleAnnualMaintenance(request, env) {
   const url = new URL(request.url);
-  const isPrepare = request.method === 'POST'
-    && (url.pathname === PREPARE_RESET || url.pathname === PREPARE_RESTORE);
+  const isPrepareReset = request.method === 'POST' && url.pathname === PREPARE_RESET;
+  const isPrepareRestore = request.method === 'POST' && url.pathname === PREPARE_RESTORE;
+  const isPrepare = isPrepareReset || isPrepareRestore;
   const isExecuteReset = request.method === 'POST' && url.pathname === EXECUTE_RESET;
   const isExecuteRestore = request.method === 'POST' && url.pathname === EXECUTE_RESTORE;
 
@@ -184,6 +196,27 @@ export async function handleAnnualMaintenance(request, env) {
 
   if (response.ok && data?.done === true && isExecuteRestore) {
     await restoreApprovedTeachers(env, snapshot, true);
+  }
+
+  if (response.ok && data && isPrepareReset) {
+    const preservedTeacherCount = snapshot?.teachers?.length || 0;
+    const counts = { ...(data.counts || {}) };
+    counts.nonMasterUsers = Math.max(
+      0,
+      Number(counts.nonMasterUsers || 0) - preservedTeacherCount
+    );
+    counts.teachers = 0;
+    return responseWithJson(response, {
+      ...data,
+      counts,
+      preservedApprovedTeachers: preservedTeacherCount,
+      policy: {
+        preserveMasters: true,
+        preserveApprovedTeachers: true,
+        backupPhotoRetentionDays: Number(env.BACKUP_RETENTION_DAYS || 30),
+        closedQuestionRetentionDays: Number(env.QUESTION_CLOSED_RETENTION_DAYS || 7)
+      }
+    });
   }
 
   return response;
