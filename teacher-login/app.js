@@ -27,7 +27,8 @@ function setStatus(message, type = "") {
 function setApprovalState(label, code, type = "none") {
   approvalState.className = `approval-state ${type}`.trim();
   approvalState.classList.remove("hidden");
-  approvalState.querySelector("span").textContent = `${label} (${code})`;
+  approvalState.dataset.state = code;
+  approvalState.querySelector("span").textContent = label;
 }
 
 function hideActions() {
@@ -41,10 +42,10 @@ function goToWorkspace(profile, user) {
   sessionStorage.setItem("etoos247AuthIntent", "staff");
   const canApprove = profile.role === "master" || profile.canApproveStudents === true;
   sessionStorage.setItem("etoos247TeacherStartTab", canApprove ? "approval" : "notice");
-  const roleLabel = profile.role === "master" ? "마스터" : "교사";
+  const roleLabel = profile.role === "master" ? "관리자" : "교사";
   setApprovalState("승인 완료", "approved", "approved");
   setStatus(
-    `${user.displayName || roleLabel}님\n교사 승인 완료 · 권한: ${roleLabel}\n교사용 업무화면으로 이동합니다.`,
+    `${user.displayName || roleLabel}님, 승인된 ${roleLabel} 계정입니다.\n교사용 업무화면으로 이동합니다.`,
     "success"
   );
   window.setTimeout(() => location.replace("../question-access/?role=teacher"), 900);
@@ -54,7 +55,7 @@ async function verifyTeacher(user) {
   currentUser = user;
   loginButton.disabled = true;
   hideActions();
-  setStatus("Google 계정 확인 완료. 교사 승인 상태를 확인하고 있습니다.");
+  setStatus("Google 계정을 확인했습니다. 교사 승인 상태를 확인하고 있습니다.");
 
   try {
     const [profileSnap, requestSnap] = await Promise.all([
@@ -71,9 +72,9 @@ async function verifyTeacher(user) {
     }
 
     if (allowedRole && profile?.active !== true) {
-      setApprovalState("승인 완료 · 이용 중지", "approved/suspended", "suspended");
+      setApprovalState("현재 이용 중지", "approved/suspended", "suspended");
       setStatus(
-        "교사 승인은 완료되었지만 현재 계정 이용이 중지되어 있습니다. 마스터 관리자에게 이용 재개를 요청하세요.",
+        "승인된 계정이지만 현재 이용이 중지되어 있습니다. 관리자에게 이용 재개를 요청해 주세요.",
         "error"
       );
       failureActions.classList.remove("hidden");
@@ -82,18 +83,18 @@ async function verifyTeacher(user) {
 
     const requestStatus = String(request?.status || "none");
     if (requestStatus === "pending") {
-      setApprovalState("승인 대기", "pending", "pending");
+      setApprovalState("승인 대기 중", "pending", "pending");
       setStatus(
-        "교사 승인 요청이 접수되었습니다. 마스터가 관리 지점과 권한을 지정할 때까지 기다려 주세요.",
+        "교사 권한 요청이 접수되었습니다. 관리자가 소속 관과 이용 권한을 확인한 뒤 승인합니다.",
         "warning"
       );
       requestButton.textContent = "승인 대기 중";
       requestButton.disabled = true;
       requestActions.classList.remove("hidden");
     } else if (requestStatus === "rejected") {
-      setApprovalState("승인 반려", "rejected", "rejected");
+      setApprovalState("승인 요청 반려", "rejected", "rejected");
       setStatus(
-        "교사 승인 요청이 반려되었습니다. 계정을 확인한 뒤 다시 승인 요청을 보낼 수 있습니다.",
+        "승인 요청이 반려되었습니다. 사용한 Google 계정을 확인한 뒤 다시 요청해 주세요.",
         "error"
       );
       requestButton.textContent = "교사 권한 다시 요청";
@@ -101,16 +102,16 @@ async function verifyTeacher(user) {
       requestActions.classList.remove("hidden");
       failureActions.classList.remove("hidden");
     } else if (requestStatus === "approved") {
-      setApprovalState("승인 완료 · 권한 반영 확인 필요", "approved", "pending");
+      setApprovalState("관리자 확인 필요", "approved", "pending");
       setStatus(
-        "교사 승인 기록은 있으나 활성 교사 권한 문서가 확인되지 않습니다. 마스터 관리자에게 권한 반영을 요청하세요.",
+        "승인 기록은 확인되지만 이용 권한이 아직 적용되지 않았습니다. 관리자에게 권한 확인을 요청해 주세요.",
         "warning"
       );
       failureActions.classList.remove("hidden");
     } else {
       setApprovalState("승인 요청 전", "none", "none");
       setStatus(
-        "이 Google 계정은 아직 교사 승인 요청을 하지 않았습니다. 아래 버튼으로 승인 요청을 저장하세요.",
+        "처음 이용하는 교사 계정입니다. 아래 버튼을 눌러 교사 권한을 요청해 주세요.",
         "warning"
       );
       requestButton.textContent = "교사 권한 승인 요청";
@@ -122,7 +123,7 @@ async function verifyTeacher(user) {
     console.error(error);
     setApprovalState("상태 확인 실패", "error", "rejected");
     setStatus(
-      `교사 승인 상태를 확인하지 못했습니다.\n${error.message || String(error)}`,
+      "승인 상태를 확인하지 못했습니다. 잠시 후 다시 로그인하거나 관리자에게 문의해 주세요.",
       "error"
     );
     failureActions.classList.remove("hidden");
@@ -133,12 +134,12 @@ async function verifyTeacher(user) {
 
 async function requestTeacherApproval() {
   if (!currentUser) {
-    setStatus("먼저 Google 계정으로 로그인하세요.", "warning");
+    setStatus("먼저 Google 계정으로 로그인해 주세요.", "warning");
     return;
   }
 
   requestButton.disabled = true;
-  setStatus("교사 승인 요청을 저장하는 중입니다.");
+  setStatus("교사 권한 요청을 접수하고 있습니다.");
 
   try {
     await setDoc(doc(db, "teacherRequests", currentUser.uid), {
@@ -150,14 +151,14 @@ async function requestTeacherApproval() {
       updatedAt: serverTimestamp()
     }, { merge: true });
 
-    setApprovalState("승인 대기", "pending", "pending");
-    setStatus("교사 승인 요청이 접수되었습니다. 마스터 승인을 기다려 주세요.", "success");
+    setApprovalState("승인 대기 중", "pending", "pending");
+    setStatus("교사 권한 요청이 접수되었습니다. 관리자 승인을 기다려 주세요.", "success");
     requestButton.textContent = "승인 대기 중";
     requestButton.disabled = true;
     failureActions.classList.remove("hidden");
   } catch (error) {
     setStatus(
-      `교사 승인 요청을 저장하지 못했습니다.\n${error.message || String(error)}`,
+      "교사 권한 요청을 접수하지 못했습니다. 잠시 후 다시 시도해 주세요.",
       "error"
     );
     requestButton.disabled = false;
@@ -173,12 +174,12 @@ async function login() {
     await verifyTeacher(result.user);
   } catch (error) {
     const message = error.code === "auth/popup-blocked"
-      ? "로그인 팝업이 차단되었습니다. 브라우저에서 팝업을 허용하세요."
+      ? "로그인 창이 차단되었습니다. 브라우저에서 팝업을 허용한 뒤 다시 시도해 주세요."
       : error.code === "auth/popup-closed-by-user"
-        ? "Google 로그인 창을 닫았습니다. 다시 인증 버튼을 누르세요."
-        : error.message || String(error);
-    setApprovalState("인증 실패", "error", "rejected");
-    setStatus(`Google 인증에 실패했습니다.\n${message}`, "error");
+        ? "Google 로그인 창을 닫았습니다. 다시 로그인 버튼을 눌러 주세요."
+        : "로그인을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.";
+    setApprovalState("로그인 실패", "error", "rejected");
+    setStatus(message, "error");
     failureActions.classList.remove("hidden");
     loginButton.disabled = false;
   }
@@ -190,7 +191,7 @@ async function useAnotherAccount() {
   await signOut(auth);
   approvalState.classList.add("hidden");
   hideActions();
-  setStatus("다른 Google 계정으로 로그인하세요.");
+  setStatus("사용할 Google 계정을 선택해 주세요.");
   await login();
 }
 
