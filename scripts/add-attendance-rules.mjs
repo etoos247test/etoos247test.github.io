@@ -1,10 +1,9 @@
 import fs from "node:fs";
-import { execFileSync } from "node:child_process";
 
 const path = "firebase-rules/teacher-registration.rules";
-const cleanBaseCommit = "330aa7c64b100f0e0fd46ff2b93d42be55f1eb99";
-let source = execFileSync("git", ["show", `${cleanBaseCommit}:${path}`], { encoding: "utf8" });
+let source = fs.readFileSync(path, "utf8");
 const marker = "// ATTENDANCE_RULES_V1";
+if (source.includes(marker)) process.exit(0);
 
 const block = `
     ${marker}
