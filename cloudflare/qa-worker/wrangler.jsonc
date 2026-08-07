@@ -12,7 +12,8 @@
     "MAX_IMAGES_PER_MESSAGE": "3",
     "GITHUB_BACKUP_REPO": "etoos247test/etoos247test.github.io",
     "GITHUB_BACKUP_BRANCH": "main",
-    "BACKUP_RETENTION_DAYS": "90"
+    "BACKUP_RETENTION_DAYS": "30",
+    "QUESTION_CLOSED_RETENTION_DAYS": "7"
   },
   "triggers": {
     "crons": ["0 18 * * *"]
