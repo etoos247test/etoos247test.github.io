@@ -1,9 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 import {
-  browserSessionPersistence, getAuth, GoogleAuthProvider, setPersistence
+  browserSessionPersistence,
+  getAuth,
+  GoogleAuthProvider,
+  setPersistence
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-import { getStorage } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAg6PnWUVfvlc10R81wb2liVxyGMbqbw78",
@@ -20,13 +21,10 @@ export const auth = getAuth(app);
 export const authPersistenceReady = setPersistence(auth, browserSessionPersistence).catch((error) => {
   console.error("Firebase 세션 유지 방식 설정 실패", error);
 });
-export const db = getFirestore(app);
-export const storage = getStorage(app);
 export const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ prompt: "select_account" });
 auth.languageCode = "ko";
 
-// Students, teachers, and masters all authenticate with Google.
-// M001~M199 and S001~S199 are internal student numbers, not login accounts.
-// Student signup requests and administrator approvals are stored directly in Firestore.
-// Static screens stay on GitHub Pages; notice images are stored in cloud storage only.
+// Firebase는 Google 로그인과 ID 토큰 발급만 담당한다.
+// 사용자 권한·가입 승인·질문·대화는 Cloudflare D1에 저장한다.
+// 학생과 교사의 첨부 사진은 비공개 Cloudflare R2에 저장한다.
