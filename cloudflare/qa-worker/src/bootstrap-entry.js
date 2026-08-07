@@ -1,7 +1,11 @@
 import worker from './index.js';
 import { verifyFirebaseIdToken } from './firebase-auth.js';
+import {
+  cleanupExpiredAnnualArchives,
+  handleAnnualMaintenance
+} from './annual-maintenance.js';
 
-const BOOTSTRAP_VERSION = 'master-bootstrap-20260807b';
+const BOOTSTRAP_VERSION = 'master-bootstrap-20260807c';
 
 function nowIso() {
   return new Date().toISOString();
@@ -69,7 +73,8 @@ async function withHealthVersion(request, env, ctx) {
   headers.set('Cache-Control', 'no-store');
   return new Response(JSON.stringify({
     ...data,
-    masterBootstrapVersion: BOOTSTRAP_VERSION
+    masterBootstrapVersion: BOOTSTRAP_VERSION,
+    annualMaintenanceVersion: 'annual-maintenance-20260807a'
   }), {
     status: response.status,
     headers
@@ -89,6 +94,17 @@ export default {
       console.error('Master bootstrap failed', error);
     }
 
+    const maintenanceResponse = await handleAnnualMaintenance(request, env);
+    if (maintenanceResponse) return maintenanceResponse;
+
     return worker.fetch(request, env, ctx);
+  },
+
+  async scheduled(controller, env, ctx) {
+    ctx.waitUntil(
+      cleanupExpiredAnnualArchives(env).catch((error) => {
+        console.error('Annual archive cleanup failed', error);
+      })
+    );
   }
 };
