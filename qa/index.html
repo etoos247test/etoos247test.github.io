@@ -4,63 +4,100 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow,noarchive">
-  <meta name="theme-color" content="#081625">
-  <title>1:1 질의응답 | 이투스247 내부 포털</title>
-  <link rel="stylesheet" href="../assets/css/internal-article.css">
-  <style>
-    :root{--accent:#8f8cff}
-    .qa-form{display:grid;gap:14px}.field{padding:18px;border:1px solid var(--line);border-radius:15px;background:#fff}
-    .field label{display:block;margin-bottom:8px;font-size:12px;font-weight:900}.field select,.field textarea{width:100%;border:1px solid #ccd8e2;border-radius:11px;background:#f9fbfd;padding:12px;color:var(--ink)}
-    .field textarea{min-height:150px;resize:vertical}.photo-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.photo-choice{min-height:48px;border:0;border-radius:12px;background:#172d43;color:#fff;font-weight:900}.photo-choice.camera{background:#786fe5}.photo-help{display:block;margin-top:9px;color:var(--muted);font-size:11px}.hidden-file{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important}
-    .photo-preview{display:none;margin-top:13px;padding:12px;border:1px solid #d6e0e9;border-radius:14px;background:#f5f8fb}.photo-preview.show{display:grid;grid-template-columns:130px 1fr;gap:14px;align-items:center}
-    .photo-thumb{position:relative;width:130px;height:100px;border:0;border-radius:11px;overflow:hidden;background:#dbe4eb;padding:0;cursor:zoom-in}.photo-thumb img{width:100%;height:100%;display:block;object-fit:cover}.photo-thumb:after{content:'크게 보기';position:absolute;right:7px;bottom:7px;padding:4px 7px;border-radius:999px;background:rgba(5,14,28,.78);color:#fff;font-size:9px;font-weight:900}
-    .photo-info strong{display:block;color:#1a3043;font-size:13px;overflow-wrap:anywhere}.photo-info span{display:block;margin-top:4px;color:var(--muted);font-size:10px}.photo-info button{margin-top:10px;border:0;border-radius:9px;background:#162b40;color:#fff;padding:8px 11px;font-size:11px;font-weight:900}.photo-status{margin-top:9px;padding:9px 11px;border-radius:10px;background:#edf7f3;color:#287457;font-size:11px;font-weight:800}.photo-status.error{background:#fff0f0;color:#a13a3a}
-    .save{border:0}.saved-list{display:grid;gap:10px}.saved{padding:14px;border:1px solid var(--line);border-radius:13px;background:#fff}.saved-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.saved strong{display:block}.saved span{font-size:10px;color:var(--muted)}.saved p{margin:8px 0 0;color:#596a77;white-space:pre-wrap}.saved-image{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center;margin-top:12px;padding:9px;border:1px solid #dce5ec;border-radius:11px;background:#f7f9fc}.saved-image button.thumb{width:96px;height:74px;border:0;border-radius:9px;overflow:hidden;padding:0;background:#e1e8ee;cursor:zoom-in}.saved-image img{width:100%;height:100%;object-fit:cover;display:block}.saved-image b{display:block;font-size:11px;overflow-wrap:anywhere}.saved-image small{display:block;margin-top:4px;color:var(--muted)}.open-saved,.delete-saved{margin:8px 5px 0 0;border:0;border-radius:8px;padding:7px 9px;font-size:10px;font-weight:900}.open-saved{background:#172d43;color:#fff}.delete-saved{background:#edf0f3;color:#566471}.empty{padding:22px;border:1px dashed var(--line);border-radius:12px;text-align:center;color:var(--muted)}
-    .image-modal{position:fixed;inset:0;z-index:10000;display:none;place-items:center;padding:18px;background:rgba(3,8,16,.92);backdrop-filter:blur(7px)}.image-modal.open{display:grid}.image-modal-frame{position:relative;display:grid;place-items:center;width:min(96vw,1280px);height:min(92vh,920px)}.image-modal img{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;background:#fff;box-shadow:0 28px 90px rgba(0,0,0,.55)}.image-modal-close{position:absolute;right:4px;top:4px;z-index:2;width:44px;height:44px;border:0;border-radius:50%;background:#fff;color:#14283b;font-size:23px;font-weight:900}.image-modal-caption{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);max-width:82%;padding:8px 12px;border-radius:999px;background:rgba(7,17,31,.84);color:#fff;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .toolbar{display:flex;justify-content:flex-end;margin-bottom:10px}.toolbar button{border:1px solid #d5dfe6;border-radius:9px;background:#fff;color:#63717c;padding:8px 10px;font-size:10px;font-weight:900}
-    @media(max-width:600px){.photo-actions{grid-template-columns:1fr}.photo-preview.show{grid-template-columns:92px 1fr}.photo-thumb{width:92px;height:82px}.saved-image{grid-template-columns:78px 1fr}.saved-image button.thumb{width:78px;height:66px}.image-modal{padding:8px}.image-modal-close{right:8px;top:8px}}
-  </style>
+  <meta name="theme-color" content="#07192b">
+  <title>1:1 질문 등록 | 이투스247</title>
+  <link rel="stylesheet" href="./styles.css?v=20260807a">
 </head>
 <body>
-  <header class="topbar"><a class="brand" href="../"><span class="mark">247</span><span>이투스247 내부 포털<small>1:1 Q&amp;A WORKSPACE</small></span></a><a class="home" href="../">← 입구로 돌아가기</a></header>
-  <section class="hero" style="--accent:#8f8cff"><div class="hero-inner"><p class="eyebrow">PRIVATE Q&amp;A WORKSPACE</p><h1>1:1 질의응답<br>시연·운영 화면</h1><p>학생의 사진 질문 접수 흐름과 이미지 확인 방식을 독립 화면에서 검토합니다.</p><div class="notice">! 사진과 질문은 서버가 아니라 현재 브라우저의 IndexedDB에만 임시 저장됩니다.</div></div></section>
+  <header class="topbar">
+    <a class="brand" href="../"><span class="mark">247</span><span>이투스247 내부 포털</span></a>
+    <div class="top-actions">
+      <button id="loginBtn" type="button">Google 로그인</button>
+      <button id="refreshBtn" class="hidden" type="button">권한 다시 확인</button>
+      <button id="logoutBtn" class="hidden" type="button">로그아웃</button>
+      <a href="../">입구로</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">FIREBASE AUTH · CLOUDFLARE D1/R2</p>
+      <h1>1:1 질문 등록</h1>
+      <p>Google 로그인은 Firebase가 확인하고, 질문과 대화 기록은 Cloudflare D1에, 문제 사진은 비공개 R2에 저장합니다.</p>
+    </div>
+  </section>
+
   <main class="wrap">
-    <section class="flow"><article class="step reveal"><b>01</b><h3>사진 선택</h3><p>사진첩 또는 카메라를 사용합니다.</p></article><article class="step reveal"><b>02</b><h3>즉시 미리보기</h3><p>선택한 사진을 바로 확인합니다.</p></article><article class="step reveal"><b>03</b><h3>질문 저장</h3><p>현재 브라우저에만 시연 저장합니다.</p></article><article class="step reveal"><b>04</b><h3>다시 열기</h3><p>저장 목록에서 원본 비율로 확대합니다.</p></article></section>
-    <section class="split" style="margin-top:24px">
-      <article class="card"><h2>시연 질문 작성</h2><form class="qa-form" id="qaForm">
-        <div class="field"><label for="subject">질문 분야</label><select id="subject"><option>국어</option><option>수학</option><option>영어</option><option>탐구</option><option>학습·입시</option><option>기타</option></select></div>
-        <div class="field"><label>문제 사진</label><div class="photo-actions"><button class="photo-choice" id="galleryButton" type="button">사진첩에서 선택</button><button class="photo-choice camera" id="cameraButton" type="button">카메라로 촬영</button></div><small class="photo-help">JPG·PNG·WebP 권장. 일부 HEIC 사진은 사용 중인 브라우저가 지원하지 않을 수 있습니다.</small>
-          <input class="hidden-file" id="galleryInput" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"><input class="hidden-file" id="cameraInput" type="file" accept="image/*" capture="environment">
-          <div class="photo-preview" id="photoPreview"><button class="photo-thumb" id="photoThumb" type="button" aria-label="선택한 사진 크게 보기"><img id="photoPreviewImage" alt="선택한 문제 사진"></button><div class="photo-info"><strong id="photoName">선택한 사진</strong><span id="photoSize"></span><button id="openCurrentImage" type="button">큰 이미지 열기</button><div class="photo-status" id="photoStatus">사진을 불러왔습니다.</div></div></div>
-        </div>
-        <div class="field"><label for="question">궁금한 내용</label><textarea id="question" maxlength="1000" placeholder="어디까지 풀었고 정확히 어느 지점에서 막혔는지 입력하세요."></textarea></div>
-        <div class="actions"><button class="button save" type="submit">브라우저에 시연 저장</button><button class="button secondary" id="clear" type="button">입력 지우기</button></div>
-      </form></article>
-      <aside class="card"><div class="toolbar"><button id="deleteAll" type="button">시연 기록 전체 삭제</button></div><h2>이 브라우저의 시연 질문</h2><div class="saved-list" id="savedList"></div></aside>
+    <section class="statusbar">
+      <div><strong>현재 사용자 상태</strong><span>승인된 학생 계정만 질문 등록이 열립니다.</span></div>
+      <span id="userBadge" class="badge">로그인 전</span>
     </section>
-    <p class="footer-note">내부 기능 시연용입니다. 실제 개인정보나 민감한 문제 사진은 사용하지 마세요.</p>
+
+    <div class="grid">
+      <section>
+        <article class="card">
+          <h2>로그인·학생 권한</h2>
+          <p class="card-intro">Firebase UID와 D1의 사용자 역할·소속관·학생번호를 함께 확인합니다.</p>
+          <div id="authMessage" class="message">Google 로그인 후 Firebase UID와 D1 학생 권한을 확인합니다.</div>
+          <dl class="auth-profile">
+            <dt>이메일</dt><dd id="profileEmail">-</dd>
+            <dt>Firebase UID</dt><dd id="profileUid">-</dd>
+            <dt>D1 역할</dt><dd id="profileRole">-</dd>
+            <dt>소속관</dt><dd id="profileCampus">-</dd>
+            <dt>학생번호</dt><dd id="profileStudentId">-</dd>
+          </dl>
+
+          <section id="applicationPanel" class="application hidden">
+            <h2>학생 가입 신청</h2>
+            <p class="card-intro">D1에 가입 신청을 저장합니다. 마스터 승인과 학생번호 부여 후 질문 등록이 가능합니다.</p>
+            <form id="applicationForm">
+              <div class="form-grid">
+                <div class="field"><label for="applicationCampus">소속관</label><select id="applicationCampus"><option value="suseong1">수성1관</option><option value="suseong2">수성2관</option></select></div>
+                <div class="field"><label for="contactLast4">연락처 뒤 4자리</label><input id="contactLast4" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="예: 1234" required></div>
+                <div class="field full"><label for="applicationName">학생 이름</label><input id="applicationName" maxlength="40" required></div>
+              </div>
+              <div class="actions"><button id="applicationSubmit" class="button primary" type="submit">D1 가입 신청 저장</button></div>
+            </form>
+          </section>
+        </article>
+
+        <article class="card" style="margin-top:20px">
+          <h2>새 질문 작성</h2>
+          <p class="card-intro">질문은 D1에, 사진은 권한 확인 후에만 열리는 비공개 R2에 저장됩니다.</p>
+          <form id="questionForm" class="hidden">
+            <div class="form-grid">
+              <div class="field"><label for="subject">질문 과목</label><select id="subject"><option>국어</option><option>수학</option><option>영어</option><option>사탐</option><option>과탐</option><option>입시</option></select></div>
+              <div class="field"><label>문제 사진</label><div class="photo-buttons"><button id="galleryButton" class="button secondary" type="button">사진 선택</button><button id="cameraButton" class="button violet" type="button">카메라 촬영</button><button id="clearFilesBtn" class="button secondary" type="button">사진 지우기</button></div><span class="help">최대 3장. JPG·PNG·WebP만 가능하며 업로드 전에 각 사진을 1MB 이하로 압축합니다.</span><input id="galleryInput" class="hidden-file" type="file" accept="image/jpeg,image/png,image/webp" multiple><input id="cameraInput" class="hidden-file" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"></div>
+              <div class="field full"><label for="questionText">궁금한 내용</label><textarea id="questionText" maxlength="3000" placeholder="어디까지 풀었고 어느 지점에서 막혔는지 구체적으로 입력하세요." required></textarea></div>
+            </div>
+            <div id="previewList" class="preview-list"></div>
+            <div class="actions"><button id="submitQuestionBtn" class="button primary" type="submit">Cloudflare에 질문 등록</button></div>
+          </form>
+          <div id="questionMessage" class="message">승인된 학생 계정으로 로그인하면 질문 작성 화면이 열립니다.</div>
+          <div class="system-note">질문 등록이 성공하면 D1의 <strong>questions·messages</strong>에 기록되고, 첨부 사진은 R2의 <strong>qa/v1/소속관/연도/월/질문ID/메시지ID/</strong> 경로에 저장됩니다.</div>
+        </article>
+      </section>
+
+      <aside>
+        <article class="card">
+          <h2>내 질문 현황</h2>
+          <p class="card-intro">D1에서 현재 로그인 학생의 질문만 불러옵니다.</p>
+          <div id="questionList" class="question-list"></div>
+        </article>
+        <article class="card" style="margin-top:20px">
+          <h2>상태 안내</h2>
+          <div class="question-list">
+            <div class="question-item"><strong>교사 답변 대기</strong><small>학생이 마지막 질문이나 재질문을 보낸 상태</small></div>
+            <div class="question-item"><strong>학생 확인·재질문 대기</strong><small>교사 또는 마스터가 마지막 피드백을 보낸 상태</small></div>
+            <div class="question-item"><strong>종료</strong><small>교사 또는 마스터가 질문을 마감한 상태</small></div>
+          </div>
+        </article>
+      </aside>
+    </div>
+
+    <p class="footer">Firebase Authentication + Cloudflare Worker + D1 + R2 · GitHub Pages 화면</p>
   </main>
-  <div class="image-modal" id="imageModal" role="dialog" aria-modal="true" aria-label="문제 사진 크게 보기"><div class="image-modal-frame"><button class="image-modal-close" id="imageModalClose" type="button" aria-label="닫기">×</button><img id="imageModalImage" alt="확대된 문제 사진"><div class="image-modal-caption" id="imageModalCaption"></div></div></div>
-  <script>
-  (()=>{
-    const DB_NAME='etoos247-qa-demo-db',STORE='questions';
-    const form=document.getElementById('qaForm'),question=document.getElementById('question'),subject=document.getElementById('subject'),galleryInput=document.getElementById('galleryInput'),cameraInput=document.getElementById('cameraInput'),preview=document.getElementById('photoPreview'),previewImage=document.getElementById('photoPreviewImage'),photoName=document.getElementById('photoName'),photoSize=document.getElementById('photoSize'),photoStatus=document.getElementById('photoStatus'),list=document.getElementById('savedList'),modal=document.getElementById('imageModal'),modalImage=document.getElementById('imageModalImage'),modalCaption=document.getElementById('imageModalCaption');
-    let selectedFile=null,currentUrl='',renderUrls=[];
-    const dbOpen=()=>new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE,{keyPath:'id'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
-    const dbRun=async(mode,action)=>{const db=await dbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,mode),store=tx.objectStore(STORE),request=action(store);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);tx.oncomplete=()=>db.close()})};
-    const getAll=()=>dbRun('readonly',s=>s.getAll());const put=x=>dbRun('readwrite',s=>s.put(x));const remove=id=>dbRun('readwrite',s=>s.delete(id));const clearAll=()=>dbRun('readwrite',s=>s.clear());
-    const bytes=n=>n<1048576?`${Math.max(1,Math.round(n/1024))}KB`:`${(n/1048576).toFixed(1)}MB`;
-    const revokeCurrent=()=>{if(currentUrl)URL.revokeObjectURL(currentUrl);currentUrl=''};const revokeRender=()=>{renderUrls.forEach(URL.revokeObjectURL);renderUrls=[]};
-    const openImage=(src,name)=>{if(!src)return;modalImage.src=src;modalCaption.textContent=name||'문제 사진';modal.classList.add('open');document.body.style.overflow='hidden'};
-    const closeImage=()=>{modal.classList.remove('open');modalImage.removeAttribute('src');document.body.style.overflow=''};
-    const clearPreview=()=>{revokeCurrent();selectedFile=null;preview.classList.remove('show');previewImage.removeAttribute('src');photoName.textContent='선택한 사진';photoSize.textContent='';galleryInput.value='';cameraInput.value=''};
-    const applyFile=file=>{clearPreview();if(!file)return;selectedFile=file;currentUrl=URL.createObjectURL(file);previewImage.onload=()=>{photoStatus.textContent='사진이 정상적으로 열렸습니다.';photoStatus.className='photo-status'};previewImage.onerror=()=>{photoStatus.textContent='이 사진 형식은 현재 브라우저에서 표시할 수 없습니다. JPG 또는 PNG로 다시 선택해 주세요.';photoStatus.className='photo-status error'};previewImage.src=currentUrl;photoName.textContent=file.name||'촬영 사진';photoSize.textContent=`${bytes(file.size)} · ${file.type||'형식 정보 없음'}`;preview.classList.add('show')};
-    document.getElementById('galleryButton').onclick=()=>galleryInput.click();document.getElementById('cameraButton').onclick=()=>cameraInput.click();galleryInput.onchange=()=>applyFile(galleryInput.files?.[0]);cameraInput.onchange=()=>applyFile(cameraInput.files?.[0]);
-    document.getElementById('photoThumb').onclick=()=>openImage(currentUrl,selectedFile?.name);document.getElementById('openCurrentImage').onclick=()=>openImage(currentUrl,selectedFile?.name);document.getElementById('imageModalClose').onclick=closeImage;modal.onclick=e=>{if(e.target===modal)closeImage()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeImage()});
-    const render=async()=>{revokeRender();const data=(await getAll()).sort((a,b)=>b.created-a.created);list.innerHTML='';if(!data.length){list.innerHTML='<div class="empty">아직 저장된 시연 질문이 없습니다.</div>';return}data.forEach((x,i)=>{const article=document.createElement('article');article.className='saved';const head=document.createElement('div');head.className='saved-head';const title=document.createElement('div');const strong=document.createElement('strong');strong.textContent=`${x.subject} · 질문 ${data.length-i}`;const time=document.createElement('span');time.textContent=x.time;title.append(strong,time);head.append(title);article.append(head);const p=document.createElement('p');p.textContent=x.text;article.append(p);if(x.blob){const url=URL.createObjectURL(x.blob);renderUrls.push(url);const box=document.createElement('div');box.className='saved-image';const thumb=document.createElement('button');thumb.type='button';thumb.className='thumb';const img=document.createElement('img');img.src=url;img.alt='저장된 문제 사진';thumb.append(img);thumb.onclick=()=>openImage(url,x.fileName);const info=document.createElement('div');const b=document.createElement('b');b.textContent=x.fileName||'문제 사진';const small=document.createElement('small');small.textContent=`${bytes(x.blob.size)} · IndexedDB 저장`;const open=document.createElement('button');open.type='button';open.className='open-saved';open.textContent='큰 이미지 열기';open.onclick=()=>openImage(url,x.fileName);const del=document.createElement('button');del.type='button';del.className='delete-saved';del.textContent='삭제';del.onclick=async()=>{await remove(x.id);render()};info.append(b,small,open,del);box.append(thumb,info);article.append(box)}list.append(article)})};
-    form.onsubmit=async e=>{e.preventDefault();if(!question.value.trim()){question.focus();return}const button=form.querySelector('[type=submit]'),old=button.textContent;button.disabled=true;button.textContent='저장 중…';try{await put({id:Date.now(),created:Date.now(),subject:subject.value,text:question.value.trim(),fileName:selectedFile?.name||'',blob:selectedFile||null,time:new Date().toLocaleString('ko-KR')});form.reset();clearPreview();await render()}catch(err){alert('브라우저에 저장하지 못했습니다. 브라우저의 시크릿 모드 또는 저장공간 제한을 확인해 주세요.')}finally{button.disabled=false;button.textContent=old}};
-    document.getElementById('clear').onclick=()=>{form.reset();clearPreview()};document.getElementById('deleteAll').onclick=async()=>{if(confirm('이 브라우저의 시연 질문을 모두 삭제할까요?')){await clearAll();render()}};addEventListener('beforeunload',()=>{revokeCurrent();revokeRender()});render().catch(()=>{list.innerHTML='<div class="empty">브라우저 저장소를 열지 못했습니다. 일반 모드에서 다시 접속해 주세요.</div>'});
-  })();
-  </script>
+
+  <script type="module" src="./app.js?v=20260807a"></script>
 </body>
 </html>
