@@ -2,7 +2,7 @@ import { verifyFirebaseIdToken } from './firebase-auth.js';
 
 const DELETE_PATH = /^\/api\/admin\/questions\/([^/]+)\/delete$/;
 const DEFAULT_RETENTION_DAYS = 7;
-const CLEANUP_LIMIT = 100;
+const CLEANUP_BATCH_SIZE = 100;
 const R2_DELETE_BATCH = 250;
 
 function nowIso() {
@@ -97,6 +97,38 @@ async function deleteQuestion(env, question, actorUid, action, detail = {}) {
   return { questionId: question.id, attachmentsDeleted: keys.length };
 }
 
+async function loadExpiredBatch(env, cutoff, cursor) {
+  if (!cursor) {
+    return env.DB.prepare(`
+      SELECT * FROM questions
+      WHERE status='closed'
+        AND closed_at IS NOT NULL
+        AND closed_at<=?
+      ORDER BY closed_at ASC,id ASC
+      LIMIT ?
+    `).bind(cutoff, CLEANUP_BATCH_SIZE).all();
+  }
+
+  return env.DB.prepare(`
+    SELECT * FROM questions
+    WHERE status='closed'
+      AND closed_at IS NOT NULL
+      AND closed_at<=?
+      AND (
+        closed_at>?
+        OR (closed_at=? AND id>?)
+      )
+    ORDER BY closed_at ASC,id ASC
+    LIMIT ?
+  `).bind(
+    cutoff,
+    cursor.closedAt,
+    cursor.closedAt,
+    cursor.id,
+    CLEANUP_BATCH_SIZE
+  ).all();
+}
+
 export async function handleQuestionRetention(request, env) {
   const url = new URL(request.url);
   const match = DELETE_PATH.exec(url.pathname);
@@ -139,35 +171,59 @@ export async function cleanupExpiredClosedQuestions(env) {
     env.QUESTION_CLOSED_RETENTION_DAYS || DEFAULT_RETENTION_DAYS
   );
   const cutoff = new Date(Date.now() - retentionDays * 86400000).toISOString();
-  const result = await env.DB.prepare(`
-    SELECT * FROM questions
-    WHERE status='closed'
-      AND closed_at IS NOT NULL
-      AND closed_at<=?
-    ORDER BY closed_at ASC
-    LIMIT ?
-  `).bind(cutoff, CLEANUP_LIMIT).all();
 
+  let cursor = null;
+  let batches = 0;
+  let scanned = 0;
   let deleted = 0;
   let attachmentsDeleted = 0;
   const failures = [];
 
-  for (const question of result.results || []) {
-    try {
-      const deletion = await deleteQuestion(
-        env,
-        question,
-        null,
-        'question.delete.retention',
-        { retentionDays, cutoff }
-      );
-      deleted += 1;
-      attachmentsDeleted += deletion.attachmentsDeleted;
-    } catch (error) {
-      console.error('Closed question retention deletion failed', question.id, error);
-      failures.push({ questionId: question.id, message: error.message });
+  while (true) {
+    const result = await loadExpiredBatch(env, cutoff, cursor);
+    const rows = result.results || [];
+    if (!rows.length) break;
+
+    batches += 1;
+    scanned += rows.length;
+
+    for (const question of rows) {
+      try {
+        const deletion = await deleteQuestion(
+          env,
+          question,
+          null,
+          'question.delete.retention',
+          {
+            retentionDays,
+            cutoff,
+            cleanupBatch: batches,
+            cleanupBatchSize: CLEANUP_BATCH_SIZE
+          }
+        );
+        deleted += 1;
+        attachmentsDeleted += deletion.attachmentsDeleted;
+      } catch (error) {
+        console.error('Closed question retention deletion failed', question.id, error);
+        failures.push({ questionId: question.id, message: error.message });
+      }
     }
+
+    const last = rows[rows.length - 1];
+    cursor = { closedAt: last.closed_at, id: last.id };
+
+    if (rows.length < CLEANUP_BATCH_SIZE) break;
   }
 
-  return { deleted, attachmentsDeleted, retentionDays, cutoff, failures };
+  return {
+    complete: true,
+    batchSize: CLEANUP_BATCH_SIZE,
+    batches,
+    scanned,
+    deleted,
+    attachmentsDeleted,
+    retentionDays,
+    cutoff,
+    failures
+  };
 }
