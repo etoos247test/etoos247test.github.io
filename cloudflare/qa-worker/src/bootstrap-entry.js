@@ -1,21 +1,35 @@
 import worker from './index.js';
 import { verifyFirebaseIdToken } from './firebase-auth.js';
 
-const BOOTSTRAP_VERSION = 'master-bootstrap-20260807a';
+const BOOTSTRAP_VERSION = 'master-bootstrap-20260807b';
 
 function nowIso() {
   return new Date().toISOString();
 }
 
+function configuredMasterUids(env) {
+  const combined = [
+    String(env.MASTER_FIREBASE_UIDS || ''),
+    String(env.MASTER_FIREBASE_UID || '')
+  ].join(',');
+
+  return new Set(
+    combined
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean)
+  );
+}
+
 async function ensureBootstrapMaster(request, env) {
-  const configuredUid = String(env.MASTER_FIREBASE_UID || '').trim();
-  if (!configuredUid) return;
+  const masterUids = configuredMasterUids(env);
+  if (!masterUids.size) return;
 
   const url = new URL(request.url);
   if (!url.pathname.startsWith('/api/')) return;
 
   const identity = await verifyFirebaseIdToken(request, env);
-  if (identity.uid !== configuredUid) return;
+  if (!masterUids.has(identity.uid)) return;
 
   const time = nowIso();
   const email = String(identity.email || '').trim();
@@ -42,7 +56,7 @@ async function ensureBootstrapMaster(request, env) {
       can_approve_students=1,
       can_manage_student_info=1,
       updated_at=excluded.updated_at
-  `).bind(configuredUid, email, name, time, time).run();
+  `).bind(identity.uid, email, name, time, time).run();
 }
 
 async function withHealthVersion(request, env, ctx) {
