@@ -6,7 +6,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
     "FIREBASE_PROJECT_ID": "etoos247test-10ffa",
-    "MASTER_FIREBASE_UID": "ekysfPsgHFRwTZZr8ufhOfStAUf2",
+    "MASTER_FIREBASE_UIDS": "ekysfPsgHFRwTZZr8ufhOfStAUf2,JH0KMbtMiVTKUkzCGwKy1QbWteK2",
     "ALLOWED_ORIGIN": "https://etoos247test.github.io",
     "MAX_IMAGE_BYTES": "1048576",
     "MAX_IMAGES_PER_MESSAGE": "3"
