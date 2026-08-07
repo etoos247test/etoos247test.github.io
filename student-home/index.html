@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="이투스247학원 수성점 학생 학원생활 홈">
+  <title>학생 학원생활 홈 | 이투스247학원 수성점</title>
+  <link rel="stylesheet" href="../assets/css/role-home.css?v=20260807a">
+</head>
+<body data-role="student">
+<div class="page">
+  <div class="spring-wash" aria-hidden="true"></div>
+  <div class="spring-scene" aria-hidden="true">
+    <div class="sun"></div>
+    <div class="branch">
+      <span class="twig t1"></span><span class="twig t2"></span><span class="twig t3"></span>
+      <span class="leaf l1"></span><span class="leaf l2"></span><span class="leaf l3"></span><span class="leaf l4"></span>
+      <span class="blossom b1"></span><span class="blossom b2"></span><span class="blossom b3"></span>
+      <span class="blossom b4"></span><span class="blossom b5"></span><span class="blossom b6"></span>
+    </div>
+    <div class="petals" id="petals"></div>
+  </div>
+
+  <div class="shell">
+    <header>
+      <a class="brand" href="../">
+        <span class="mark">247</span>
+        <span class="brand-copy"><strong>이투스247학원 수성점</strong><small>STUDENT LIFE HOME</small></span>
+      </a>
+      <div class="account-actions">
+        <div class="account-mini">
+          <strong id="headerUserName">학생 계정 확인 중</strong>
+          <span id="headerUserMeta">학생 정보를 불러오고 있습니다.</span>
+        </div>
+        <button id="logoutButton" type="button">로그아웃</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">학생 학원생활 홈</p>
+          <h1><span id="welcomeName">학생</span>,<br><em>오늘의 학원생활을 시작하세요.</em></h1>
+          <p>첫 대문의 봄 분위기와 바로가기 구성을 이어받아, 로그인 뒤에는 내 질문과 공지·시험일정 등 필요한 학원생활 정보를 모아 보여 줍니다.</p>
+          <div class="quick-row">
+            <a href="../question-access/?role=student&workspace=1"><b>?</b> 질문하기</a>
+            <a href="../academy-board/"><b>알</b> 학원공지</a>
+            <a href="../exam-schedule/"><b>日</b> 시험일정</a>
+          </div>
+        </div>
+
+        <aside class="profile-card">
+          <span class="mini-flower" aria-hidden="true">🌸</span>
+          <small>MY SCHOOL LIFE</small>
+          <h2 id="profileName">계정 확인 중</h2>
+          <p id="profileEmail">로그인 계정과 학생 정보를 확인하고 있습니다.</p>
+          <dl>
+            <div><dt>소속관</dt><dd id="profileCampus">-</dd></div>
+            <div><dt>권한</dt><dd id="profileRole">-</dd></div>
+          </dl>
+          <div id="statusLine" class="status-line">학원생활 정보를 불러오고 있습니다.</div>
+        </aside>
+      </section>
+
+      <section class="today-section" aria-labelledby="todayTitle">
+        <div class="section-head">
+          <div><p class="section-kicker">TODAY</p><h2 id="todayTitle">나의 학원생활 현황</h2></div>
+          <p id="todayDate"></p>
+        </div>
+        <div class="stats-grid">
+          <a class="stat-card urgent" href="../question-access/?role=student&workspace=1">
+            <span>새 답변</span><strong id="statPrimary">-</strong><small>교사 답변을 확인할 질문</small>
+          </a>
+          <a class="stat-card" href="../question-access/?role=student&workspace=1">
+            <span>진행 중 질문</span><strong id="statSecondary">-</strong><small>아직 종료되지 않은 질문</small>
+          </a>
+          <a class="stat-card" href="../question-access/?role=student&workspace=1">
+            <span>전체 질문</span><strong id="statThird">-</strong><small>내가 등록한 누적 질문</small>
+          </a>
+        </div>
+      </section>
+
+      <section class="menu-section" aria-labelledby="menuTitle">
+        <div class="section-head">
+          <div><p class="section-kicker">LIFE MENU</p><h2 id="menuTitle">학원생활 바로가기</h2></div>
+          <p>내 계정과 소속관에 필요한 메뉴를 모았습니다.</p>
+        </div>
+        <nav class="menu-grid">
+          <a class="menu-card featured" style="--accent:#2f8f63;--soft:#eaf7ef" href="../question-access/?role=student&workspace=1">
+            <span class="number">01 · QUESTION</span><span class="icon">?</span>
+            <h3>질문하기</h3><p>막힌 문제와 풀이 사진을 등록하고 교사의 답변을 확인합니다.</p><i>→</i>
+          </a>
+          <a class="menu-card" style="--accent:#4f97a3;--soft:#eaf8fa" href="../question-access/?role=student&workspace=1">
+            <span class="number">02 · MY Q&amp;A</span><span class="icon">答</span>
+            <h3>내 질문·답변</h3><p>등록한 질문과 도착한 답변, 진행 상태를 확인합니다.</p><i>→</i>
+          </a>
+          <a class="menu-card" style="--accent:#5a91d8;--soft:#edf5ff" href="../academy-board/">
+            <span class="number">03 · NOTICE</span><span class="icon">알</span>
+            <h3>학원공지</h3><p>학원생활에 필요한 주요 안내와 전달사항을 확인합니다.</p><i>→</i>
+          </a>
+          <a class="menu-card" style="--accent:#d58345;--soft:#fff4ea" href="../exam-schedule/">
+            <span class="number">04 · SCHEDULE</span><span class="icon">日</span>
+            <h3>시험일정</h3><p>모의고사와 주요 시험 일정을 날짜별로 확인합니다.</p><i>→</i>
+          </a>
+          <div class="menu-card disabled" style="--accent:#8a70c9;--soft:#f3efff" aria-disabled="true">
+            <span class="number">05 · COUNSELING</span><span class="icon">相</span>
+            <h3>상담내역</h3><p>나의 상담일과 상담 내용을 확인하는 화면으로 연결할 예정입니다.</p><i>준비 중</i>
+          </div>
+          <div class="menu-card disabled" style="--accent:#cc6f6f;--soft:#fff0f0" aria-disabled="true">
+            <span class="number">06 · SCORE</span><span class="icon">成</span>
+            <h3>성적내역</h3><p>시험별 성적과 변화 내용을 확인하는 화면으로 연결할 예정입니다.</p><i>준비 중</i>
+          </div>
+          <a class="menu-card external" style="--accent:#cf7991;--soft:#fff1f5" href="https://ipsywan.com/" target="_blank" rel="noopener noreferrer">
+            <span class="number">07 · ADMISSION</span><span class="icon">完</span>
+            <h3>입시의 완</h3><p>대학·학과 탐색과 수시·정시 준비 자료를 확인합니다.</p><i>↗</i>
+          </a>
+        </nav>
+      </section>
+
+      <div class="branch-links">
+        <a href="https://daegu247.etoos.com/main.do" target="_blank" rel="noopener noreferrer"><span><strong>수성1관 홈페이지</strong><small>공식 홈페이지 바로가기</small></span><i>1</i></a>
+        <a href="https://suseong247.etoos.com/main.do" target="_blank" rel="noopener noreferrer"><span><strong>수성2관 홈페이지</strong><small>공식 홈페이지 바로가기</small></span><i>2</i></a>
+      </div>
+    </main>
+
+    <footer><span>ETOOS247 DAEGU SUSEONG · STUDENT LIFE HOME</span><a href="../">공용 첫 화면으로</a></footer>
+  </div>
+</div>
+<script type="module" src="../assets/js/role-home.js?v=20260807a"></script>
+</body>
+</html>
