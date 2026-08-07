@@ -3,177 +3,243 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex,nofollow">
-  <title>이투스247 질문 시스템</title>
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#0b2035">
+  <title>이투스247 통합 질문 시스템</title>
   <script>
     (() => {
       const role = new URLSearchParams(location.search).get('role');
       if (role === 'teacher' || role === 'student') document.documentElement.dataset.entryRole = role;
     })();
   </script>
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=20260807-unified">
 </head>
 <body>
-<main>
+<header class="topbar">
+  <a class="brand" href="../"><span class="brand-mark">247</span><span>이투스247 통합 질문 시스템</span></a>
+  <nav class="top-links" aria-label="공통 메뉴">
+    <a href="https://ipsywan.com/" target="_blank" rel="noopener noreferrer">입시의 완 ↗</a>
+    <a href="https://daegu247.etoos.com/npost/notice/list.do" target="_blank" rel="noopener noreferrer">학원공지 ↗</a>
+    <a href="../exam-schedule/">시험일정</a>
+  </nav>
+</header>
+
+<main class="page">
   <section class="hero">
-    <a class="portal-home" href="../">← 통합 대문</a>
-    <h1>이투스247 질문 시스템</h1>
-    <p>학생 질문, 교사 답변, 학생별 현황, 교사 승인과 세부 권한을 한 화면에서 관리합니다.</p>
-    <nav class="shared-links" aria-label="교사 학생 공통 메뉴">
-      <a href="https://ipsywan.com/" target="_blank" rel="noopener noreferrer">입시의 완 ↗</a>
-      <a href="https://daegu247.etoos.com/npost/notice/list.do" target="_blank" rel="noopener noreferrer">학원공지 ↗</a>
-      <a href="../exam-schedule/">시험일정 →</a>
-    </nav>
+    <p class="eyebrow">FIREBASE AUTH · CLOUDFLARE WORKER · D1 · R2</p>
+    <h1>가입부터 질문·답변까지 한 화면에서</h1>
+    <p>Google 로그인은 Firebase가 확인하고, 사용자 권한과 질문 대화는 D1에, 문제·풀이 사진은 비공개 R2에 저장합니다.</p>
+    <div class="architecture">
+      <span>Google 로그인</span><b>→</b><span>Firebase 토큰</span><b>→</b><span>Worker 권한검사</span><b>→</b><span>D1 질문·권한</span><b>+</b><span>R2 사진</span>
+    </div>
   </section>
 
-  <section class="shell">
-    <div id="loginArea" class="login-grid">
-      <section class="login-card teacher-login-card">
-        <span class="entry-badge">교사용 로그인</span>
-        <h2>교사·마스터</h2>
-        <p>승인된 Google 계정으로 로그인합니다. 처음 접속한 교사는 로그인 후 권한 승인을 요청할 수 있습니다.</p>
-        <button id="googleLoginButton" class="primary" type="button">교사·마스터 Google 로그인</button>
-      </section>
+  <section id="loginArea" class="login-grid">
+    <article class="login-card teacher-login-card">
+      <span class="entry-badge">교사용</span>
+      <h2>교사·마스터 로그인</h2>
+      <p>승인된 Google 계정으로 접속합니다. 처음 접속한 교사는 권한 요청을 보낼 수 있습니다.</p>
+      <button id="staffLoginBtn" class="button primary" type="button">교사·마스터 Google 로그인</button>
+    </article>
+    <article class="login-card student-login-card">
+      <span class="entry-badge student">학생용</span>
+      <h2>학생 가입·로그인</h2>
+      <p>학생도 Google 계정으로 로그인합니다. 내부 학생번호는 승인 뒤 학원에서 부여합니다.</p>
+      <div class="button-row">
+        <button id="studentSignupBtn" class="button student" type="button">학생 가입</button>
+        <button id="studentLoginBtn" class="button primary" type="button">승인 학생 로그인</button>
+      </div>
+    </article>
+  </section>
 
-      <section class="login-card student-entry-card">
-        <span class="entry-badge student">학생용 로그인</span>
-        <h2>학생</h2>
-        <p>학생도 Google 계정으로 가입하고 로그인합니다. M001·S001은 승인 후 부여되는 학원 내부번호입니다.</p>
-        <div class="actions">
-          <button id="studentSignupButton" class="student-login" type="button">학생 가입</button>
-          <button id="studentGoogleLoginButton" class="primary" type="button">승인 학생 Google 로그인</button>
-        </div>
-        <p class="login-rule">별도의 학생 비밀번호는 발급하지 않습니다. Google 계정의 비밀번호를 그대로 사용합니다.</p>
-      </section>
+  <section id="accountBar" class="account-bar hidden">
+    <div>
+      <strong id="accountName">로그인 사용자</strong>
+      <span id="accountMeta"></span>
     </div>
-
-    <div id="accountToolbar" class="toolbar hidden">
-      <button id="googleSwitchButton" class="primary" type="button">Google 계정 전환</button>
-      <button id="refreshButton" type="button">현재 화면 새로고침</button>
-      <button id="logoutButton" type="button">로그아웃</button>
+    <div class="button-row compact">
+      <button id="switchAccountBtn" class="button secondary" type="button">Google 계정 전환</button>
+      <button id="refreshBtn" class="button secondary" type="button">권한·목록 새로고침</button>
+      <button id="logoutBtn" class="button dark" type="button">로그아웃</button>
     </div>
+  </section>
 
-    <div id="status" class="status" role="status" aria-live="polite">로그인하지 않았습니다.</div>
+  <div id="status" class="status" role="status" aria-live="polite">로그인하지 않았습니다.</div>
 
-    <section id="requestPanel" class="panel hidden">
-      <h2>교사 등록 요청</h2>
-      <p id="requestText">교사 권한이 아직 없습니다.</p>
-      <button id="requestButton" type="button">교사 권한 승인 요청</button>
-    </section>
-
-    <section id="studentApplicationPanel" class="panel hidden">
-      <h2>학생 가입 신청</h2>
-      <p id="studentApplicationAccount"></p>
-      <form id="studentApplicationForm">
-        <label for="studentApplicationCampus">신청 소속관</label>
+  <section id="studentApplicationPanel" class="panel hidden">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow dark">STUDENT APPLICATION</p>
+        <h2>학생 가입 신청</h2>
+        <p>소속관과 학생정보를 입력하면 D1 승인 대기 목록에 저장됩니다.</p>
+      </div>
+      <span id="studentApplicationBadge" class="badge neutral">미신청</span>
+    </div>
+    <form id="studentApplicationForm" class="form-grid">
+      <label>신청 소속관
         <select id="studentApplicationCampus" required>
-          <option value="">소속관을 선택하세요</option>
+          <option value="">소속관 선택</option>
           <option value="suseong1">수성1관</option>
           <option value="suseong2">수성2관</option>
         </select>
-        <label for="studentApplicationName">학생 이름</label>
-        <input id="studentApplicationName" type="text" maxlength="40" autocomplete="name" required>
-        <label for="studentApplicationContact">연락처 뒤 4자리</label>
-        <input id="studentApplicationContact" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="동명이인 확인용" required>
-        <button id="studentApplicationSubmit" class="student-login" type="submit">가입 요청 저장</button>
-      </form>
-      <div id="studentApplicationResult" class="status hidden" aria-live="polite"></div>
-    </section>
+      </label>
+      <label>학생 이름
+        <input id="studentApplicationName" maxlength="40" autocomplete="name" required>
+      </label>
+      <label>연락처 뒤 4자리
+        <input id="studentApplicationContact" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required>
+      </label>
+      <div class="form-action"><button class="button student" type="submit">학생 가입 요청 저장</button></div>
+    </form>
+  </section>
 
-    <section id="studentPanel" class="panel hidden">
-      <h2>학생 질문 등록</h2>
-      <p>과목을 선택하고 질문을 작성하세요. 학생은 자기 질문과 답변만 볼 수 있습니다.</p>
-      <form id="questionForm">
-        <label for="subject">과목 선택</label>
-        <select id="subject" required>
-          <option value="">과목을 선택하세요</option>
-          <option>국어</option><option>수학</option><option>영어</option>
-          <option>통합사회</option><option>통합과학</option><option>입시</option>
-        </select>
-        <label for="questionText">질문 내용</label>
-        <textarea id="questionText" maxlength="3000" placeholder="문제의 조건, 막힌 부분, 궁금한 내용을 구체적으로 적으세요." required></textarea>
-        <button id="questionSubmitButton" type="submit">질문 등록</button>
-      </form>
-      <h2 class="section-gap">내 질문과 답변</h2>
-      <div id="studentQuestionList" class="list"></div>
-    </section>
-
-    <section id="teacherPanel" class="panel hidden">
-      <div class="panel-heading">
-        <div>
-          <h2>승인 학생별 질문 현황</h2>
-          <p>학생을 먼저 선택한 뒤 과목별 답변 대기 질문을 처리합니다.</p>
-        </div>
-        <div id="teacherPermissionBadges" class="permission-badges"></div>
+  <section id="teacherRequestPanel" class="panel hidden">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow dark">TEACHER REQUEST</p>
+        <h2>교사 권한 요청</h2>
+        <p>마스터가 관리 관과 질문·학생관리 권한을 지정한 뒤 활성화합니다.</p>
       </div>
+      <span id="teacherRequestBadge" class="badge neutral">미신청</span>
+    </div>
+    <form id="teacherRequestForm" class="inline-form">
+      <label>교사 이름
+        <input id="teacherRequestName" maxlength="40" autocomplete="name" required>
+      </label>
+      <button class="button primary" type="submit">교사 권한 요청</button>
+    </form>
+  </section>
 
-      <section id="studentApprovalPanel" class="account-create-box hidden">
-        <h2>학생 가입 승인</h2>
-        <p>Google 가입 요청을 확인한 뒤 소속관에 맞는 내부 학생번호를 부여해 승인합니다.</p>
-        <div id="studentApplicationList" class="list"></div>
+  <section id="studentWorkspace" class="workspace hidden">
+    <div class="workspace-grid">
+      <section class="panel sticky-panel">
+        <p class="eyebrow dark">NEW QUESTION</p>
+        <h2>새 질문 등록</h2>
+        <p class="muted">사진은 최대 3장, 장당 1MB 이하로 자동 압축합니다.</p>
+        <form id="questionForm">
+          <label>과목
+            <select id="questionSubject" required>
+              <option value="">과목 선택</option>
+              <option>국어</option><option>수학</option><option>영어</option>
+              <option>사탐</option><option>과탐</option><option>입시</option>
+            </select>
+          </label>
+          <label>질문 내용
+            <textarea id="questionText" maxlength="3000" placeholder="어디까지 풀었고 어느 지점에서 막혔는지 적으세요." required></textarea>
+          </label>
+          <label class="file-label">문제 사진
+            <input id="questionImages" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+          </label>
+          <div id="questionImagePreview" class="image-preview"></div>
+          <button id="questionSubmitBtn" class="button student wide" type="submit">질문 등록</button>
+        </form>
       </section>
 
-      <div class="directory-head">
-        <div id="studentDirectorySummary" class="directory-summary">승인 학생과 질문 현황을 불러오는 중입니다.</div>
-        <div class="directory-search">
-          <label for="studentDirectorySearch">학생 검색</label>
-          <input id="studentDirectorySearch" type="search" placeholder="소속관·학생번호·이름">
+      <section class="panel">
+        <div class="panel-head">
+          <div><p class="eyebrow dark">MY QUESTIONS</p><h2>내 질문과 답변</h2></div>
+          <span id="studentQuestionCount" class="badge neutral">0건</span>
         </div>
-      </div>
-
-      <div id="studentDirectoryList" class="student-grid"></div>
-
-      <div class="question-workspace">
-        <div class="question-workspace-head">
-          <div>
-            <h2 id="selectedStudentTitle" class="selected-student-title">전체 학생 질문</h2>
-            <div id="selectedStudentHelp" class="selected-student-help">학생 카드를 누르면 해당 학생의 질문만 표시됩니다.</div>
-          </div>
-        </div>
-
-        <div class="filter-box" aria-label="질문 필터">
-          <div class="filter-row">
-            <div class="filter-title">과목</div>
-            <div class="chip-group">
-              <button type="button" class="filter-chip active" data-subject-filter="all">전체</button>
-              <button type="button" class="filter-chip" data-subject-filter="국어">국어</button>
-              <button type="button" class="filter-chip" data-subject-filter="수학">수학</button>
-              <button type="button" class="filter-chip" data-subject-filter="영어">영어</button>
-              <button type="button" class="filter-chip" data-subject-filter="통합사회">통합사회</button>
-              <button type="button" class="filter-chip" data-subject-filter="통합과학">통합과학</button>
-              <button type="button" class="filter-chip" data-subject-filter="입시">입시</button>
-            </div>
-          </div>
-          <div class="filter-row">
-            <div class="filter-title">답변 상태</div>
-            <div class="chip-group">
-              <button type="button" class="filter-chip status-chip active" data-status-filter="waiting">답변 대기</button>
-              <button type="button" class="filter-chip status-chip" data-status-filter="answered">답변 완료</button>
-            </div>
-          </div>
-        </div>
-
-        <div id="teacherQuestionCount" class="count"></div>
-        <div id="teacherQuestionList" class="list"></div>
-      </div>
-    </section>
-
-    <section id="masterPanel" class="panel hidden">
-      <h2>마스터 교사 승인</h2>
-      <p>승인할 때 관리 지점, 질문 답변, 학생 승인, 학생정보 수정 권한을 각각 부여합니다.</p>
-      <div id="teacherRequestList" class="list"></div>
-
-      <h2 class="section-gap">승인 교사 권한 관리</h2>
-      <p>승인 뒤에도 관리 지점과 권한을 변경하거나 회수할 수 있습니다.</p>
-      <div id="approvedTeacherList" class="list"></div>
-    </section>
-
-    <div class="foot">
-      모든 사용자는 Google 계정으로 로그인합니다. 학생번호는 수성1관 <code>M001~M199</code>, 수성2관 <code>S001~S199</code> 범위의 내부 관리번호입니다.
+        <div id="studentQuestionList" class="card-list"></div>
+      </section>
     </div>
   </section>
+
+  <section id="staffWorkspace" class="workspace hidden">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow dark">TEACHER WORKSPACE</p>
+          <h2>학생별 질문 현황</h2>
+          <p>허용된 관의 질문만 표시하며, 마스터는 전체 관을 볼 수 있습니다.</p>
+        </div>
+        <div id="permissionBadges" class="permission-badges"></div>
+      </div>
+
+      <div class="filters">
+        <label>학생 검색<input id="studentSearch" type="search" placeholder="이름·학생번호·소속관"></label>
+        <label>과목
+          <select id="subjectFilter">
+            <option value="all">전체</option><option>국어</option><option>수학</option><option>영어</option>
+            <option>사탐</option><option>과탐</option><option>입시</option>
+          </select>
+        </label>
+        <label>상태
+          <select id="statusFilter">
+            <option value="all">전체</option>
+            <option value="waiting_teacher">교사 답변 대기</option>
+            <option value="waiting_student">학생 확인 대기</option>
+            <option value="closed">종료</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="studentDirectory" class="student-directory"></div>
+      <div class="list-head"><h3 id="staffQuestionTitle">전체 질문</h3><span id="staffQuestionCount" class="badge neutral">0건</span></div>
+      <div id="staffQuestionList" class="card-list"></div>
+    </section>
+  </section>
+
+  <section id="threadPanel" class="panel thread-panel hidden">
+    <div class="thread-head">
+      <div>
+        <p class="eyebrow dark">QUESTION THREAD</p>
+        <h2 id="threadTitle">질문 대화</h2>
+        <p id="threadMeta" class="muted"></p>
+      </div>
+      <div class="button-row compact">
+        <button id="closeQuestionBtn" class="button danger hidden" type="button">질문 종료</button>
+        <button id="reopenQuestionBtn" class="button secondary hidden" type="button">다시 열기</button>
+        <button id="closeThreadBtn" class="button dark" type="button">대화 닫기</button>
+      </div>
+    </div>
+    <div id="messageList" class="message-list"></div>
+    <form id="replyForm" class="reply-form">
+      <label>추가 메시지
+        <textarea id="replyText" maxlength="3000" placeholder="재질문 또는 피드백을 입력하세요." required></textarea>
+      </label>
+      <label class="file-label">사진 첨부
+        <input id="replyImages" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+      </label>
+      <div id="replyImagePreview" class="image-preview"></div>
+      <button id="replySubmitBtn" class="button primary" type="submit">메시지 전송</button>
+    </form>
+  </section>
+
+  <section id="studentAdminPanel" class="panel hidden">
+    <div class="panel-head">
+      <div><p class="eyebrow dark">STUDENT ADMIN</p><h2>학생 승인·정보 관리</h2></div>
+      <button id="reloadStudentAdminBtn" class="button secondary" type="button">다시 불러오기</button>
+    </div>
+    <h3>가입 승인 대기</h3>
+    <div id="studentApplicationList" class="card-list"></div>
+    <h3 class="section-gap">승인 학생</h3>
+    <div id="studentManagementList" class="card-list"></div>
+  </section>
+
+  <section id="masterAdminPanel" class="panel hidden">
+    <div class="panel-head">
+      <div><p class="eyebrow dark">MASTER ADMIN</p><h2>교사 승인·권한 관리</h2></div>
+      <button id="reloadMasterAdminBtn" class="button secondary" type="button">다시 불러오기</button>
+    </div>
+    <h3>교사 권한 요청</h3>
+    <div id="teacherRequestList" class="card-list"></div>
+    <h3 class="section-gap">승인 교사</h3>
+    <div id="teacherManagementList" class="card-list"></div>
+  </section>
+
+  <footer>
+    <strong>운영 기준</strong>
+    <span>기준 주소는 <code>/question-access/</code> 하나입니다. <code>/qa/</code>는 이 주소의 학생 입구로 자동 이동합니다.</span>
+  </footer>
 </main>
 
-<script type="module" src="./app.js"></script>
+<div id="imageModal" class="image-modal hidden" role="dialog" aria-modal="true">
+  <button id="imageModalClose" class="modal-close" type="button">×</button>
+  <img id="imageModalImage" alt="첨부 사진 확대 보기">
+  <div id="imageModalCaption" class="modal-caption"></div>
+</div>
+
+<script type="module" src="./app.js?v=20260807-unified"></script>
 </body>
 </html>
