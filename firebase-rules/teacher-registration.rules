@@ -555,17 +555,7 @@ service cloud.firestore {
     // ATTENDANCE_RULES_V1
     function validAttendanceStudentNo(studentNo) {
       return studentNo is string
-        && studentNo.matches('^(00[1-9]|0[1-9][0-9]|1[01][0-9]|120)
-      allow read: if isMaster();
-      allow write: if false;
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-);
+        && studentNo.matches('^(00[1-9]|0[1-9][0-9]|1[01][0-9]|120)$');
     }
 
     function canManageAttendanceRoster(campus) {
@@ -614,17 +604,7 @@ service cloud.firestore {
           allow create, update: if (isMaster() || isTeacher())
             && hasCampusAccess(campus)
             && validAttendanceStudentNo(studentNo)
-            && date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}
-      allow read: if isMaster();
-      allow write: if false;
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-)
+            && date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
             && request.resource.data.campus == campus
             && request.resource.data.date == date
             && request.resource.data.studentNo == studentNo
