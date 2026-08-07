@@ -1,0 +1,34 @@
+name: Add attendance rules
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/add-attendance-rules.mjs"
+      - ".github/workflows/add-attendance-rules.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Add attendance Firestore rules
+        run: node scripts/add-attendance-rules.mjs
+      - name: Commit patched rules
+        run: |
+          if git diff --quiet; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add firebase-rules/teacher-registration.rules
+          git commit -m "Allow teacher attendance records"
+          git push
