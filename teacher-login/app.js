@@ -45,10 +45,10 @@ function goToWorkspace(profile, user) {
   const roleLabel = profile.role === "master" ? "관리자" : "교사";
   setApprovalState("승인 완료", "approved", "approved");
   setStatus(
-    `${user.displayName || roleLabel}님, 승인된 ${roleLabel} 계정입니다.\n교사용 업무화면으로 이동합니다.`,
+    `${user.displayName || roleLabel}님, 승인된 ${roleLabel} 계정입니다.\n교사용 업무 홈으로 이동합니다.`,
     "success"
   );
-  window.setTimeout(() => location.replace("../question-access/?role=teacher"), 900);
+  window.setTimeout(() => location.replace("../teacher-portal/"), 900);
 }
 
 async function verifyTeacher(user) {
