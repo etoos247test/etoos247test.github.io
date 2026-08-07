@@ -9,7 +9,7 @@ import {
   handleQuestionRetention
 } from './question-retention.js';
 
-const BOOTSTRAP_VERSION = 'master-bootstrap-20260807d';
+const BOOTSTRAP_VERSION = 'master-bootstrap-20260807e';
 
 function nowIso() {
   return new Date().toISOString();
@@ -79,8 +79,10 @@ async function withHealthVersion(request, env, ctx) {
     ...data,
     masterBootstrapVersion: BOOTSTRAP_VERSION,
     annualMaintenanceVersion: 'annual-maintenance-20260807b',
-    questionRetentionVersion: 'question-retention-20260807a',
+    questionRetentionVersion: 'question-retention-20260807b',
     closedQuestionRetentionDays: Number(env.QUESTION_CLOSED_RETENTION_DAYS || 7),
+    questionCleanupBatchSize: 100,
+    questionCleanupTotalLimit: null,
     backupPhotoRetentionDays: Number(env.BACKUP_RETENTION_DAYS || 30)
   }), {
     status: response.status,
