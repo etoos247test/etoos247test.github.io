@@ -2,102 +2,16 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
-  <meta name="theme-color" content="#07192b">
-  <title>1:1 질문 등록 | 이투스247</title>
-  <link rel="stylesheet" href="./styles.css?v=20260807a">
+  <title>학생 질문 화면으로 이동</title>
+  <meta http-equiv="refresh" content="0; url=../question-access/?role=student">
+  <script>
+    const target = new URL("../question-access/?role=student", location.href);
+    location.replace(target.href);
+  </script>
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="../"><span class="mark">247</span><span>이투스247 내부 포털</span></a>
-    <div class="top-actions">
-      <button id="loginBtn" type="button">Google 로그인</button>
-      <button id="refreshBtn" class="hidden" type="button">권한 다시 확인</button>
-      <button id="logoutBtn" class="hidden" type="button">로그아웃</button>
-      <a href="../">입구로</a>
-    </div>
-  </header>
-
-  <section class="hero">
-    <div class="hero-inner">
-      <p class="eyebrow">FIREBASE AUTH · CLOUDFLARE D1/R2</p>
-      <h1>1:1 질문 등록</h1>
-      <p>Google 로그인은 Firebase가 확인하고, 질문과 대화 기록은 Cloudflare D1에, 문제 사진은 비공개 R2에 저장합니다.</p>
-    </div>
-  </section>
-
-  <main class="wrap">
-    <section class="statusbar">
-      <div><strong>현재 사용자 상태</strong><span>승인된 학생 계정만 질문 등록이 열립니다.</span></div>
-      <span id="userBadge" class="badge">로그인 전</span>
-    </section>
-
-    <div class="grid">
-      <section>
-        <article class="card">
-          <h2>로그인·학생 권한</h2>
-          <p class="card-intro">Firebase UID와 D1의 사용자 역할·소속관·학생번호를 함께 확인합니다.</p>
-          <div id="authMessage" class="message">Google 로그인 후 Firebase UID와 D1 학생 권한을 확인합니다.</div>
-          <dl class="auth-profile">
-            <dt>이메일</dt><dd id="profileEmail">-</dd>
-            <dt>Firebase UID</dt><dd id="profileUid">-</dd>
-            <dt>D1 역할</dt><dd id="profileRole">-</dd>
-            <dt>소속관</dt><dd id="profileCampus">-</dd>
-            <dt>학생번호</dt><dd id="profileStudentId">-</dd>
-          </dl>
-
-          <section id="applicationPanel" class="application hidden">
-            <h2>학생 가입 신청</h2>
-            <p class="card-intro">D1에 가입 신청을 저장합니다. 마스터 승인과 학생번호 부여 후 질문 등록이 가능합니다.</p>
-            <form id="applicationForm">
-              <div class="form-grid">
-                <div class="field"><label for="applicationCampus">소속관</label><select id="applicationCampus"><option value="suseong1">수성1관</option><option value="suseong2">수성2관</option></select></div>
-                <div class="field"><label for="contactLast4">연락처 뒤 4자리</label><input id="contactLast4" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="예: 1234" required></div>
-                <div class="field full"><label for="applicationName">학생 이름</label><input id="applicationName" maxlength="40" required></div>
-              </div>
-              <div class="actions"><button id="applicationSubmit" class="button primary" type="submit">D1 가입 신청 저장</button></div>
-            </form>
-          </section>
-        </article>
-
-        <article class="card" style="margin-top:20px">
-          <h2>새 질문 작성</h2>
-          <p class="card-intro">질문은 D1에, 사진은 권한 확인 후에만 열리는 비공개 R2에 저장됩니다.</p>
-          <form id="questionForm" class="hidden">
-            <div class="form-grid">
-              <div class="field"><label for="subject">질문 과목</label><select id="subject"><option>국어</option><option>수학</option><option>영어</option><option>사탐</option><option>과탐</option><option>입시</option></select></div>
-              <div class="field"><label>문제 사진</label><div class="photo-buttons"><button id="galleryButton" class="button secondary" type="button">사진 선택</button><button id="cameraButton" class="button violet" type="button">카메라 촬영</button><button id="clearFilesBtn" class="button secondary" type="button">사진 지우기</button></div><span class="help">최대 3장. JPG·PNG·WebP만 가능하며 업로드 전에 각 사진을 1MB 이하로 압축합니다.</span><input id="galleryInput" class="hidden-file" type="file" accept="image/jpeg,image/png,image/webp" multiple><input id="cameraInput" class="hidden-file" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"></div>
-              <div class="field full"><label for="questionText">궁금한 내용</label><textarea id="questionText" maxlength="3000" placeholder="어디까지 풀었고 어느 지점에서 막혔는지 구체적으로 입력하세요." required></textarea></div>
-            </div>
-            <div id="previewList" class="preview-list"></div>
-            <div class="actions"><button id="submitQuestionBtn" class="button primary" type="submit">Cloudflare에 질문 등록</button></div>
-          </form>
-          <div id="questionMessage" class="message">승인된 학생 계정으로 로그인하면 질문 작성 화면이 열립니다.</div>
-          <div class="system-note">질문 등록이 성공하면 D1의 <strong>questions·messages</strong>에 기록되고, 첨부 사진은 R2의 <strong>qa/v1/소속관/연도/월/질문ID/메시지ID/</strong> 경로에 저장됩니다.</div>
-        </article>
-      </section>
-
-      <aside>
-        <article class="card">
-          <h2>내 질문 현황</h2>
-          <p class="card-intro">D1에서 현재 로그인 학생의 질문만 불러옵니다.</p>
-          <div id="questionList" class="question-list"></div>
-        </article>
-        <article class="card" style="margin-top:20px">
-          <h2>상태 안내</h2>
-          <div class="question-list">
-            <div class="question-item"><strong>교사 답변 대기</strong><small>학생이 마지막 질문이나 재질문을 보낸 상태</small></div>
-            <div class="question-item"><strong>학생 확인·재질문 대기</strong><small>교사 또는 마스터가 마지막 피드백을 보낸 상태</small></div>
-            <div class="question-item"><strong>종료</strong><small>교사 또는 마스터가 질문을 마감한 상태</small></div>
-          </div>
-        </article>
-      </aside>
-    </div>
-
-    <p class="footer">Firebase Authentication + Cloudflare Worker + D1 + R2 · GitHub Pages 화면</p>
-  </main>
-
-  <script type="module" src="./app.js?v=20260807a"></script>
+  <p><a href="../question-access/?role=student">통합 질문 시스템의 학생 화면으로 이동합니다.</a></p>
 </body>
 </html>
