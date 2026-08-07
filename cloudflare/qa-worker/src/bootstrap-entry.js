@@ -3,9 +3,13 @@ import { verifyFirebaseIdToken } from './firebase-auth.js';
 import {
   cleanupExpiredAnnualArchives,
   handleAnnualMaintenance
-} from './annual-maintenance.js';
+} from './annual-maintenance-policy.js';
+import {
+  cleanupExpiredClosedQuestions,
+  handleQuestionRetention
+} from './question-retention.js';
 
-const BOOTSTRAP_VERSION = 'master-bootstrap-20260807c';
+const BOOTSTRAP_VERSION = 'master-bootstrap-20260807d';
 
 function nowIso() {
   return new Date().toISOString();
@@ -74,7 +78,10 @@ async function withHealthVersion(request, env, ctx) {
   return new Response(JSON.stringify({
     ...data,
     masterBootstrapVersion: BOOTSTRAP_VERSION,
-    annualMaintenanceVersion: 'annual-maintenance-20260807a'
+    annualMaintenanceVersion: 'annual-maintenance-20260807b',
+    questionRetentionVersion: 'question-retention-20260807a',
+    closedQuestionRetentionDays: Number(env.QUESTION_CLOSED_RETENTION_DAYS || 7),
+    backupPhotoRetentionDays: Number(env.BACKUP_RETENTION_DAYS || 30)
   }), {
     status: response.status,
     headers
@@ -94,6 +101,9 @@ export default {
       console.error('Master bootstrap failed', error);
     }
 
+    const retentionResponse = await handleQuestionRetention(request, env);
+    if (retentionResponse) return retentionResponse;
+
     const maintenanceResponse = await handleAnnualMaintenance(request, env);
     if (maintenanceResponse) return maintenanceResponse;
 
@@ -101,10 +111,15 @@ export default {
   },
 
   async scheduled(controller, env, ctx) {
-    ctx.waitUntil(
+    ctx.waitUntil(Promise.allSettled([
       cleanupExpiredAnnualArchives(env).catch((error) => {
         console.error('Annual archive cleanup failed', error);
+        throw error;
+      }),
+      cleanupExpiredClosedQuestions(env).catch((error) => {
+        console.error('Closed question cleanup failed', error);
+        throw error;
       })
-    );
+    ]));
   }
 };
