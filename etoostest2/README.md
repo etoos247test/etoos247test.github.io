@@ -1,25 +1,35 @@
 # etoostest2 — Firebase 없는 회사 ID 시험본
 
-기존 `etoos247test`는 그대로 보존하고, 인증만 회사 발급 ID/비밀번호 방식으로 바꾼 병행 시험본입니다.
+기존 `etoos247test`는 그대로 보존하고, 시작 인증만 회사 발급 ID/비밀번호 방식으로 바꾼 병행 시험본입니다.
 
 - 원본 Firebase 스냅샷 브랜치: `firebase-preserved-20260809`
-- 화면: `/etoostest2/`
-- 기존 질문 UI/업무 로직 재사용
-- v2 Worker: `cloudflare/qa-worker-v2/`
-- 기존 D1 공유, 모든 데이터 테이블은 `v2_` 접두어로 분리
-- 기존 R2 공유, 사진은 `qa-v2/v1/` 경로로 분리
+- 시험버전 1: `/etoostest1/` — Firebase 유지 + 새 입구
+- 시험버전 2: `/etoostest2/` — 회사 ID + 새 입구
+- 회사 ID 업무화면: `/etoostest2/workspace.html`
+- 기존 Worker 그대로 사용: `etoos247-qa-api`
+- 기존 D1 `users`, `questions`, `messages`, `attachments` 그대로 사용
+- 기존 R2 사진 경로 그대로 사용
+- 회사 로그인용 테이블만 추가: `company_accounts`, `company_sessions`
 - 비밀번호: PBKDF2-HMAC-SHA256 600,000회 + 개별 salt
 - 로그인 실패 5회 시 10분 잠금
-- 회사가 학생·교사·관리자 ID와 임시 비밀번호 직접 발급
+- 세션 유효시간 12시간
 
-## Cloudflare 적용 순서
+## 기존 Worker에 적용할 변경
 
 ```bash
-cd cloudflare/qa-worker-v2
-npx wrangler d1 execute etoos247-qa --remote --file=migrations/1001_v2_initial.sql
-npx wrangler secret put SESSION_SECRET
-npx wrangler secret put BOOTSTRAP_SECRET
+cd cloudflare/qa-worker
+npx wrangler d1 execute etoos247-qa --remote --file=migrations/0002_company_auth.sql
 npx wrangler deploy
 ```
 
-최초 마스터 생성은 `POST /api/v2/bootstrap-master`에 `X-Bootstrap-Secret` 헤더를 붙여 1회 실행합니다. `SESSION_SECRET`과 `BOOTSTRAP_SECRET`은 저장소에 커밋하지 않습니다.
+별도 Worker나 별도 D1은 만들지 않습니다.
+
+## 최초 회사 관리자 ID 연결
+
+1. `/etoostest1/setup-company-id.html`에서 기존 Firebase 마스터로 로그인
+2. 회사 ID와 임시 비밀번호 입력
+3. 기존 마스터 UID에 `company_accounts` 로그인 자격 연결
+4. `/etoostest2/`에서 회사 ID로 로그인
+5. 관리자 화면에서 학생·교사 회사 ID를 직접 발급
+
+학생번호가 이미 존재하면 새 회사 ID를 같은 학생 레코드에 연결할 수 있도록 구성했습니다.
