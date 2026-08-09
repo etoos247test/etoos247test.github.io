@@ -1,0 +1,3 @@
+const EXTENSIONS={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"};
+export function extensionFor(type){const v=EXTENSIONS[type];if(!v)throw new Error("지원하지 않는 이미지 형식입니다.");return v}
+export function buildAttachmentKey({campus,createdAt,questionId,messageId,attachmentId,contentType}){if(!["suseong1","suseong2"].includes(campus))throw new Error("유효하지 않은 소속관입니다.");const d=createdAt instanceof Date?createdAt:new Date(createdAt);if(Number.isNaN(d.getTime()))throw new Error("유효하지 않은 저장 시각입니다.");const y=String(d.getUTCFullYear()),m=String(d.getUTCMonth()+1).padStart(2,"0");return `qa-v2/v1/${campus}/${y}/${m}/${questionId}/${messageId}/${attachmentId}.${extensionFor(contentType)}`}
