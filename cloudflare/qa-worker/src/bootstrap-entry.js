@@ -1,6 +1,16 @@
 import worker from './index.js';
 import { verifyFirebaseIdToken } from './firebase-auth.js';
 import {
+  activateCurrentMasterCompanyLogin,
+  changeCompanyPassword,
+  createCompanyAccount,
+  listCompanyAccounts,
+  loginCompanyAccount,
+  logoutCompanyAccount,
+  resetCompanyPassword,
+  setCompanyAccountActive
+} from './company-auth.js';
+import {
   cleanupExpiredAnnualArchives,
   handleAnnualMaintenance
 } from './annual-maintenance-policy.js';
@@ -9,10 +19,34 @@ import {
   handleQuestionRetention
 } from './question-retention.js';
 
-const BOOTSTRAP_VERSION = 'master-bootstrap-20260807e';
+const BOOTSTRAP_VERSION = 'master-bootstrap-20260809-company-auth';
+const COMPANY_AUTH_VERSION = 'company-id-auth-20260809a';
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function companyCorsHeaders(request, env) {
+  const requestOrigin = request.headers.get('origin');
+  const allowedOrigin = env.ALLOWED_ORIGIN || 'https://etoos247test.github.io';
+  return {
+    'Access-Control-Allow-Origin': requestOrigin === allowedOrigin ? requestOrigin : allowedOrigin,
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin'
+  };
+}
+
+function companyJson(request, env, data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      ...companyCorsHeaders(request, env),
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store'
+    }
+  });
 }
 
 function configuredMasterUids(env) {
@@ -67,6 +101,56 @@ async function ensureBootstrapMaster(request, env) {
   `).bind(identity.uid, email, name, time, time).run();
 }
 
+async function handleCompanyAuth(request, env) {
+  const url = new URL(request.url);
+  if (!url.pathname.startsWith('/api/company-auth/')) return null;
+
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: companyCorsHeaders(request, env) });
+  }
+
+  try {
+    if (url.pathname === '/api/company-auth/login' && request.method === 'POST') {
+      return companyJson(request, env, await loginCompanyAccount(request, env));
+    }
+
+    const identity = await verifyFirebaseIdToken(request, env);
+
+    if (url.pathname === '/api/company-auth/logout' && request.method === 'POST') {
+      return companyJson(request, env, await logoutCompanyAccount(request, env, identity));
+    }
+    if (url.pathname === '/api/company-auth/change-password' && request.method === 'POST') {
+      return companyJson(request, env, await changeCompanyPassword(request, env, identity));
+    }
+    if (url.pathname === '/api/company-auth/activate-current-master' && request.method === 'POST') {
+      return companyJson(request, env, await activateCurrentMasterCompanyLogin(request, env, identity), 201);
+    }
+    if (url.pathname === '/api/company-auth/accounts' && request.method === 'GET') {
+      return companyJson(request, env, await listCompanyAccounts(env, identity));
+    }
+    if (url.pathname === '/api/company-auth/accounts' && request.method === 'POST') {
+      return companyJson(request, env, await createCompanyAccount(request, env, identity), 201);
+    }
+
+    let match = /^\/api\/company-auth\/accounts\/([^/]+)\/reset-password$/.exec(url.pathname);
+    if (match && request.method === 'POST') {
+      return companyJson(request, env, await resetCompanyPassword(request, env, identity, match[1]));
+    }
+    match = /^\/api\/company-auth\/accounts\/([^/]+)\/active$/.exec(url.pathname);
+    if (match && request.method === 'POST') {
+      return companyJson(request, env, await setCompanyAccountActive(request, env, identity, match[1]));
+    }
+
+    return companyJson(request, env, { message: '회사 인증 API 경로를 찾을 수 없습니다.' }, 404);
+  } catch (error) {
+    console.error('Company auth failed', error);
+    return companyJson(request, env, {
+      error: Number(error.status) >= 500 ? 'server_error' : 'request_error',
+      message: Number(error.status) >= 500 ? '회사 로그인 처리 중 오류가 발생했습니다.' : error.message
+    }, Number(error.status) || 500);
+  }
+}
+
 async function withHealthVersion(request, env, ctx) {
   const response = await worker.fetch(request, env, ctx);
   const data = await response.clone().json().catch(() => null);
@@ -78,6 +162,8 @@ async function withHealthVersion(request, env, ctx) {
   return new Response(JSON.stringify({
     ...data,
     masterBootstrapVersion: BOOTSTRAP_VERSION,
+    companyAuthVersion: COMPANY_AUTH_VERSION,
+    companyAuthMode: 'parallel-with-firebase',
     annualMaintenanceVersion: 'annual-maintenance-20260807b',
     questionRetentionVersion: 'question-retention-20260807b',
     closedQuestionRetentionDays: Number(env.QUESTION_CLOSED_RETENTION_DAYS || 7),
@@ -96,6 +182,9 @@ export default {
     if (request.method === 'GET' && url.pathname === '/health') {
       return withHealthVersion(request, env, ctx);
     }
+
+    const companyResponse = await handleCompanyAuth(request, env);
+    if (companyResponse) return companyResponse;
 
     try {
       await ensureBootstrapMaster(request, env);
