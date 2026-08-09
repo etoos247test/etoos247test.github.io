@@ -1,4 +1,5 @@
 import { decodeProtectedHeader, importX509, jwtVerify } from 'jose';
+import { isCompanyBearer, verifyCompanySession } from './company-auth.js';
 
 const CERT_URL = 'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
 let certCache = { expiresAt: 0, certs: null };
@@ -21,9 +22,11 @@ async function getCertificates() {
 }
 
 export async function verifyFirebaseIdToken(request, env) {
+  if (isCompanyBearer(request)) return verifyCompanySession(request, env);
+
   const header = request.headers.get('authorization') || '';
   const match = /^Bearer\s+(.+)$/i.exec(header);
-  if (!match) throw Object.assign(new Error('Firebase ID 토큰이 필요합니다.'), { status: 401 });
+  if (!match) throw Object.assign(new Error('로그인 토큰이 필요합니다.'), { status: 401 });
 
   const token = match[1];
   const protectedHeader = decodeProtectedHeader(token);
