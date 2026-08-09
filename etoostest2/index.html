@@ -1,3 +1,47 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title>etoostest2 로딩</title></head><body><p style="font-family:sans-serif;padding:30px">etoostest2를 불러오는 중입니다.</p><script>
-(async()=>{try{let h=await fetch('../question-access/index.html?v=20260809').then(r=>{if(!r.ok)throw new Error('원본 화면을 불러오지 못했습니다.');return r.text()});h=h.replace(/<script src="\.\/ui-copy\.js[^>]*><\/script>/g,'').replace(/<script type="module" src="\.\/annual-maintenance\.js[^>]*><\/script>/g,'').replace(/<script type="module" src="\.\/master-question-retention\.js[^>]*><\/script>/g,'');h=h.replace('</head>',`<script type="importmap">{"imports":{"https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js":"./firebase-auth-shim.js"}}</script></head>`);h=h.replace(/<script type="module" src="\.\/app\.js[^>]*><\/script>/,`<script src="./company-login-ui.js"></script><script type="module" src="./app.js?v=20260809-company"></script><script src="./company-account-admin.js"></script>`);h=h.replaceAll('질문·답변 | 이투스247학원 수성점 학원생활 도우미','etoostest2 | 이투스247학원 수성점').replaceAll('학생 가입·로그인','학생 ID 로그인').replaceAll('가입 신청 후 학원 승인이 필요합니다.','학원에서 발급한 ID와 비밀번호를 사용합니다.');document.open();document.write(h);document.close()}catch(e){document.body.innerHTML=`<div style="font-family:sans-serif;padding:30px"><h2>etoostest2 로딩 실패</h2><p>${e.message}</p></div>`}})();
-</script></body></html>
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#10261d">
+  <title>시험버전 2 · 회사 ID 로그인</title>
+  <link rel="stylesheet" href="./portal.css?v=20260809a">
+</head>
+<body>
+  <header class="mini-header">
+    <a href="../" class="mini-brand"><span>247</span><b>이투스247학원 수성점</b></a>
+    <nav><a href="../etoostest1/">시험버전 1</a><a href="../academy-board/">학원공지</a><a href="../exam-schedule/">시험일정</a></nav>
+  </header>
+
+  <main class="shell">
+    <section class="login-side">
+      <div class="tag">TEST 02 · COMPANY ID</div>
+      <p class="kicker">외부 가입 없이, 학원이 발급한 계정으로</p>
+      <h1>한 번의 로그인으로<br><em>내 업무만 엽니다.</em></h1>
+      <p class="lead">학생·교사·관리자 모두 학원에서 받은 고유 ID를 사용합니다. 인증 입구만 달라지고 로그인 뒤에는 기존 Cloudflare·D1·R2 업무 흐름을 그대로 사용합니다.</p>
+
+      <form id="companyPortalLogin" class="login-form">
+        <label><span>회사 ID</span><input id="portalLoginId" autocomplete="username" placeholder="M001 / T001 / ADMIN001" required></label>
+        <label><span>비밀번호</span><input id="portalPassword" type="password" autocomplete="current-password" placeholder="발급받은 비밀번호" required></label>
+        <button id="portalLoginButton" type="submit">로그인하고 시작하기 <i>→</i></button>
+      </form>
+      <div id="portalStatus" class="status" role="status" aria-live="polite">학원에서 발급받은 ID와 비밀번호를 입력하세요.</div>
+      <p class="help">최초 임시 비밀번호는 로그인 뒤 변경할 수 있습니다. 5회 연속 실패하면 10분간 로그인이 제한됩니다.</p>
+    </section>
+
+    <section class="visual-side">
+      <div class="visual-head"><span>MY 247</span><strong>로그인 뒤 역할에 맞춰 열립니다.</strong></div>
+      <div class="role-grid">
+        <article class="role-card student"><span class="icon">S</span><div><small>STUDENT</small><h2>학생</h2><p>질문 등록 · 답변 확인 · 재질문</p></div></article>
+        <article class="role-card teacher"><span class="icon">T</span><div><small>TEACHER</small><h2>교사</h2><p>학생별 질문 · 답변 · 학생관리</p></div></article>
+        <article class="role-card admin"><span class="icon">A</span><div><small>ADMIN</small><h2>관리자</h2><p>계정 발급 · 권한 · 전체 관리</p></div></article>
+      </div>
+      <div class="flow"><span>회사 ID</span><i>→</i><span>기존 Worker</span><i>→</i><span>기존 D1·R2</span></div>
+      <div class="notice"><b>시험버전 2의 핵심</b><p>Firebase 회원가입을 거치지 않고 학원이 직접 계정을 발급합니다. 학생번호가 이미 있으면 기존 학생 데이터에 연결할 수 있습니다.</p></div>
+    </section>
+  </main>
+  <footer><span>Company ID 시험본</span><a href="../etoostest1/">Firebase 시험본과 비교하기 →</a></footer>
+  <script src="./portal.js?v=20260809a"></script>
+</body>
+</html>
