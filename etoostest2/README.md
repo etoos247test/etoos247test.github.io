@@ -18,7 +18,7 @@
 
 ```bash
 cd cloudflare/qa-worker
-npx wrangler d1 execute etoos247-qa --remote --file=migrations/0002_company_auth.sql
+npx wrangler d1 migrations apply etoos247-qa --remote
 npx wrangler deploy
 ```
 
