@@ -10,7 +10,7 @@
 - 기존 D1 `users`, `questions`, `messages`, `attachments` 그대로 사용
 - 기존 R2 사진 경로 그대로 사용
 - 회사 로그인용 테이블만 추가: `company_accounts`, `company_sessions`
-- 비밀번호: PBKDF2-HMAC-SHA256 600,000회 + 개별 salt
+- 비밀번호: PBKDF2-HMAC-SHA256 100,000회 + 개별 salt (Cloudflare Workers Web Crypto 제한 반영)
 - 로그인 실패 5회 시 10분 잠금
 - 세션 유효시간 12시간
 
