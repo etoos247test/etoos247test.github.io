@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="theme-color" content="#10261d">
+  <meta http-equiv="Cache-Control" content="no-store">
   <title>시험버전 2 · 회사 ID 로그인</title>
-  <link rel="stylesheet" href="./portal.css?v=20260809a">
+  <link rel="stylesheet" href="./portal.css?v=20260810e">
 </head>
 <body>
   <header class="mini-header">
@@ -23,10 +24,10 @@
 
       <form id="companyPortalLogin" class="login-form">
         <label><span>회사 ID</span><input id="portalLoginId" autocomplete="username" placeholder="M001 / T001 / ADMIN001" required></label>
-        <label><span>비밀번호</span><input id="portalPassword" type="password" autocomplete="current-password" placeholder="발급받은 비밀번호" required></label>
+        <label><span>비밀번호</span><input id="portalPassword" type="password" autocomplete="current-password" placeholder="5자리 이상" minlength="5" required></label>
         <button id="portalLoginButton" type="submit">로그인하고 시작하기 <i>→</i></button>
       </form>
-      <div id="portalStatus" class="status" role="status" aria-live="polite">학원에서 발급받은 ID와 비밀번호를 입력하세요.</div>
+      <div id="portalStatus" class="status" role="status" aria-live="polite">인증 서버 연결을 확인하는 중입니다.</div>
       <p class="help">최초 임시 비밀번호는 로그인 뒤 변경할 수 있습니다. 5회 연속 실패하면 10분간 로그인이 제한됩니다.</p>
     </section>
 
@@ -42,6 +43,6 @@
     </section>
   </main>
   <footer><span>Company ID 시험본</span><a href="../etoostest1/">Firebase 시험본과 비교하기 →</a></footer>
-  <script src="./portal.js?v=20260809a"></script>
+  <script src="./portal.js?v=20260810e"></script>
 </body>
 </html>
