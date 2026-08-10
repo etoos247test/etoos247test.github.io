@@ -1,5 +1,5 @@
 const encoder = new TextEncoder();
-const PBKDF2_ITERATIONS = 600000;
+const PBKDF2_ITERATIONS = 100000;
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 const LOGIN_LOCK_MS = 10 * 60 * 1000;
 
