@@ -2,7 +2,7 @@
   const API='https://etoos247-qa-api.etoos247test.workers.dev';
   const TK='etoostest2CompanySession';
   const UK='etoostest2CompanyUser';
-  const WORKSPACE='./workspace.html?v=20260810e';
+  const WORKSPACE='./workspace.html?v=20260810f';
   const form=document.getElementById('companyPortalLogin');
   const status=document.getElementById('portalStatus');
   const button=document.getElementById('portalLoginButton');
