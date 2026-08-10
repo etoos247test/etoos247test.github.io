@@ -61,7 +61,7 @@ async function derivePassword(password, salt, iterations = PBKDF2_ITERATIONS) {
 
 async function hashPassword(password) {
   const text = String(password || '');
-  if (text.length < 10) fail(400, '비밀번호는 10자 이상이어야 합니다.');
+  if (text.length < 5) fail(400, '비밀번호는 5자 이상이어야 합니다.');
   const salt = new Uint8Array(16);
   crypto.getRandomValues(salt);
   const hash = await derivePassword(text, salt);
