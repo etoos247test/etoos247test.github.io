@@ -1,0 +1,1 @@
+faculty navigation switched to stable single-wrapper index
