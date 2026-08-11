@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>OO학원 통합 홈페이지 운영모델</title>
+<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#173f35}iframe{display:block;width:100%;height:100%;border:0;opacity:0;transition:opacity .12s ease}</style>
+</head>
+<body>
+<iframe id="app" title="OO학원 홈페이지 프로토타입"></iframe>
+<script>
+const frame=document.getElementById('app');
+const palette=`
+:root{--navy:#173f35!important;--navy2:#285d4c!important;--gold:#e28722!important;--green:#b48609!important;--soft:#f7f6ed!important;--line:#e5e1d2!important;--shadow:0 14px 34px rgba(23,63,53,.10)!important}
+.notice,.selection,footer{background:#173f35!important}
+.mark{background:linear-gradient(145deg,#173f35,#285d4c)!important}
+.hero{background:linear-gradient(125deg,#e6efe9 0%,#fffaf1 58%,#fbe9c8 100%)!important}
+.page-title{background:linear-gradient(120deg,#e7f0ea 0%,#fffaf1 62%,#f9e5bf 100%)!important}
+.dark{background:#173f35!important}
+.btn.gold{background:#e28722!important;border-color:#e28722!important;color:#24180a!important}
+.notice b,.selection b{color:#d5aa22!important}
+.full-ok,.status{color:#7b5a00!important;background:#fff0b8!important}
+.eyebrow,.menu a.active,.program a,.choice span,.teacher-head a{color:#285d4c!important}
+.filter.active,.btn.primary{background:#173f35!important;border-color:#173f35!important}
+`;
+async function start(){
+  const res=await fetch('./source.dat',{cache:'no-store'});
+  let html=await res.text();
+  html=html.replaceAll('송원학원','OO학원').replaceAll('SONGWON','OO ACADEMY');
+  html=html.replace('</head>',`<style id="oo-theme">${palette}</style></head>`);
+  frame.srcdoc=html;
+}
+frame.addEventListener('load',()=>{
+  try{
+    const d=frame.contentDocument;
+    d.title='OO학원 통합 홈페이지 운영모델';
+    d.querySelectorAll('.mark').forEach(el=>{if(el.textContent.trim()==='SW')el.textContent='OO'});
+    const h=location.hash||'#home';
+    if(frame.contentWindow.location.hash!==h)frame.contentWindow.location.hash=h;
+    frame.contentWindow.addEventListener('hashchange',()=>{
+      const next=frame.contentWindow.location.hash||'#home';
+      if(location.hash!==next)history.replaceState(null,'',location.pathname+location.search+next);
+    });
+    frame.style.opacity='1';
+  }catch(e){frame.style.opacity='1'}
+});
+window.addEventListener('hashchange',()=>{
+  try{const h=location.hash||'#home';if(frame.contentWindow&&frame.contentWindow.location.hash!==h)frame.contentWindow.location.hash=h}catch(e){}
+});
+start().catch(()=>{document.body.innerHTML='<div style="color:white;font:16px system-ui;padding:30px">프로토타입을 불러오지 못했습니다.</div>'});
+</script>
+</body>
+</html>
