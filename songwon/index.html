@@ -50,7 +50,16 @@ const palette=`
 .manager-m2 p,.manager-card p{margin:0;color:#667085;font-size:12px}
 .manager-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .manager-tags span{font-size:10px;font-weight:850;padding:5px 8px;border-radius:999px;background:#fff0b8;color:#6d5500}
-.manager-teams{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.manager-leads{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+.manager-leads .manager-m2{margin-bottom:0}
+.manager-divisions{display:grid;grid-template-columns:1.35fr .65fr;gap:16px}
+.division-box{border:1px solid #e5e1d2;border-radius:22px;padding:18px;background:#fff}
+.division-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:14px}
+.division-head h2{font-size:24px;margin:0;color:#173f35}
+.division-head p{font-size:11px;color:#667085;margin:4px 0 0}
+.division-badge{font-size:10px;font-weight:950;color:#7b5a00;background:#fff0b8;padding:6px 9px;border-radius:999px;white-space:nowrap}
+.manager-teams{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.course-manager-grid{display:grid;grid-template-columns:1fr;gap:12px}
 .team-box{border:1px solid #e5e1d2;border-radius:20px;padding:18px;background:#fff}
 .team-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .team-title h2{font-size:22px;margin:0;color:#173f35}
@@ -74,8 +83,9 @@ const palette=`
 .manager-linkbar{margin-top:12px;padding:9px 11px;border-radius:10px;background:#f4f8f4;border:1px solid #dce6de;font-size:10px;color:#50645a;display:flex;justify-content:space-between;gap:10px;align-items:center}
 .manager-linkbar b{color:#173f35}
 .manager-linkbar button{border:0;background:transparent;color:#b06a16;font-size:10px;font-weight:950;cursor:pointer;padding:0}
-#qSubject option[value="학습관리"]{font-weight:900}
+#qSubject option[value="독학관리"],#qSubject option[value="단과관리"]{font-weight:900}
 @media(max-width:900px){
+ .manager-leads,.manager-divisions{grid-template-columns:1fr}
  .manager-teams{grid-template-columns:1fr}
  .manager-m2{grid-template-columns:90px 1fr}
  .manager-m2 .manager-actions{grid-column:1/-1}
@@ -88,21 +98,21 @@ const palette=`
 `;
 
 const managers=[
- {id:'M2',name:'박현우',rank:'M2 · 총괄 팀장',team:'전체',focus:'A·B·C팀 운영 총괄',role:'M1 관리 · 학생배정 · 월간 조정 · 입시/강사 협업',teachers:'전체 강사·매니저 연계'},
- {id:'A1',name:'김세진',rank:'M1 · A팀',team:'A',focus:'국어·수학 학습관리',role:'주간계획 · 과제이행 · 수업 선택 점검',teachers:'김도윤 · 박서현'},
- {id:'A2',name:'윤서영',rank:'M1 · A팀',team:'A',focus:'국어·수학 학습관리',role:'출결 · 상담 · 취약과목 조정',teachers:'이준호 · 정민석'},
- {id:'B1',name:'이정우',rank:'M1 · B팀',team:'B',focus:'수학 집중 학습관리',role:'수학 진도 · N제 · 오답 · 질문 추적',teachers:'최유진 · 한지훈'},
- {id:'B2',name:'최민지',rank:'M1 · B팀',team:'B',focus:'영어·학습시간 관리',role:'영어 과제 · 순공시간 · 주간 피드백',teachers:'윤하늘 · 장민아'},
- {id:'C1',name:'한도현',rank:'M1 · C팀',team:'C',focus:'탐구·성적관리',role:'탐구 진도 · 모의평가 · 성적변화 점검',teachers:'서재원'},
- {id:'C2',name:'오수진',rank:'M1 · C팀',team:'C',focus:'탐구·생활관리',role:'탐구 과제 · 출결 · 상담 · 생활리듬 점검',teachers:'오지환'}
+ {id:'M2S',name:'박현우',rank:'M2 · 독학관리팀장',division:'독학관리',team:'전체',focus:'자기주도학습·생활관리 총괄',role:'M1 4명 관리 · 학생배정 · 출결 · 주간계획 · 월간 조정',teachers:'학생관리 중심 · 필요 시 강사/입시 연계'},
+ {id:'M2C',name:'강민호',rank:'M2 · 단과관리팀장',division:'단과관리',team:'단과',focus:'단과 강좌·강사·수강생 운영 총괄',role:'M1 2명 관리 · 강좌편성 · 수강변경 · 강사협업 · 단과상담',teachers:'국어·수학·영어·탐구 전체 강사 연계'},
+ {id:'A1',name:'김세진',rank:'M1 · 독학 A팀',division:'독학관리',team:'A',focus:'A팀 자기주도 학습관리',role:'주간계획 · 과제이행 · 수업 선택 점검',teachers:'필요 시 과목 강사 연결'},
+ {id:'A2',name:'윤서영',rank:'M1 · 독학 A팀',division:'독학관리',team:'A',focus:'A팀 출결·상담 관리',role:'출결 · 상담 · 취약과목 조정 · 생활리듬',teachers:'필요 시 과목 강사 연결'},
+ {id:'B1',name:'이정우',rank:'M1 · 독학 B팀',division:'독학관리',team:'B',focus:'B팀 학습·성적관리',role:'진도 · 오답 · 순공시간 · 성적변화 점검',teachers:'필요 시 과목 강사 연결'},
+ {id:'C1',name:'최민지',rank:'M1 · 독학 C팀',division:'독학관리',team:'C',focus:'C팀 학습·생활관리',role:'과제 · 출결 · 상담 · 주간 피드백',teachers:'필요 시 과목 강사 연결'},
+ {id:'D1',name:'한도현',rank:'M1 · 단과관리',division:'단과관리',team:'단과',focus:'국어·영어 단과관리',role:'강좌안내 · 수강생 관리 · 과제/공지 · 강사 Q&A 연결',teachers:'김도윤 · 박서현 · 이준호 · 윤하늘 · 장민아'},
+ {id:'D2',name:'오수진',rank:'M1 · 단과관리',division:'단과관리',team:'단과',focus:'수학·탐구 단과관리',role:'강좌안내 · 수강생 관리 · 반편성 · 강사 Q&A 연결',teachers:'정민석 · 최유진 · 한지훈 · 서재원 · 오지환'}
 ];
 
 const teacherManager={
- '김도윤':['A','김세진'],'박서현':['A','김세진'],
- '이준호':['A','윤서영'],'정민석':['A','윤서영'],
- '최유진':['B','이정우'],'한지훈':['B','이정우'],
- '윤하늘':['B','최민지'],'장민아':['B','최민지'],
- '서재원':['C','한도현'],'오지환':['C','오수진']
+ '김도윤':['단과','한도현'],'박서현':['단과','한도현'],'이준호':['단과','한도현'],
+ '윤하늘':['단과','한도현'],'장민아':['단과','한도현'],
+ '정민석':['단과','오수진'],'최유진':['단과','오수진'],'한지훈':['단과','오수진'],
+ '서재원':['단과','오수진'],'오지환':['단과','오수진']
 };
 
 function managerPhoto(name){
@@ -110,42 +120,57 @@ function managerPhoto(name){
 }
 
 function managerCard(m){
+ const qlabel=m.division==='단과관리'?'단과관리 Q&A':'독학관리 Q&A';
  return `<article class="manager-card">
    <div class="manager-card-top">${managerPhoto(m.name)}
      <div><div class="manager-role">${m.rank}</div><h3>${m.name}</h3><p>${m.focus}</p></div>
    </div>
    <div class="manager-detail">
-    <dl><dt>담당</dt><dd>${m.role}</dd><dt>강사연계</dt><dd>${m.teachers}</dd></dl>
+    <dl><dt>담당</dt><dd>${m.role}</dd><dt>연계</dt><dd>${m.teachers}</dd></dl>
     <div class="manager-actions">
-      <button data-manager-q="${m.name}">학습관리 Q&A</button>
+      <button data-manager-q="${m.name}" data-manager-category="${m.division}">${qlabel}</button>
       <button class="alt" data-manager-profile="${m.name}">프로필</button>
     </div>
    </div>
  </article>`;
 }
 
+function managerLead(m){
+ const qlabel=m.division==='단과관리'?'단과 팀장 Q&A':'독학 팀장 Q&A';
+ const tags=m.division==='독학관리'
+   ? '<span>A팀</span><span>B팀</span><span>C팀</span><span>M1 4명</span><span>학생배정·월간조정</span>'
+   : '<span>국어·영어</span><span>수학·탐구</span><span>M1 2명</span><span>강좌·수강생관리</span>';
+ return `<article class="manager-m2">
+   ${managerPhoto(m.name)}
+   <div><div class="manager-role">${m.rank}</div><h2>${m.name}</h2><p>${m.focus}</p><div class="manager-tags">${tags}</div></div>
+   <div class="manager-actions"><button data-manager-q="${m.name}" data-manager-category="${m.division}">${qlabel}</button><button class="alt" data-manager-profile="${m.name}">프로필</button></div>
+ </article>`;
+}
+
 function managerPage(){
- const m2=managers[0];
+ const leaders=managers.filter(m=>m.id.startsWith('M2'));
+ const selfManagers=managers.filter(m=>m.division==='독학관리'&&!m.id.startsWith('M2'));
+ const classManagers=managers.filter(m=>m.division==='단과관리'&&!m.id.startsWith('M2'));
  return `<div class="page manager-page" id="page-managers">
    <section class="page-title"><div class="wrap"><div class="eyebrow">MANAGER TEAM</div>
-     <h1>강사와 함께 움직이는<br>7명의 학습 매니저</h1>
-     <p>M2 팀장 1명이 전체 운영을 총괄하고, A·B·C팀에 M1 2명씩 배치합니다. 수업은 강사가, 계획·출결·과제·상담·조정은 매니저가 연결합니다.</p>
+     <h1>독학과 단과를 나누어 책임지는<br>2명의 M2와 6명의 M1</h1>
+     <p>M2는 독학관리팀장과 단과관리팀장으로 분리합니다. M1 4명은 독학관리, M1 2명은 단과관리에 배치하여 학생관리와 강좌관리를 명확히 나눕니다.</p>
    </div></section>
    <section class="manager-org"><div class="wrap">
-     <article class="manager-m2">
-       ${managerPhoto(m2.name)}
-       <div><div class="manager-role">${m2.rank}</div><h2>${m2.name}</h2><p>${m2.focus}</p>
-        <div class="manager-tags"><span>A팀</span><span>B팀</span><span>C팀</span><span>M1 6명 관리</span><span>월간 배치조정</span></div>
-       </div>
-       <div class="manager-actions"><button data-manager-q="${m2.name}">팀장 Q&A</button><button class="alt" data-manager-profile="${m2.name}">프로필</button></div>
-     </article>
-     <div class="manager-teams">
-       ${['A','B','C'].map(team=>`<section class="team-box">
-         <div class="team-title"><h2>${team} TEAM</h2><span>M1 2명</span></div>
-         ${managers.filter(m=>m.team===team).map(managerCard).join('')}
-       </section>`).join('')}
+     <div class="manager-leads">${leaders.map(managerLead).join('')}</div>
+     <div class="manager-divisions">
+       <section class="division-box">
+         <div class="division-head"><div><h2>독학관리팀</h2><p>자기주도 시간표 · 출결 · 계획 · 상담 · 성적 변화 관리</p></div><span class="division-badge">M2 1 + M1 4</span></div>
+         <div class="manager-teams">
+           ${['A','B','C'].map(team=>`<section class="team-box"><div class="team-title"><h2>${team} TEAM</h2><span>M1 ${selfManagers.filter(m=>m.team===team).length}명</span></div>${selfManagers.filter(m=>m.team===team).map(managerCard).join('')}</section>`).join('')}
+         </div>
+       </section>
+       <section class="division-box">
+         <div class="division-head"><div><h2>단과관리팀</h2><p>강좌 · 수강생 · 강사연계 · 수강변경 · 공지 관리</p></div><span class="division-badge">M2 1 + M1 2</span></div>
+         <div class="course-manager-grid">${classManagers.map(managerCard).join('')}</div>
+       </section>
      </div>
-     <div class="foot-note"><b>역할 분리:</b> 문제풀이·수업내용은 강사 Q&A, 학습계획·출결·과제·시간표·상담은 매니저 Q&A로 연결합니다. 현재 이름과 사진은 구조 확인용 가상 프로필입니다.</div>
+     <div class="foot-note"><b>역할 분리:</b> 독학관리 Q&A는 출결·계획·상담·시간표, 단과관리 Q&A는 강좌·수강변경·과제·공지, 문제풀이·수업내용은 담당 강사 Q&A로 연결합니다. 현재 이름과 사진은 구조 확인용 가상 프로필입니다.</div>
    </div></section>
  </div>`;
 }
@@ -167,27 +192,36 @@ function activateManagerPage(d){
  d.defaultView.scrollTo({top:0,behavior:'instant'});
 }
 
+function restoreBuiltInPage(d,target){
+ if(target==='managers'){activateManagerPage(d);return}
+ try{frame.contentWindow.location.hash='#'+target}catch(e){}
+}
+
 function setupManagerQ(d){
  const qSubject=d.getElementById('qSubject'),qTeacher=d.getElementById('qTeacher'),qType=d.getElementById('qType');
  if(!qSubject||!qTeacher)return;
- if(![...qSubject.options].some(o=>o.value==='학습관리')){
-   const o=d.createElement('option');o.value='학습관리';o.textContent='학습관리';qSubject.appendChild(o);
- }
+ ['독학관리','단과관리'].forEach(v=>{
+   if(![...qSubject.options].some(o=>o.value===v)){
+     const o=d.createElement('option');o.value=v;o.textContent=v;qSubject.appendChild(o);
+   }
+ });
  const originalHandler=qSubject.onchange;
  qSubject.onchange=function(){
-   if(this.value==='학습관리'){
-     qTeacher.innerHTML='<option value="">매니저 선택</option>'+managers.map(m=>`<option>${m.name}</option>`).join('');
+   if(this.value==='독학관리'||this.value==='단과관리'){
+     const list=managers.filter(m=>m.division===this.value);
+     qTeacher.innerHTML='<option value="">매니저 선택</option>'+list.map(m=>`<option>${m.name}</option>`).join('');
    }else if(originalHandler){originalHandler.call(this)}
  };
  d.querySelectorAll('[data-manager-q]').forEach(btn=>{
    btn.onclick=()=>{
      const name=btn.dataset.managerQ;
+     const category=btn.dataset.managerCategory||'독학관리';
      frame.contentWindow.location.hash='#qna';
      setTimeout(()=>{
-       qSubject.value='학습관리';
+       qSubject.value=category;
        qSubject.onchange();
        qTeacher.value=name;
-       if(qType)qType.value='학습방법';
+       if(qType)qType.value=category==='단과관리'?'수업내용':'학습방법';
        try{history.replaceState(null,'',location.pathname+location.search+'#qna')}catch(e){}
      },20);
    };
@@ -212,12 +246,12 @@ function decorateTeacherCards(d){
      const h=card.querySelector('.teacher-info h3'); if(!h)return;
      const info=teacherManager[h.textContent.trim()]; if(!info)return;
      const bar=d.createElement('div');bar.className='manager-linkbar';
-     bar.innerHTML=`<span><b>${info[0]}팀 M1 ${info[1]}</b> · 학습관리 담당</span><button type="button">매니저 Q&A →</button>`;
+     bar.innerHTML=`<span><b>${info[0]}관리 M1 ${info[1]}</b> · 강좌·수강생 담당</span><button type="button">단과관리 Q&A →</button>`;
      bar.querySelector('button').onclick=()=>{
        frame.contentWindow.location.hash='#qna';
        setTimeout(()=>{
          const s=d.getElementById('qSubject'),t=d.getElementById('qTeacher'),ty=d.getElementById('qType');
-         if(s&&t){s.value='학습관리';s.onchange();t.value=info[1];if(ty)ty.value='학습방법'}
+         if(s&&t){s.value='단과관리';s.onchange();t.value=info[1];if(ty)ty.value='수업내용'}
        },20);
      };
      const panel=card.querySelector('.teacher-panel'); if(panel)panel.appendChild(bar);
