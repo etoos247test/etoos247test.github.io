@@ -19,6 +19,7 @@ function initFloorPlans(){
  document.getElementById('floorDetailButton')?.addEventListener('click',e=>document.getElementById(e.currentTarget.dataset.detailFloor)?.scrollIntoView({behavior:'smooth',block:'start'}));
  renderFloorPlan(1,false);
 }
+
 document.addEventListener('DOMContentLoaded',()=>{
   initFloorPlans();
   document.addEventListener('click',e=>{
@@ -31,3 +32,16 @@ document.addEventListener('DOMContentLoaded',()=>{
     setTimeout(()=>renderFloorPlan(floor,true),60);
   },true);
 });
+
+function initHomeFloorSummary(){
+  const home=document.getElementById('page-home');
+  if(!home || home.querySelector('.home-floor-summary')) return;
+  const hero=home.querySelector('.hero');
+  if(!hero) return;
+  const section=document.createElement('section');
+  section.className='home-floor-summary';
+  section.setAttribute('aria-labelledby','homeFloorTitle');
+  section.innerHTML=`<div class="wrap home-floor-grid"><div class="home-floor-copy"><div class="eyebrow">FLOOR GUIDE · 1F–8F</div><h2 id="homeFloorTitle">OO학원을<br>층별로 한눈에 봅니다.</h2><p>수업·자습·상담·입시·독학관리가 어느 층에서 이루어지는지 먼저 확인하고, 원하는 층을 누르면 가상 평면도까지 바로 볼 수 있습니다.</p><div class="home-floor-actions"><button class="btn primary" data-nav="about" type="button">전체 층별안내 보기</button><button class="btn orange" data-floor-target="floor-2" type="button">상담·입시 위치</button></div></div><div class="home-building-mini" aria-label="OO학원 1층부터 8층 바로가기"><button class="mini-floor mf8" data-floor-target="floor-8" type="button"><b>8F</b><span>독학관리 · 코칭관</span><small>C팀 · 개별코칭</small></button><button class="mini-floor mf7" data-floor-target="floor-7" type="button"><b>7F</b><span>독학관리 · 집중자습관</span><small>A·B팀 · 학습계획</small></button><button class="mini-floor mf6" data-floor-target="floor-6" type="button"><b>6F</b><span>자기주도 종합반 B</span><small>선택수업 · 자습</small></button><button class="mini-floor mf5" data-floor-target="floor-5" type="button"><b>5F</b><span>자기주도 종합반 A</span><small>개인 시간표</small></button><button class="mini-floor mf4" data-floor-target="floor-4" type="button"><b>4F</b><span>수학·탐구 단과관</span><small>강의 · 클리닉</small></button><button class="mini-floor mf3" data-floor-target="floor-3" type="button"><b>3F</b><span>국어·영어 단과관</span><small>강의 · Q&amp;A</small></button><button class="mini-floor mf2" data-floor-target="floor-2" type="button"><b>2F</b><span>입시센터 · 상담지원</span><small>입학 · 수시 · 정시</small></button><button class="mini-floor mf1" data-floor-target="floor-1" type="button"><b>1F</b><span>웰컴라운지 · 카페</span><small>안내 · 대기 · 스터디</small></button><div class="mini-building-base">OO ACADEMY</div></div></div>`;
+  hero.insertAdjacentElement('afterend',section);
+}
+document.addEventListener('DOMContentLoaded',initHomeFloorSummary);
