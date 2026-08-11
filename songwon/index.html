@@ -24,12 +24,31 @@ const palette=`
 .eyebrow,.menu a.active,.program a,.choice span,.teacher-head a{color:#285d4c!important}
 .filter.active,.btn.primary{background:#173f35!important;border-color:#173f35!important}
 `;
-function replaceTextNode(n){if(!n.nodeValue)return;const v=n.nodeValue.replace(/송원학원/g,'OO학원').replace(/SONGWON/g,'OO ACADEMY');if(v!==n.nodeValue)n.nodeValue=v}
-function scrub(root){const d=frame.contentDocument;if(!d||!root)return;const walker=d.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(n){const p=n.parentElement;if(!p||['SCRIPT','STYLE','NOSCRIPT'].includes(p.tagName))return NodeFilter.FILTER_REJECT;return NodeFilter.FILTER_ACCEPT}});const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);nodes.forEach(replaceTextNode);d.querySelectorAll('.mark').forEach(el=>{if(el.textContent.trim()==='SW')el.textContent='OO'});d.title='OO학원 통합 홈페이지 운영모델'}
-function applyTheme(){const d=frame.contentDocument;if(!d)return;const st=d.createElement('style');st.id='oo-theme';st.textContent=palette;d.head.appendChild(st);scrub(d.body);const obs=new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')replaceTextNode(m.target);m.addedNodes.forEach(n=>{if(n.nodeType===3)replaceTextNode(n);else if(n.nodeType===1)scrub(n)})}});obs.observe(d.body,{subtree:true,childList:true,characterData:true});frame.style.opacity='1';frame.contentWindow.addEventListener('hashchange',()=>{const h=frame.contentWindow.location.hash||'#home';if(location.hash!==h)history.replaceState(null,'',location.pathname+location.search+h)})}
-frame.addEventListener('load',applyTheme);
-frame.src='./app.html'+(location.hash||'#home');
-window.addEventListener('hashchange',()=>{if(frame.contentWindow&&frame.contentWindow.location.hash!==location.hash)frame.contentWindow.location.hash=location.hash||'#home'});
+async function start(){
+  const res=await fetch('./source.dat',{cache:'no-store'});
+  let html=await res.text();
+  html=html.replaceAll('송원학원','OO학원').replaceAll('SONGWON','OO ACADEMY');
+  html=html.replace('</head>',`<style id="oo-theme">${palette}</style></head>`);
+  frame.srcdoc=html;
+}
+frame.addEventListener('load',()=>{
+  try{
+    const d=frame.contentDocument;
+    d.title='OO학원 통합 홈페이지 운영모델';
+    d.querySelectorAll('.mark').forEach(el=>{if(el.textContent.trim()==='SW')el.textContent='OO'});
+    const h=location.hash||'#home';
+    if(frame.contentWindow.location.hash!==h)frame.contentWindow.location.hash=h;
+    frame.contentWindow.addEventListener('hashchange',()=>{
+      const next=frame.contentWindow.location.hash||'#home';
+      if(location.hash!==next)history.replaceState(null,'',location.pathname+location.search+next);
+    });
+    frame.style.opacity='1';
+  }catch(e){frame.style.opacity='1'}
+});
+window.addEventListener('hashchange',()=>{
+  try{const h=location.hash||'#home';if(frame.contentWindow&&frame.contentWindow.location.hash!==h)frame.contentWindow.location.hash=h}catch(e){}
+});
+start().catch(()=>{document.body.innerHTML='<div style="color:white;font:16px system-ui;padding:30px">프로토타입을 불러오지 못했습니다.</div>'});
 </script>
 </body>
 </html>
