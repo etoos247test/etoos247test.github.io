@@ -38,6 +38,13 @@ if(!document.querySelector('link[data-home-motion]')){
   css.dataset.homeMotion='1';
   document.head.appendChild(css);
 }
+if(!document.querySelector('link[data-home-weight]')){
+  const css=document.createElement('link');
+  css.rel='stylesheet';
+  css.href='./home-weight.css?v=20260813a';
+  css.dataset.homeWeight='1';
+  document.head.appendChild(css);
+}
 if(!document.querySelector('script[data-home-motion]')){
   const s=document.createElement('script');
   s.src='./home-motion.js?v=20260813a';
