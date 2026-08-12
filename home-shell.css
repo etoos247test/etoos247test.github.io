@@ -1,0 +1,27 @@
+/* Top navigation + master gateway */
+.top-nav{display:flex;align-items:center;gap:30px;margin-left:auto;margin-right:22px}
+.top-nav button,.top-nav a{position:relative;border:0;background:transparent;padding:11px 0;color:#28332d;font-size:12px;font-weight:850;letter-spacing:-.02em;white-space:nowrap}
+.top-nav button::after,.top-nav a::after{content:"";position:absolute;left:0;right:100%;bottom:5px;height:1px;background:#2d6f51;transition:.22s}
+.top-nav button:hover::after,.top-nav a:hover::after{right:0}
+.hero-logo-bg{opacity:.095!important;transform:translateY(-52%) scale(1.08)!important}
+.master-gateway{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0 0 22px}
+.master-gateway-card{position:relative;min-height:230px;padding:28px;text-align:left;border:1px solid rgba(22,39,30,.16);border-radius:4px;background:rgba(255,255,255,.65);backdrop-filter:blur(12px);color:#17231d;transition:.22s}
+.master-gateway-card:hover{transform:translateY(-3px);background:#fff;box-shadow:0 18px 48px rgba(33,55,44,.09)}
+.master-gateway-card small{display:block;color:#78837d;font-size:9px;font-weight:900;letter-spacing:.18em}
+.master-gateway-card strong{display:block;margin-top:44px;font-size:30px;letter-spacing:-.05em}
+.master-gateway-card p{max-width:520px;margin:12px 0 0;color:#6c7771;font-size:13px;line-height:1.75}
+.master-gateway-card span{position:absolute;left:28px;bottom:24px;color:#2e7554;font-size:11px;font-weight:900}
+.master-gateway-card.teacher-entry{background:linear-gradient(145deg,rgba(239,248,243,.92),rgba(255,255,255,.72))}
+.master-teacher-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 18px;padding:12px 0;border-bottom:1px solid #dbe3de}
+.master-teacher-bar button{border:0;background:transparent;color:#345d49;font-size:12px;font-weight:900;padding:7px 0}
+.master-teacher-bar span{color:#7b8680;font-size:10px;font-weight:900;letter-spacing:.12em}
+.master-ops-sheet{width:min(760px,100%)!important}
+.master-ops-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.master-op-card{position:relative;min-height:280px;padding:28px;text-align:left;border:1px solid #d6ded8;border-radius:4px;background:#fff;color:#18261f}
+.master-op-card:hover{border-color:#9fb5a9;box-shadow:0 15px 40px rgba(28,50,39,.08)}
+.master-op-card small{display:block;color:#738078;font-size:9px;font-weight:900;letter-spacing:.16em}
+.master-op-card strong{display:block;margin-top:46px;font-size:25px;letter-spacing:-.045em}
+.master-op-card p{margin:12px 0 0;color:#738078;font-size:12px;line-height:1.75}
+.master-op-card span{position:absolute;left:28px;bottom:24px;color:#2d7452;font-size:11px;font-weight:900}
+@media(max-width:980px){.modern-topbar{flex-wrap:wrap;padding-bottom:14px}.top-nav{order:3;width:100%;justify-content:flex-end;margin:0;gap:24px;border-top:1px solid rgba(26,38,31,.12);padding-top:8px}}
+@media(max-width:720px){.top-nav{justify-content:space-between;gap:10px}.top-nav button,.top-nav a{font-size:11px}.master-gateway,.master-ops-grid{grid-template-columns:1fr}.master-gateway-card{min-height:205px;padding:23px}.master-gateway-card strong{margin-top:28px;font-size:26px}.master-gateway-card span{left:23px;bottom:20px}.hero-logo-bg{right:-28vw!important;opacity:.065!important}}
