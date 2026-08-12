@@ -31,20 +31,18 @@ if(nav&&'MutationObserver'in window){
   new MutationObserver(()=>syncNavExtras()).observe(nav,{childList:true,subtree:true});
 }
 
-if(!document.querySelector('link[data-home-motion]')){
+function loadStyle(marker,href){
+  if(document.querySelector(`link[${marker}]`))return;
   const css=document.createElement('link');
   css.rel='stylesheet';
-  css.href='./home-motion.css?v=20260813a';
-  css.dataset.homeMotion='1';
+  css.href=href;
+  css.setAttribute(marker,'1');
   document.head.appendChild(css);
 }
-if(!document.querySelector('link[data-home-weight]')){
-  const css=document.createElement('link');
-  css.rel='stylesheet';
-  css.href='./home-weight.css?v=20260813a';
-  css.dataset.homeWeight='1';
-  document.head.appendChild(css);
-}
+loadStyle('data-home-motion','./home-motion.css?v=20260813a');
+loadStyle('data-home-weight','./home-weight.css?v=20260813a');
+loadStyle('data-home-flow','./home-flow.css?v=20260813a');
+
 if(!document.querySelector('script[data-home-motion]')){
   const s=document.createElement('script');
   s.src='./home-motion.js?v=20260813a';
