@@ -8,6 +8,13 @@ if(nav&&!nav.querySelector('[data-counseling-link]')){
   const daily=nav.querySelector('[href="#dailyTest"]');
   if(daily)nav.insertBefore(link,daily);else nav.appendChild(link);
 }
+if(!document.querySelector('link[data-home-motion]')){
+  const css=document.createElement('link');
+  css.rel='stylesheet';
+  css.href='./home-motion.css?v=20260813a';
+  css.dataset.homeMotion='1';
+  document.head.appendChild(css);
+}
 if(!document.querySelector('script[data-home-motion]')){
   const s=document.createElement('script');
   s.src='./home-motion.js?v=20260813a';
