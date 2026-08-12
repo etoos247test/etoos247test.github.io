@@ -16,6 +16,8 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 function entryStatus(message,kind=''){const e=$('#entryStatus');if(!e)return;e.textContent=message;e.className='entry-status '+kind}
 function toast(message){const t=$('#toast');if(!t){alert(message);return}t.textContent=message;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),3200)}
 async function req(path,opt={}){const headers={...(opt.headers||{})};if(opt.body&&!headers['Content-Type'])headers['Content-Type']='application/json';const r=await fetch(AUTH_API+path,{...opt,headers,cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.message||`서버 오류 ${r.status}`);return d}
+async function mainReq(path,opt={}){const headers={...(opt.headers||{})};if(opt.body&&!headers['Content-Type'])headers['Content-Type']='application/json';const r=await fetch(MAIN_API+path,{...opt,headers,cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.message||`서버 오류 ${r.status}`);return d}
+async function ensureMasterServer(){try{const r=await fetch(AUTH_API+'/health',{cache:'no-store'});if(!r.ok)throw new Error();return true}catch{throw new Error('마스터 신청 기능을 준비 중입니다. 학원데스크에 문의하세요.')}}
 let firebasePromise;
 async function firebase(){
   if(!firebasePromise)firebasePromise=(async()=>{
@@ -37,18 +39,24 @@ async function googleIdentity(){
   return{idToken,user:result.user,signOut:()=>f.authMod.signOut(f.auth)};
 }
 async function saveSession(d){sessionStorage.setItem(TK,d.token);location.reload()}
+async function discardSession(token){try{await mainReq('/api/auth/logout',{method:'POST',headers:{Authorization:`Bearer ${token}`},body:'{}'})}catch{}}
 async function idLogin(form,role){
   const b=form.querySelector('button[type="submit"]');b.disabled=true;entryStatus('계정을 확인하는 중입니다.');
-  try{const d=await req('/api/auth/id-login',{method:'POST',body:JSON.stringify({loginId:form.loginId.value.trim(),password:form.password.value,role})});entryStatus('로그인되었습니다.','ok');await saveSession(d)}catch(e){entryStatus(e.message,'error')}finally{b.disabled=false}
+  try{
+    const mode=role==='student'?'student':'staff';
+    const d=await mainReq('/api/auth/login',{method:'POST',body:JSON.stringify({loginId:form.loginId.value.trim(),password:form.password.value,mode})});
+    if(d?.user?.role!==role){await discardSession(d.token);throw new Error(role==='teacher'?'교사 계정으로 로그인해 주세요.':'마스터 계정으로 로그인해 주세요.');}
+    entryStatus('로그인되었습니다.','ok');await saveSession(d)
+  }catch(e){entryStatus(e.message,'error')}finally{b.disabled=false}
 }
 async function masterGoogleLogin(){
   const b=$('#masterGoogleLogin');b.disabled=true;entryStatus('Google 계정을 확인하는 중입니다.');
-  try{const g=await googleIdentity(),d=await req('/api/auth/google-master',{method:'POST',body:JSON.stringify({idToken:g.idToken})});entryStatus('마스터 로그인이 완료되었습니다.','ok');await saveSession(d)}catch(e){entryStatus(e.message,'error')}finally{b.disabled=false}
+  try{await ensureMasterServer();const g=await googleIdentity(),d=await req('/api/auth/google-master',{method:'POST',body:JSON.stringify({idToken:g.idToken})});entryStatus('마스터 로그인이 완료되었습니다.','ok');await saveSession(d)}catch(e){entryStatus(e.message,'error')}finally{b.disabled=false}
 }
 async function masterApply(){
   const b=$('#masterApply');b.disabled=true;entryStatus('Google 로그인 후 마스터 신청을 진행합니다.');
   let g;
-  try{g=await googleIdentity();const d=await req('/api/master/apply',{method:'POST',body:JSON.stringify({idToken:g.idToken})});entryStatus(d.message,'ok');toast(d.message)}catch(e){entryStatus(e.message,'error')}finally{try{await g?.signOut()}catch{}b.disabled=false}
+  try{await ensureMasterServer();g=await googleIdentity();const d=await req('/api/master/apply',{method:'POST',body:JSON.stringify({idToken:g.idToken})});entryStatus(d.message,'ok');toast(d.message)}catch(e){entryStatus(e.message,'error')}finally{try{await g?.signOut()}catch{}b.disabled=false}
 }
 function openModal(html){const m=$('#modal'),body=$('#modalBody');if(!m||!body)return;body.innerHTML=html;m.classList.remove('hidden')}
 async function authMe(){const token=sessionStorage.getItem(TK);if(!token)return null;const r=await fetch(MAIN_API+'/api/me',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});if(!r.ok)return null;return r.json()}
