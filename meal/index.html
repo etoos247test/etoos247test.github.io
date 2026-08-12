@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#f4f1ea">
+<title>오늘의 식단 | 이투스247학원</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}body{font-family:Pretendard,"Noto Sans KR",system-ui,-apple-system,sans-serif;background:#f3f0e9;color:#17221c}a{color:inherit;text-decoration:none}.top{width:min(1200px,calc(100% - 40px));margin:auto;min-height:82px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(20,34,27,.14)}.brand{display:flex;align-items:center;gap:11px;font-weight:900}.mark{display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:#172a20;color:#fff;font-size:14px}.back{font-size:12px;font-weight:850}.wrap{width:min(1200px,calc(100% - 40px));margin:auto;padding:70px 0 80px}.eyebrow{font-size:10px;font-weight:950;letter-spacing:.2em;color:#66746c}.hero{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:end;padding-bottom:45px;border-bottom:1px solid rgba(20,34,27,.16)}h1{margin:12px 0 0;font-size:clamp(48px,7vw,96px);letter-spacing:-.07em;line-height:.98}.date{font-size:16px;color:#617068;font-weight:800}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}.card{min-height:300px;padding:30px;border:1px solid rgba(20,34,27,.14);background:rgba(255,255,255,.7)}.card small{font-size:9px;font-weight:950;letter-spacing:.16em;color:#6d7972}.card h2{margin:30px 0 14px;font-size:30px;letter-spacing:-.05em}.menu{font-size:17px;line-height:1.9;white-space:pre-line}.empty{color:#859089;font-size:14px}.note{margin-top:18px;padding:18px 0;border-top:1px solid rgba(20,34,27,.12);font-size:12px;color:#6f7a74;line-height:1.7}@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.wrap{padding-top:45px}.date{margin-top:12px}.card{min-height:240px}}
+</style>
+</head>
+<body>
+<header class="top"><a class="brand" href="../"><span class="mark">247</span><span>이투스247학원</span></a><a class="back" href="../">← 대문</a></header>
+<main class="wrap">
+  <section class="hero"><div><p class="eyebrow">DAILY MEAL</p><h1>오늘의 식단</h1></div><div id="today" class="date"></div></section>
+  <section class="grid">
+    <article class="card"><small>LUNCH</small><h2>점심</h2><div id="lunch" class="menu empty">등록된 식단이 없습니다.</div></article>
+    <article class="card"><small>DINNER</small><h2>저녁</h2><div id="dinner" class="menu empty">등록된 식단이 없습니다.</div></article>
+  </section>
+  <p class="note">식단 데이터가 등록되면 오늘 날짜에 맞는 점심·저녁 메뉴를 이 화면에 표시합니다.</p>
+</main>
+<script>
+(()=>{const d=new Date();document.getElementById('today').textContent=new Intl.DateTimeFormat('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'}).format(d);fetch('./menu.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(data=>{if(!data)return;const key=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'),m=data[key];if(!m)return;[['lunch','점심'],['dinner','저녁']].forEach(([id])=>{const el=document.getElementById(id),v=m[id];if(v){el.textContent=Array.isArray(v)?v.join('\n'):v;el.classList.remove('empty')}})}).catch(()=>{});})();
+</script>
+</body>
+</html>
