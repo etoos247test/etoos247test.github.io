@@ -10,16 +10,17 @@ body{background:#f3f0e9;color:#151a17}
 .top-login{display:inline-flex;align-items:center;gap:22px;min-height:46px;padding:0 18px;border:1px solid rgba(19,27,23,.18);border-radius:999px;background:rgba(255,255,255,.62);backdrop-filter:blur(14px);color:#17201b;font-size:12px;font-weight:900;letter-spacing:.02em;transition:.2s}
 .top-login:hover{transform:translateY(-2px);background:#fff;border-color:rgba(19,27,23,.34)}
 .top-login i{font-style:normal;font-size:16px}
-.modern-entry{position:relative;min-height:calc(100vh - 92px);width:min(1400px,calc(100% - 64px));padding:8vh 0 42px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+.modern-entry{position:relative;min-height:calc(100vh - 92px);width:min(1400px,calc(100% - 64px));padding:7vh 0 42px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
 .hero-logo-bg{position:absolute;z-index:-1;right:-2vw;top:50%;transform:translateY(-54%);display:flex;align-items:flex-end;gap:1.4vw;white-space:nowrap;pointer-events:none;user-select:none;opacity:.082;color:#102018;line-height:.72;letter-spacing:-.095em}
 .hero-logo-bg span{font-size:clamp(110px,17vw,280px);font-weight:950}
 .hero-logo-bg strong{font-size:clamp(150px,22vw,355px);font-weight:950}
-.modern-copy{max-width:860px;margin:0 0 7vh}
-.modern-copy .eyebrow{margin-bottom:24px;color:#56645c;font-size:10px;letter-spacing:.24em}
-.modern-copy h1{font-size:clamp(54px,7.4vw,112px);line-height:.97;letter-spacing:-.075em;font-weight:900;color:#16221c}
-.modern-copy h1 em{color:#3f765d;font-style:normal;font-weight:500}
-.modern-copy .lead{max-width:630px;margin-top:30px;color:#626c66;font-size:15px;line-height:1.9}
-.hero-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:32px}
+.modern-copy{max-width:1080px;margin:0 0 6vh}
+.modern-copy .eyebrow{margin-bottom:20px;color:#56645c;font-size:10px;letter-spacing:.24em}
+.modern-copy .hero-main-title{margin:0;font-size:clamp(72px,9.4vw,148px);line-height:.88;letter-spacing:-.082em;font-weight:950;color:#142019;white-space:nowrap}
+.modern-copy .hero-slogan{margin:30px 0 0;font-size:clamp(30px,4.1vw,62px);line-height:1.08;letter-spacing:-.06em;font-weight:650;color:#26352d}
+.modern-copy .hero-slogan em{font-style:normal;color:#3f765d;font-weight:500}
+.modern-copy .lead{max-width:720px;margin-top:22px;color:#626c66;font-size:15px;line-height:1.9}
+.hero-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:28px}
 .hero-actions span{padding:8px 11px;border-bottom:1px solid rgba(25,37,30,.25);color:#405048;font-size:9px;font-weight:900;letter-spacing:.13em}
 .role-guide{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid rgba(18,29,23,.24);border-bottom:1px solid rgba(18,29,23,.16);background:rgba(247,245,240,.42);backdrop-filter:blur(7px)}
 .role-guide article{min-height:150px;padding:24px 28px 22px}
@@ -55,11 +56,14 @@ body{background:#f3f0e9;color:#151a17}
 .master-apply{width:100%;margin-top:9px;border:1px solid #ccd6cf;background:#fff;color:#20372c}
 .master-sheet .login-card{min-height:500px}
 .panel-open{overflow:hidden}
+@media(max-width:1100px){.modern-copy .hero-main-title{white-space:normal;font-size:clamp(66px,10vw,118px)}}
 @media(max-width:900px){
   .modern-topbar,.modern-entry{width:min(100% - 34px,1400px)}
   .modern-topbar{min-height:78px}
   .modern-entry{min-height:calc(100vh - 78px);padding-top:6vh}
   .hero-logo-bg{right:-10vw;top:45%;opacity:.065}
+  .modern-copy .hero-main-title{font-size:clamp(58px,12vw,92px);line-height:.93}
+  .modern-copy .hero-slogan{font-size:clamp(28px,6vw,46px);margin-top:24px}
   .role-guide{grid-template-columns:1fr}
   .role-guide article{min-height:auto;padding:21px 8px}
   .role-guide article+article{border-left:0;border-top:1px solid rgba(18,29,23,.15)}
@@ -67,7 +71,8 @@ body{background:#f3f0e9;color:#151a17}
   .login-sheet{padding:64px 25px 35px}
 }
 @media(max-width:680px){
-  .modern-copy h1{font-size:clamp(48px,14.5vw,72px)}
+  .modern-copy .hero-main-title{font-size:clamp(52px,15vw,76px)}
+  .modern-copy .hero-slogan{font-size:clamp(25px,8vw,38px)}
   .modern-copy .lead{font-size:13px}
   .hero-logo-bg{top:39%;right:-18vw;opacity:.055}
   .basic-login-grid{grid-template-columns:1fr}
