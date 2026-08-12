@@ -21,7 +21,10 @@ function injectTopNav(){
   nav.innerHTML=`
     <button type="button" data-top-view="notices">학원공지</button>
     <button type="button" data-top-view="questions">질의응답</button>
-    <a href="https://ipsywan.com/" target="_blank" rel="noopener">입시의완</a>`;
+    <a href="https://ipsywan.com/" target="_blank" rel="noopener">입시의완</a>
+    <a href="./placement/">정시배치표</a>
+    <button type="button" data-top-view="schedules">시험일정</button>
+    <a href="./meal/">오늘의 식단</a>`;
   topbar.insertBefore(nav,loginLauncher||accountBar||null);
   nav.querySelectorAll('[data-top-view]').forEach(b=>b.addEventListener('click',()=>openTopView(b.dataset.topView)));
 }
