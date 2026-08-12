@@ -13,15 +13,16 @@ const tone={
 };
 const revealSelectors=['.public-row','.schedule-row','.test-week','.guide-card','.etiquette-card'];
 
-function prepareItems(){
-  sections.forEach(section=>{
-    let i=0;
-    section.querySelectorAll(revealSelectors.join(',')).forEach(el=>{
-      el.classList.add('motion-item');
-      el.style.setProperty('--motion-delay',`${Math.min(i++,7)*55}ms`);
-    });
+function prepareSection(section){
+  if(!section)return;
+  let i=0;
+  section.querySelectorAll(revealSelectors.join(',')).forEach(el=>{
+    if(el.classList.contains('motion-item'))return;
+    el.classList.add('motion-item');
+    el.style.setProperty('--motion-delay',`${Math.min(i++,7)*55}ms`);
   });
 }
+function prepareItems(){sections.forEach(prepareSection)}
 
 function setAccent(section){
   if(!section)return;
@@ -54,6 +55,21 @@ function initObserver(){
   sections.forEach(s=>active.observe(s));
 }
 
+function watchDynamicCards(){
+  const root=document.getElementById('publicHomeInfo');
+  if(!root||!('MutationObserver'in window))return;
+  new MutationObserver(mutations=>{
+    const touched=new Set();
+    mutations.forEach(m=>m.addedNodes.forEach(n=>{
+      if(!(n instanceof Element))return;
+      const section=n.closest('.info-section');
+      if(section)touched.add(section);
+      n.querySelectorAll?.('.info-section').forEach(s=>touched.add(s));
+    }));
+    touched.forEach(prepareSection);
+  }).observe(root,{childList:true,subtree:true});
+}
+
 let ticking=false;
 function updateProgress(){
   const doc=document.documentElement;
@@ -64,6 +80,7 @@ function updateProgress(){
 function onScroll(){if(!ticking){requestAnimationFrame(updateProgress);ticking=true}}
 
 prepareItems();
+watchDynamicCards();
 requestAnimationFrame(()=>document.body.classList.add('motion-ready'));
 initObserver();
 updateProgress();
