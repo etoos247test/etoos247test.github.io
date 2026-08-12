@@ -1,6 +1,7 @@
 (()=>{
-const nav=document.getElementById('academyTopNav');
-if(nav&&!nav.querySelector('[data-counseling-link]')){
+function addCounselingLink(){
+  const nav=document.getElementById('academyTopNav');
+  if(!nav||nav.querySelector('[data-counseling-link]'))return;
   const link=document.createElement('a');
   link.href='./counseling/';
   link.dataset.counselingLink='1';
@@ -8,6 +9,17 @@ if(nav&&!nav.querySelector('[data-counseling-link]')){
   const daily=nav.querySelector('[href="#dailyTest"]');
   if(daily)nav.insertBefore(link,daily);else nav.appendChild(link);
 }
+
+addCounselingLink();
+setTimeout(addCounselingLink,80);
+setTimeout(addCounselingLink,220);
+setTimeout(addCounselingLink,700);
+
+const nav=document.getElementById('academyTopNav');
+if(nav&&'MutationObserver'in window){
+  new MutationObserver(()=>addCounselingLink()).observe(nav,{childList:true});
+}
+
 if(!document.querySelector('link[data-home-motion]')){
   const css=document.createElement('link');
   css.rel='stylesheet';
