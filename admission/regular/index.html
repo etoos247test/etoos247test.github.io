@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#0c2133">
+<title>2028 새교육과정 정시탐색기 | 이투스247학원</title>
+<link rel="stylesheet" href="style.css?v=20260813c">
+
+</head>
+<body>
+<div id="loading" class="loading"><div class="loadbox"><div class="spinner"></div><h2>새교육과정 자료를 불러오는 중입니다.</h2><p id="loadText">국어·수학·통합사회·통합과학 자료를 준비하고 있습니다.</p></div></div>
+<header class="top"><a class="brand" href="../../"><b>247</b><span>정시탐색기</span></a><a class="back" href="../">입시 메뉴로 돌아가기 →</a></header>
+<section class="hero"><div class="hero-inner"><div class="badges"><span class="badge">2028 새교육과정 모델</span><span class="badge">선택과목 없음</span><span class="badge">통합사회 · 통합과학</span><span class="badge">온라인 실행</span></div><h1>새교육과정 정시 지원 탐색</h1><p>기존의 화법과작문·언어와매체, 확률과통계·미적분·기하, 사탐·과탐 개별 선택과목 로직을 제거하고 <strong>국어 · 수학 · 통합사회 · 통합과학</strong>의 공통 점수 체계로 다시 계산합니다. 첨부 지원참고표는 상담용 시뮬레이션 자료로 사용합니다.</p></div></section>
+<main class="wrap">
+<section class="panel">
+  <h2>시험자료</h2><p class="lead">첨부한 두 자료를 비교해서 사용할 수 있습니다. 두 자료는 동일한 새교육과정 구조이며 표준점수·등급컷 추정치가 서로 다릅니다.</p>
+  <div class="dataset-row"><div class="field"><label>적용 자료</label><select id="dataset"></select></div><button id="resetBtn" class="btn secondary">입력 초기화</button></div>
+  <div id="datasetNote" class="notice" style="margin-top:12px"></div>
+</section>
+
+<section class="panel">
+  <h2>1. 성적 입력</h2><p class="lead">직접 입력한 값이 최우선입니다. 빈 값은 첨부자료의 원점수·표준점수·백분위 대응곡선에서 자동 보완합니다.</p>
+  <div id="scoreGrid" class="score-grid"></div>
+  <div class="summary">
+    <div class="kpi"><span>원점수 합</span><b id="rawTotal">-</b><small>국+수+통사+통과 / 300</small></div>
+    <div class="kpi"><span>표준점수 합</span><b id="stdTotal">-</b><small>4과목 합산</small></div>
+    <div class="kpi"><span>백분위 비교점수</span><b id="pctTotal">-</b><small>국+수+(통사+통과)/2</small></div>
+    <div class="kpi"><span>표준점수 상위누적</span><b id="stdRank">-</b><small>첨부 상위누적표 기준</small></div>
+    <div class="kpi"><span>백분위 상위누적</span><b id="pctRank">-</b><small>첨부 상위누적표 기준</small></div>
+  </div>
+  <div id="advantage" class="advantage">점수를 입력하면 표준점수·백분위·원점수 중 어느 지표에서 상대적으로 유리한지 비교합니다.</div>
+</section>
+
+<section class="panel">
+  <h2>2. 지원 가능 대학 검색</h2><p class="lead">대학별 지원참고표의 원점수·표준점수·백분위 기준을 현재 성적과 비교합니다. 선택과목 지원제한·가산점은 새 모델에서 제거했습니다.</p>
+  <div class="filters">
+    <div class="field"><label>판정 기준</label><select id="basis"><option value="auto">자동</option><option value="s">표준점수</option><option value="p">백분위</option><option value="r">원점수</option></select></div>
+    <div class="field"><label>계열</label><select id="track"><option value="">전체</option><option>인문</option><option>자연</option><option>공통</option></select></div>
+    <div class="field"><label>지역</label><select id="region"><option value="">전체</option></select></div>
+    <div class="field"><label>모집군</label><select id="group"><option value="">전체</option><option>가</option><option>나</option><option>다</option><option>군외</option></select></div>
+    <div class="field"><label>소신 허용폭</label><input id="margin" type="number" value="3" min="0" max="30" step="0.5"></div>
+    <div class="field wide"><label>대학·학과·전형 검색</label><input id="keyword" placeholder="예: 경영, 간호, 경북대"></div>
+  </div>
+  <div class="action-row"><button id="searchBtn" class="btn">지원 가능 대학 계산</button><button id="fitOnly" class="btn secondary">적정 이상만 보기</button><button id="allBtn" class="btn secondary">전체 보기</button></div>
+  <div class="result-head"><div><h2 style="margin:0;font-size:1rem">검색 결과</h2><p id="summaryText">성적을 입력하거나 검색 조건을 선택하세요.</p></div></div>
+  <div id="results" class="results"></div><div id="more" class="more"></div>
+</section>
+
+<section class="panel">
+  <h2>새교육과정 모델 반영 내용</h2><p class="lead">프로그램 내부 구조를 단순 표시 변경이 아니라 새 수능 체계에 맞게 다시 구성했습니다.</p>
+  <div class="model-grid">
+    <article><b>국어 선택 제거</b><p>화법과작문·언어와매체 구분 없이 국어 공통 점수를 사용합니다.</p></article>
+    <article><b>수학 선택 제거</b><p>확률과통계·미적분·기하 선택 및 선택과목 가산점 판정을 제거합니다.</p></article>
+    <article><b>탐구 통합</b><p>사탐·과탐 개별 2과목 대신 통합사회와 통합과학을 각각 독립 입력합니다.</p></article>
+    <article><b>새 합산식</b><p>원점수·표준점수는 4과목 합산, 백분위는 국어+수학+통합탐구 평균으로 비교합니다.</p></article>
+  </div>
+</section>
+</main>
+<footer class="footer">※ 본 탐색기는 첨부된 지원참고표와 점수대응자료를 바탕으로 한 상담용 도구입니다. 2028학년도 실제 대학별 반영비율·영어/한국사 기준·가산점·지원자격은 각 대학의 확정 모집요강을 반드시 다시 확인해야 합니다.</footer>
+<script src="app.js?v=20260813c"></script>
+</body></html>

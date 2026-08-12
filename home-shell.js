@@ -163,3 +163,23 @@ new MutationObserver(()=>{if(masterTeacherMode)$('#masterApprovalMenu')?.classLi
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#masterOpsPanel')?.classList.contains('hidden'))closeMasterOps()});
 setTimeout(syncMasterView,650);
 })();
+
+(()=>{
+  const LINK='./admission/regular/';
+  function injectRegularExplorer(){
+    const title=document.querySelector('#workspaceTitle');
+    const body=document.querySelector('#workspaceBody');
+    if(!title||!body||title.textContent.trim()!=='입시탐색기')return;
+    const box=body.querySelector('.admission-box');
+    if(!box||box.querySelector('[data-regular-explorer]'))return;
+    const card=document.createElement('article');
+    card.className='admission-card';
+    card.dataset.regularExplorer='1';
+    card.innerHTML=`<small>2028 REGULAR ADMISSION</small><h2>정시탐색기</h2><p>국어·수학·통합사회·통합과학 기준으로 다시 만든 2028 새교육과정 정시 지원 탐색기입니다.</p><a href="${LINK}" target="_blank" rel="noopener">2028 정시탐색기 실행 ↗</a>`;
+    box.prepend(card);
+  }
+  document.addEventListener('click',e=>{if(e.target.closest('[data-view="admission"]'))setTimeout(injectRegularExplorer,0)});
+  const body=document.querySelector('#workspaceBody');
+  if(body)new MutationObserver(injectRegularExplorer).observe(body,{childList:true,subtree:true});
+  injectRegularExplorer();
+})();
