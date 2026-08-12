@@ -7,21 +7,52 @@
 <meta name="theme-color" content="#f4f1ea">
 <title>오늘의 식단 | 이투스247학원</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;min-height:100%}body{font-family:Pretendard,"Noto Sans KR",system-ui,-apple-system,sans-serif;background:#f3f0e9;color:#17221c}a{color:inherit;text-decoration:none}.top{width:min(1200px,calc(100% - 40px));margin:auto;min-height:82px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(20,34,27,.14)}.brand{display:flex;align-items:center;gap:11px;font-weight:900}.mark{display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:#172a20;color:#fff;font-size:14px}.back{font-size:12px;font-weight:850}.wrap{width:min(1200px,calc(100% - 40px));margin:auto;padding:70px 0 80px}.eyebrow{font-size:10px;font-weight:950;letter-spacing:.2em;color:#66746c}.hero{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:end;padding-bottom:45px;border-bottom:1px solid rgba(20,34,27,.16)}h1{margin:12px 0 0;font-size:clamp(48px,7vw,96px);letter-spacing:-.07em;line-height:.98}.date{font-size:16px;color:#617068;font-weight:800}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}.card{min-height:300px;padding:30px;border:1px solid rgba(20,34,27,.14);background:rgba(255,255,255,.7)}.card small{font-size:9px;font-weight:950;letter-spacing:.16em;color:#6d7972}.card h2{margin:30px 0 14px;font-size:30px;letter-spacing:-.05em}.menu{font-size:17px;line-height:1.9;white-space:pre-line}.empty{color:#859089;font-size:14px}.note{margin-top:18px;padding:18px 0;border-top:1px solid rgba(20,34,27,.12);font-size:12px;color:#6f7a74;line-height:1.7}@media(max-width:700px){.hero,.grid{grid-template-columns:1fr}.wrap{padding-top:45px}.date{margin-top:12px}.card{min-height:240px}}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}body{font-family:Pretendard,"Noto Sans KR",system-ui,-apple-system,sans-serif;background:#f3f0e9;color:#17221c}a{color:inherit;text-decoration:none}.top{width:min(1400px,calc(100% - 40px));margin:auto;min-height:82px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(20,34,27,.14)}.brand{display:flex;align-items:center;gap:11px;font-weight:900}.mark{display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:#172a20;color:#fff;font-size:14px}.back{font-size:12px;font-weight:850}.wrap{width:min(1400px,calc(100% - 40px));margin:auto;padding:58px 0 80px}.eyebrow{margin:0;font-size:10px;font-weight:950;letter-spacing:.2em;color:#66746c}.hero{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:end;padding-bottom:32px;border-bottom:1px solid rgba(20,34,27,.16)}h1{margin:12px 0 0;font-size:clamp(48px,7vw,92px);letter-spacing:-.07em;line-height:.98}.range{font-size:14px;color:#617068;font-weight:800;text-align:right}.week{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x proximity;padding:24px max(0px,calc((100vw - 1400px)/2)) 18px;margin-left:max(-20px,calc((1400px - 100vw)/2));margin-right:max(-20px,calc((1400px - 100vw)/2));scrollbar-width:thin}.day-card{flex:0 0 310px;scroll-snap-align:center;border:1px solid rgba(20,34,27,.14);background:rgba(255,255,255,.72);min-height:590px;display:flex;flex-direction:column}.day-card.today{border:2px solid #2d6f51;background:#fff;box-shadow:0 18px 50px rgba(34,65,49,.10)}.day-head{padding:22px 22px 18px;border-bottom:1px solid rgba(20,34,27,.12);display:flex;align-items:flex-end;justify-content:space-between;gap:16px}.day-label small{display:block;color:#748078;font-size:9px;font-weight:950;letter-spacing:.15em}.day-label strong{display:block;margin-top:7px;font-size:26px;letter-spacing:-.05em}.weekday{font-size:13px;font-weight:900;color:#516057}.today .weekday{color:#2d6f51}.meal{padding:20px 22px}.meal+.meal{border-top:1px solid rgba(20,34,27,.10)}.meal-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}.meal-title span{font-size:10px;font-weight:950;letter-spacing:.15em;color:#6b7870}.meal-title strong{font-size:20px}.menu-grid{display:grid;gap:8px}.menu-row{display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:start;padding:9px 0;border-bottom:1px dashed rgba(20,34,27,.10)}.menu-row:last-child{border-bottom:0}.menu-row b{font-size:11px;color:#66746c}.menu-row span{font-size:14px;line-height:1.55;font-weight:750;word-break:keep-all}.menu-row .pending{color:#9aa29d;font-weight:650}.no-meal{display:grid;place-items:center;min-height:142px;border:1px dashed rgba(20,34,27,.16);background:rgba(244,241,234,.7);color:#7b8780;font-size:14px;font-weight:850}.note{margin-top:10px;padding:18px 0;border-top:1px solid rgba(20,34,27,.12);font-size:12px;color:#6f7a74;line-height:1.8}.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:#7b8780}.legend b{color:#425148}.sunday .day-head{background:rgba(231,228,220,.55)}@media(max-width:700px){.wrap{width:min(100% - 24px,1400px);padding-top:38px}.top{width:min(100% - 24px,1400px)}.hero{grid-template-columns:1fr}.range{text-align:left;margin-top:6px}.week{margin-left:-12px;margin-right:-12px;padding-left:12px;padding-right:12px}.day-card{flex-basis:min(86vw,310px)}h1{font-size:48px}}
 </style>
 </head>
 <body>
 <header class="top"><a class="brand" href="../"><span class="mark">247</span><span>이투스247학원</span></a><a class="back" href="../">← 대문</a></header>
 <main class="wrap">
-  <section class="hero"><div><p class="eyebrow">DAILY MEAL</p><h1>오늘의 식단</h1></div><div id="today" class="date"></div></section>
-  <section class="grid">
-    <article class="card"><small>LUNCH</small><h2>점심</h2><div id="lunch" class="menu empty">등록된 식단이 없습니다.</div></article>
-    <article class="card"><small>DINNER</small><h2>저녁</h2><div id="dinner" class="menu empty">등록된 식단이 없습니다.</div></article>
+  <section class="hero">
+    <div><p class="eyebrow">7-DAY MEAL PLAN</p><h1>오늘의 식단</h1></div>
+    <div id="range" class="range"></div>
   </section>
-  <p class="note">식단 데이터가 등록되면 오늘 날짜에 맞는 점심·저녁 메뉴를 이 화면에 표시합니다.</p>
+  <section id="week" class="week" aria-label="7일 식단"></section>
+  <div class="legend"><span><b>표시 범위</b> 오늘 기준 전 3일 · 오늘 · 후 3일</span><span><b>일요일</b> 급식 없음</span><span><b>기본값</b> 준비중</span></div>
+  <p class="note">각 끼니는 <b>메인요리 → 반찬 → 국 → 밥</b> 순으로 표시합니다. 식단 데이터가 등록되면 같은 항목에 자동 반영됩니다.</p>
 </main>
 <script>
-(()=>{const d=new Date();document.getElementById('today').textContent=new Intl.DateTimeFormat('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'}).format(d);fetch('./menu.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(data=>{if(!data)return;const key=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'),m=data[key];if(!m)return;[['lunch','점심'],['dinner','저녁']].forEach(([id])=>{const el=document.getElementById(id),v=m[id];if(v){el.textContent=Array.isArray(v)?v.join('\n'):v;el.classList.remove('empty')}})}).catch(()=>{});})();
+(()=>{
+  const weekEl=document.getElementById('week');
+  const rangeEl=document.getElementById('range');
+  const fmtFull=new Intl.DateTimeFormat('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+  const fmtDay=new Intl.DateTimeFormat('ko-KR',{weekday:'long'});
+  const pad=n=>String(n).padStart(2,'0');
+  const key=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const cloneDate=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  const addDays=(d,n)=>{const x=cloneDate(d);x.setDate(x.getDate()+n);return x};
+  const today=cloneDate(new Date());
+  const days=Array.from({length:7},(_,i)=>addDays(today,i-3));
+  const fallback=()=>({main:'준비중',side:'준비중',soup:'준비중',rice:'준비중'});
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const value=v=>Array.isArray(v)?v.filter(Boolean).join(' · '):(v||'준비중');
+  const row=(label,v)=>`<div class="menu-row"><b>${label}</b><span class="${!v||v==='준비중'?'pending':''}">${esc(value(v))}</span></div>`;
+  const meal=(title,en,data,noMeal)=>`<section class="meal"><div class="meal-title"><span>${en}</span><strong>${title}</strong></div>${noMeal?'<div class="no-meal">급식 없음</div>':`<div class="menu-grid">${row('메인요리',data.main)}${row('반찬',data.side)}${row('국',data.soup)}${row('밥',data.rice)}</div>`}</section>`;
+  const isSame=(a,b)=>key(a)===key(b);
+
+  rangeEl.textContent=`${fmtFull.format(days[0])}  —  ${fmtFull.format(days[6])}`;
+
+  fetch('./menu.json',{cache:'no-store'}).then(r=>r.ok?r.json():{}).catch(()=>({})).then(data=>{
+    weekEl.innerHTML=days.map(d=>{
+      const k=key(d),isSunday=d.getDay()===0,isToday=isSame(d,today),saved=data[k]||{};
+      const lunch={...fallback(),...(saved.lunch||{})};
+      const dinner={...fallback(),...(saved.dinner||{})};
+      const classes=['day-card',isToday?'today':'',isSunday?'sunday':''].filter(Boolean).join(' ');
+      return `<article class="${classes}" data-date="${k}"><header class="day-head"><div class="day-label"><small>${isToday?'TODAY':'MEAL DAY'}</small><strong>${d.getMonth()+1}.${d.getDate()}</strong></div><div class="weekday">${fmtDay.format(d)}</div></header>${meal('점심','LUNCH',lunch,isSunday)}${meal('저녁','DINNER',dinner,isSunday)}</article>`;
+    }).join('');
+    requestAnimationFrame(()=>document.querySelector('.day-card.today')?.scrollIntoView({behavior:'auto',block:'nearest',inline:'center'}));
+  });
+})();
 </script>
 </body>
 </html>
