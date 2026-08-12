@@ -42,6 +42,7 @@ function loadStyle(marker,href){
 loadStyle('data-home-motion','./home-motion.css?v=20260813a');
 loadStyle('data-home-weight','./home-weight.css?v=20260813a');
 loadStyle('data-home-flow','./home-flow.css?v=20260813b');
+loadStyle('data-home-refine','./home-refine.css?v=20260813a');
 
 if(!document.querySelector('script[data-home-motion]')){
   const s=document.createElement('script');
