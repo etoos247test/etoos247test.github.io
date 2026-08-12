@@ -50,4 +50,11 @@ if(!document.querySelector('script[data-home-motion]')){
   s.dataset.homeMotion='1';
   document.body.appendChild(s);
 }
+
+if(!document.querySelector('script[data-academy-schedule]')){
+  const s=document.createElement('script');
+  s.src='./academy-schedule.js?v=20260813a';
+  s.dataset.academySchedule='1';
+  document.body.appendChild(s);
+}
 })();
