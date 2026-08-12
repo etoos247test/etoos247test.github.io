@@ -4,22 +4,34 @@ const viewport=document.getElementById('noticeViewport');
 const track=document.getElementById('noticeTrack');
 const more=document.getElementById('noticeMore');
 const board=document.getElementById('dailyTestBoard');
+const noticeList=document.getElementById('publicNoticeList');
+const scheduleList=document.getElementById('publicScheduleList');
 let notices=[],index=0,timer=null;
-const fmt=s=>{if(!s)return'';const d=new Date(s);if(Number.isNaN(d.getTime()))return'';return`${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`};
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function openNotices(){const btn=document.querySelector('[data-top-view="notices"]')||document.querySelector('[data-view="notices"]');if(btn)btn.click();else document.getElementById('loginLauncher')?.click()}
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dateObj=s=>{const d=new Date(s);return Number.isNaN(d.getTime())?null:d};
+const shortDate=s=>{const d=dateObj(s);return d?`${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`:''};
+const fullDate=s=>{const d=dateObj(s);return d?new Intl.DateTimeFormat('ko-KR',{month:'long',day:'numeric',weekday:'short'}).format(d):''};
+function go(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'})}
 function renderNotices(){
-  if(!viewport||!track)return;
-  if(!notices.length){track.innerHTML='<div class="notice-empty">현재 표시할 공지사항이 없습니다.</div>';return}
-  track.innerHTML=notices.map(n=>`<button class="notice-item" type="button" data-notice="${String(n.id||'')}"><b>${escapeHtml(n.title||'공지사항')}</b><time>${fmt(n.created_at)}</time></button>`).join('');
-  track.querySelectorAll('.notice-item').forEach(b=>b.addEventListener('click',openNotices));
-  move();start();
+  if(track){
+    if(!notices.length)track.innerHTML='<div class="notice-empty">현재 표시할 공지사항이 없습니다.</div>';
+    else{track.innerHTML=notices.slice(0,8).map(n=>`<button class="notice-item" type="button"><b>${esc(n.title||'공지사항')}</b><time>${shortDate(n.created_at)}</time></button>`).join('');track.querySelectorAll('.notice-item').forEach(b=>b.addEventListener('click',()=>go('publicNotices')));move();start()}
+  }
+  if(noticeList){noticeList.innerHTML=notices.length?notices.map((n,i)=>`<article class="public-row ${n.pinned?'pinned':''}"><div class="public-row-no">${n.pinned?'PIN':String(i+1).padStart(2,'0')}</div><div><strong>${esc(n.title||'공지사항')}</strong><span>${n.campus==='suseong1'?'수성1관':n.campus==='suseong2'?'수성2관':'전체'} · ${fullDate(n.created_at)}</span></div></article>`).join(''):'<div class="public-empty">현재 공개된 공지사항이 없습니다.</div>'}
+}
+function renderSchedules(items){
+  if(!scheduleList)return;
+  if(!items.length){scheduleList.innerHTML='<div class="public-empty">현재 등록된 공개 시험일정이 없습니다.</div>';return}
+  scheduleList.innerHTML=items.map((s,i)=>`<article class="public-row schedule-public-row"><div class="public-row-no">${String(i+1).padStart(2,'0')}</div><div><strong>${esc(s.title||'시험일정')}</strong><span>${fullDate(s.exam_date)} · ${esc(s.period_label||'')}</span>${s.description?`<p>${esc(s.description)}</p>`:''}</div></article>`).join('')
 }
 function move(){if(track)track.style.transform=`translateY(${-index*28}px)`}
-function next(){if(notices.length<2)return;index=(index+1)%notices.length;move()}
+function next(){if(notices.length<2)return;index=(index+1)%Math.min(notices.length,8);move()}
 function start(){stop();if(notices.length>1)timer=setInterval(next,4200)}
 function stop(){if(timer){clearInterval(timer);timer=null}}
-if(viewport&&track){viewport.addEventListener('mouseenter',stop);viewport.addEventListener('mouseleave',start);viewport.addEventListener('focusin',stop);viewport.addEventListener('focusout',start);more?.addEventListener('click',openNotices);fetch(API+'/api/notices',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(d=>{notices=Array.isArray(d?.notices)?d.notices:[];renderNotices()}).catch(()=>{track.innerHTML='<div class="notice-empty">최근 공지사항을 준비 중입니다.</div>'})}
+if(viewport&&track){viewport.addEventListener('mouseenter',stop);viewport.addEventListener('mouseleave',start);viewport.addEventListener('focusin',stop);viewport.addEventListener('focusout',start)}
+more?.addEventListener('click',()=>go('publicNotices'));
+fetch(API+'/api/notices',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(d=>{notices=Array.isArray(d?.notices)?d.notices:[];renderNotices()}).catch(()=>{if(track)track.innerHTML='<div class="notice-empty">최근 공지사항을 준비 중입니다.</div>';if(noticeList)noticeList.innerHTML='<div class="public-empty">공지사항을 준비 중입니다.</div>'});
+fetch(API+'/api/schedules',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(d=>renderSchedules(Array.isArray(d?.schedules)?d.schedules:[])).catch(()=>{if(scheduleList)scheduleList.innerHTML='<div class="public-empty">시험일정을 준비 중입니다.</div>'});
 
 function mondayOf(date){const d=new Date(date);d.setHours(0,0,0,0);const shift=(d.getDay()+6)%7;d.setDate(d.getDate()-shift);return d}
 function addDays(date,n){const d=new Date(date);d.setDate(d.getDate()+n);return d}
