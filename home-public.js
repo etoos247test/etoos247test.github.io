@@ -31,21 +31,12 @@ function stop(){if(timer){clearInterval(timer);timer=null}}
 if(viewport&&track){viewport.addEventListener('mouseenter',stop);viewport.addEventListener('mouseleave',start);viewport.addEventListener('focusin',stop);viewport.addEventListener('focusout',start)}
 more?.addEventListener('click',()=>go('publicNotices'));
 
+async function remoteJson(path,timeout=1200){const c=new AbortController(),t=setTimeout(()=>c.abort(),timeout);try{const r=await fetch(API+path,{cache:'no-store',signal:c.signal});if(!r.ok)throw new Error('remote');return await r.json()}finally{clearTimeout(t)}}
 async function loadPublicData(){
-  let remote=null;
-  try{
-    const [nr,sr]=await Promise.all([
-      fetch(API+'/api/notices',{cache:'no-store'}),
-      fetch(API+'/api/schedules',{cache:'no-store'})
-    ]);
-    if(nr.ok&&sr.ok){const nd=await nr.json(),sd=await sr.json();remote={notices:Array.isArray(nd?.notices)?nd.notices:[],schedules:Array.isArray(sd?.schedules)?sd.schedules:[]}}
-  }catch{}
-  if(!remote){
-    try{const r=await fetch('./public-data.json?v=20260812a',{cache:'no-store'});if(r.ok)remote=await r.json()}catch{}
-  }
-  notices=Array.isArray(remote?.notices)?remote.notices:[];
-  renderNotices();
-  renderSchedules(Array.isArray(remote?.schedules)?remote.schedules:[]);
+  let data=null;
+  try{const [nd,sd]=await Promise.all([remoteJson('/api/notices'),remoteJson('/api/schedules')]);data={notices:Array.isArray(nd?.notices)?nd.notices:[],schedules:Array.isArray(sd?.schedules)?sd.schedules:[]}}catch{}
+  if(!data){try{const r=await fetch('./public-data.json?v=20260812a',{cache:'no-store'});if(r.ok)data=await r.json()}catch{}}
+  notices=Array.isArray(data?.notices)?data.notices:[];renderNotices();renderSchedules(Array.isArray(data?.schedules)?data.schedules:[])
 }
 loadPublicData();
 
