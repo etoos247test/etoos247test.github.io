@@ -4,18 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noarchive">
-<meta name="theme-color" content="#f7faf8">
+<meta name="theme-color" content="#f4f1ea">
 <meta http-equiv="Cache-Control" content="no-store">
 <title>이투스247학원 학원생활 도우미</title>
-<link rel="stylesheet" href="./my247.css?v=20260812b">
+<link rel="stylesheet" href="./my247.css?v=20260812d">
 <style>
 #staffMenu{grid-template-columns:repeat(3,1fr)}
-.login-grid{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}
-.master-card{border-color:rgba(24,79,58,.22)}
-.master-card .role-icon{background:#173f32;color:#fff}
-.master-card .google-login{background:#fff;color:#1f2937;border:1px solid #d8dee5;box-shadow:none}
-.master-card .google-login:hover{background:#f7f9fb}
-.master-card .master-apply{margin-top:8px;background:#eef5f1;color:#173f32;border:1px solid #cbded4;box-shadow:none}
 .id-help{margin:10px 0 0;font-size:.82rem!important;color:#66746d!important;font-weight:700}
 .legacy-master{margin-top:12px;border-top:1px solid #e6ece8;padding-top:10px}
 .legacy-master summary{cursor:pointer;font-size:.78rem;color:#7c8781}
@@ -28,16 +22,16 @@
 .master-app-person div{display:grid;gap:3px;min-width:0}
 .master-app-person span,.master-app-person small{color:#66746d;overflow-wrap:anywhere}
 .master-app-actions{display:flex;gap:8px;flex-shrink:0}
-@media(max-width:1050px){.login-grid{grid-template-columns:1fr 1fr}.master-card{grid-column:1/-1}}
 @media(max-width:900px){#staffMenu{grid-template-columns:1fr 1fr}}
-@media(max-width:680px){.login-grid{grid-template-columns:1fr}.master-card{grid-column:auto}.master-app-item{align-items:flex-start;flex-direction:column}.master-app-actions{width:100%}.master-app-actions button{flex:1}}
+@media(max-width:680px){.master-app-item{align-items:flex-start;flex-direction:column}.master-app-actions{width:100%}.master-app-actions button{flex:1}}
 @media(max-width:600px){#staffMenu{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="backdrop" aria-hidden="true"><span></span><span></span><span></span></div>
-<header class="topbar">
-  <a class="brand" href="./"><b>247</b><span><strong>이투스247학원</strong><small>학원생활 도우미</small></span></a>
+<div class="backdrop modern-backdrop" aria-hidden="true"><span></span><span></span><span></span></div>
+<header class="topbar modern-topbar">
+  <a class="brand" href="./"><b>247</b><span><strong>이투스247학원</strong><small>DAEGU SUSEONG</small></span></a>
+  <button id="loginLauncher" class="top-login" type="button">로그인 <i>↗</i></button>
   <div id="accountBar" class="account-bar hidden">
     <span id="accountText"></span>
     <button id="accountAdminBtn" class="ghost hidden" type="button">ID 관리</button>
@@ -47,51 +41,20 @@
 </header>
 
 <main>
-  <section id="entryView" class="entry shell">
-    <div class="entry-copy">
-      <p class="eyebrow">MY 247</p>
-      <h1>이투스247학원<br><em>학원생활 도우미</em></h1>
-      <p class="lead">마스터·교사·학생 로그인을 구분합니다. 마스터는 승인된 Google 계정으로, 교사와 학생은 학원에서 발급한 ID로 로그인합니다.</p>
-      <div class="feature-row"><span>공지사항</span><span>시험일정</span><span>질의응답</span><span>입시탐색기</span></div>
+  <section id="entryView" class="entry shell modern-entry">
+    <div class="hero-logo-bg" aria-hidden="true"><span>ETOOS</span><strong>247</strong></div>
+    <div class="entry-copy modern-copy">
+      <p class="eyebrow">ACADEMY LIFE HELPER</p>
+      <h1>순공, 그 이상의<br><em>성공을 위한 하루.</em></h1>
+      <p class="lead">공지 · 시험일정 · 질문 · 입시정보까지. 교사와 학생이 매일 사용하는 학원생활을 한 화면에서 이어갑니다.</p>
+      <div class="hero-actions"><span>NOTICE</span><span>SCHEDULE</span><span>Q&amp;A</span><span>ADMISSION</span></div>
     </div>
-    <div class="login-grid">
-      <article class="login-card master-card">
-        <div class="role-icon">M</div><small>MASTER</small><h2>마스터 로그인</h2>
-        <p>승인된 마스터는 Google 계정으로 로그인합니다.</p>
-        <button id="masterGoogleLogin" class="google-login" type="button">Google로 마스터 로그인 <i>→</i></button>
-        <button id="masterApply" class="master-apply" type="button">마스터 신청</button>
-        <p class="id-help">마스터 신청은 Google 로그인으로 본인 확인 후 접수되며, 기존 마스터의 승인이 필요합니다.</p>
-        <details class="legacy-master">
-          <summary>기존 마스터 ID 로그인 · 전환용</summary>
-          <form id="legacyMasterLoginForm">
-            <input name="loginId" autocomplete="username" placeholder="기존 마스터 ID" required>
-            <input name="password" type="password" autocomplete="current-password" placeholder="비밀번호" minlength="5" required>
-            <button type="submit">기존 마스터 로그인</button>
-          </form>
-        </details>
-      </article>
-      <article class="login-card teacher-card">
-        <div class="role-icon">T</div><small>TEACHER</small><h2>교사 로그인</h2>
-        <p>학원에서 발급받은 교사 ID로 로그인합니다.</p>
-        <form id="teacherLoginForm">
-          <input name="loginId" autocomplete="username" placeholder="교사 ID" required>
-          <input name="password" type="password" autocomplete="current-password" placeholder="비밀번호" minlength="5" required>
-          <button type="submit">교사 로그인 <i>→</i></button>
-        </form>
-        <p class="id-help">ID는 학원데스크(마스터)에 신청하세요.</p>
-      </article>
-      <article class="login-card student-card">
-        <div class="role-icon">S</div><small>STUDENT</small><h2>학생 로그인</h2>
-        <p>학원에서 발급받은 학생 ID로 로그인합니다.</p>
-        <form id="studentLoginForm">
-          <input name="loginId" autocomplete="username" placeholder="학생 ID · 예: M001" required>
-          <input name="password" type="password" autocomplete="current-password" placeholder="비밀번호" minlength="5" required>
-          <button type="submit">학생 로그인 <i>→</i></button>
-        </form>
-        <p class="id-help">ID는 학원데스크(마스터)에 신청하세요.</p>
-      </article>
+
+    <div class="role-guide">
+      <article><small>01 · TEACHER</small><h2>교사용</h2><p>공지와 시험일정 관리, 학생 질문 답변, 상담과 입시 업무를 확인합니다.</p></article>
+      <article><small>02 · STUDENT</small><h2>학생용</h2><p>공지와 시험일정 확인, 질문 등록, 입시정보 탐색 기능을 이용합니다.</p></article>
     </div>
-    <div id="entryStatus" class="entry-status">서버 연결을 확인하는 중입니다.</div>
+    <div class="entry-footline"><span id="entryStatus" class="entry-status">서버 연결을 확인하는 중입니다.</span><button id="masterAccess" class="master-access" type="button">MASTER</button></div>
     <button id="bootstrapOpen" class="bootstrap-link hidden" type="button">최초 마스터 설정</button>
   </section>
 
@@ -122,9 +85,74 @@
   </section>
 </main>
 
+<div id="loginPanel" class="login-overlay hidden" role="dialog" aria-modal="true" aria-label="교사 학생 로그인">
+  <div class="login-sheet">
+    <button class="panel-close" data-close-panel="loginPanel" type="button">×</button>
+    <div class="sheet-head"><small>LOGIN</small><h2>학원생활 도우미 로그인</h2><p>사용자 유형에 맞는 계정으로 로그인하세요.</p></div>
+    <div class="basic-login-grid">
+      <article class="login-card teacher-card">
+        <div class="role-icon">T</div><small>TEACHER</small><h2>교사 로그인</h2>
+        <p>학원에서 발급받은 교사 ID로 로그인합니다.</p>
+        <form id="teacherLoginForm">
+          <input name="loginId" autocomplete="username" placeholder="교사 ID" required>
+          <input name="password" type="password" autocomplete="current-password" placeholder="비밀번호" minlength="5" required>
+          <button type="submit">교사 로그인 <i>→</i></button>
+        </form>
+        <p class="id-help">ID는 학원데스크에 신청하세요.</p>
+      </article>
+      <article class="login-card student-card">
+        <div class="role-icon">S</div><small>STUDENT</small><h2>학생 로그인</h2>
+        <p>학원에서 발급받은 학생 ID로 로그인합니다.</p>
+        <form id="studentLoginForm">
+          <input name="loginId" autocomplete="username" placeholder="학생 ID · 예: M001" required>
+          <input name="password" type="password" autocomplete="current-password" placeholder="비밀번호" minlength="5" required>
+          <button type="submit">학생 로그인 <i>→</i></button>
+        </form>
+        <p class="id-help">ID는 학원데스크에 신청하세요.</p>
+      </article>
+    </div>
+  </div>
+</div>
+
+<div id="masterPanel" class="login-overlay hidden master-overlay" role="dialog" aria-modal="true" aria-label="마스터 로그인">
+  <div class="login-sheet master-sheet">
+    <button class="panel-close" data-close-panel="masterPanel" type="button">×</button>
+    <div class="sheet-head"><small>MASTER ONLY</small><h2>마스터 운영 로그인</h2><p>일반 교사·학생 로그인과 분리된 운영자 전용 화면입니다.</p></div>
+    <article class="login-card master-card">
+      <div class="role-icon">M</div><small>MASTER</small><h2>마스터 로그인</h2>
+      <p>승인된 마스터는 Google 계정으로 로그인합니다.</p>
+      <button id="masterGoogleLogin" class="google-login" type="button">Google로 마스터 로그인 <i>→</i></button>
+      <button id="masterApply" class="master-apply" type="button">마스터 신청</button>
+      <p class="id-help">마스터 신청은 Google 본인확인 후 기존 마스터 승인이 필요합니다.</p>
+      <details class="legacy-master">
+        <summary>기존 마스터 ID 로그인 · 전환용</summary>
+        <form id="legacyMasterLoginForm">
+          <input name="loginId" autocomplete="username" placeholder="기존 마스터 ID" required>
+          <input name="password" type="password" autocomplete="current-password" placeholder="비밀번호" minlength="5" required>
+          <button type="submit">기존 마스터 로그인</button>
+        </form>
+      </details>
+    </article>
+  </div>
+</div>
+
 <div id="modal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-box"><button id="modalClose" class="modal-close" type="button">×</button><div id="modalBody"></div></div></div>
 <div id="toast" class="toast hidden"></div>
 <script src="./my247.js?v=20260810a"></script>
 <script src="./master-auth.js?v=20260812b"></script>
+<script>
+(()=>{
+  const $=s=>document.querySelector(s);
+  const open=id=>{$('#'+id)?.classList.remove('hidden');document.body.classList.add('panel-open')};
+  const close=id=>{$('#'+id)?.classList.add('hidden');if(document.querySelectorAll('.login-overlay:not(.hidden)').length===0)document.body.classList.remove('panel-open')};
+  $('#loginLauncher')?.addEventListener('click',()=>open('loginPanel'));
+  $('#masterAccess')?.addEventListener('click',()=>open('masterPanel'));
+  document.querySelectorAll('[data-close-panel]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.closePanel)));
+  document.querySelectorAll('.login-overlay').forEach(p=>p.addEventListener('click',e=>{if(e.target===p)close(p.id)}));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.login-overlay:not(.hidden)').forEach(p=>close(p.id))});
+  const account=$('#accountBar'), launcher=$('#loginLauncher');
+  if(account&&launcher){const sync=()=>launcher.classList.toggle('hidden',!account.classList.contains('hidden'));new MutationObserver(sync).observe(account,{attributes:true,attributeFilter:['class']});sync()}
+})();
+</script>
 </body>
 </html>
