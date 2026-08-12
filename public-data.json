@@ -1,0 +1,13 @@
+{
+  "notices": [
+    {"title":"학원생활 도우미 공개 미리보기 운영 안내","campus":null,"pinned":true,"created_at":"2026-08-12T14:50:00+09:00"},
+    {"title":"8월 학원 운영시간 및 자율학습 안내","campus":null,"pinned":false,"created_at":"2026-08-12T10:00:00+09:00"},
+    {"title":"이번 주 일일테스트 및 듣기평가 범위 안내","campus":null,"pinned":false,"created_at":"2026-08-11T18:00:00+09:00"},
+    {"title":"학원생활 에티켓 및 학습공간 이용 안내","campus":null,"pinned":false,"created_at":"2026-08-10T09:00:00+09:00"}
+  ],
+  "schedules": [
+    {"exam_date":"2026-08-14","period_label":"주간 테스트","title":"주간 학습 점검 테스트","description":"국어·수학 주요 학습내용 점검","campus":null},
+    {"exam_date":"2026-08-20","period_label":"모의고사","title":"8월 실전 모의평가","description":"전 과목 실전 시간표 운영 예정","campus":null},
+    {"exam_date":"2026-08-28","period_label":"월간 점검","title":"8월 월간 성취도 점검","description":"월간 학습 결과 확인 및 상담자료 반영","campus":null}
+  ]
+}
