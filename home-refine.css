@@ -1,0 +1,60 @@
+/* Final homepage refinement — smaller accent surfaces + restored sticky titles */
+
+/* Keep decorative clipping without creating a scroll container that breaks sticky headings. */
+.public-home-info{overflow:clip!important}
+
+/* Accent color occupies only about 15–18% of desktop width. */
+.info-section::before{
+  width:clamp(145px,17vw,280px)!important;
+  height:56%!important;
+  top:22%!important;
+  opacity:.88!important;
+  box-shadow:0 20px 48px rgba(11,24,18,.09)!important;
+}
+.info-section::after{
+  width:clamp(90px,10vw,165px)!important;
+  height:clamp(90px,10vw,165px)!important;
+  opacity:.38!important;
+}
+.info-section.is-visible::after{opacity:.52!important}
+
+/* Pull the left/right surfaces slightly farther toward the edge. */
+#publicNotices::before,#dailyTest::before,#qaPreview::before,#academyGuide::before{left:calc(50% - 50vw)!important}
+#publicSchedules::before,#academySchedule::before,#academyEtiquette::before{right:calc(50% - 50vw)!important}
+
+/* Restore the original moving/sticky section-title behavior. */
+.info-section>.info-kicker{
+  position:sticky!important;
+  top:126px!important;
+  align-self:start!important;
+  z-index:6!important;
+  max-width:230px;
+  padding:9px 10px 10px 18px!important;
+  background:linear-gradient(90deg,rgba(247,243,235,.96) 0%,rgba(247,243,235,.78) 62%,rgba(247,243,235,0) 100%)!important;
+  backdrop-filter:blur(4px);
+  transition:transform .4s cubic-bezier(.2,.72,.24,1),opacity .3s ease!important;
+}
+.info-section.is-visible>.info-kicker{transform:translateY(0)!important}
+
+/* Keep content visually dominant. */
+.info-section{padding-top:98px!important;padding-bottom:108px!important}
+.info-section .public-row,.info-section .schedule-row,.info-section .test-week,.info-section .guide-card,.info-section .etiquette-card{
+  box-shadow:0 14px 34px rgba(24,31,27,.075)!important;
+}
+
+@media(max-width:980px){
+  .info-section::before{width:22vw!important;min-width:135px!important;height:48%!important;top:26%!important}
+  .info-section::after{width:105px!important;height:105px!important;opacity:.28!important}
+  .info-section>.info-kicker{top:112px!important}
+}
+
+@media(max-width:720px){
+  .public-home-info{overflow:clip!important}
+  .info-section::before{width:20vw!important;min-width:82px!important;height:38%!important;top:30%!important;opacity:.72!important}
+  .info-section::after{width:72px!important;height:72px!important;opacity:.20!important}
+  .info-section>.info-kicker{position:relative!important;top:auto!important;max-width:none;background:linear-gradient(90deg,rgba(247,243,235,.94),rgba(247,243,235,0))!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .info-section>.info-kicker{transition:none!important}
+}
