@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my247-intake-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "ALLOWED_ORIGIN": "https://etoos247test.github.io"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "etoos247-qa",
+      "database_id": "7a98d861-ef06-410d-8785-e3b92d7e78d3"
+    }
+  ]
+}
