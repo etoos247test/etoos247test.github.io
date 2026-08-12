@@ -1,0 +1,32 @@
+name: Deploy MY247 Master Auth
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'cloudflare/my247-master-auth-worker/**'
+      - '.github/workflows/deploy-my247-master-auth.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check required secrets
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || (echo 'CLOUDFLARE_API_TOKEN is missing' && exit 1)
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || (echo 'CLOUDFLARE_ACCOUNT_ID is missing' && exit 1)
+      - name: Apply master auth D1 schema
+        run: npx --yes wrangler@latest d1 execute etoos247-qa --remote --file=cloudflare/my247-master-auth-worker/schema.sql --config=cloudflare/my247-master-auth-worker/wrangler.jsonc
+      - name: Deploy master auth Worker
+        run: npx --yes wrangler@latest deploy --config=cloudflare/my247-master-auth-worker/wrangler.jsonc
