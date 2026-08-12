@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#f7faf8">
+<title>상담·등록 접수 | 이투스247학원</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}body{font-family:Pretendard,"Noto Sans KR",system-ui,-apple-system,sans-serif;background:linear-gradient(180deg,#f7fbf8,#eef6f1);color:#1f3029}button,input,select,textarea{font:inherit}.wrap{width:min(720px,calc(100% - 24px));margin:auto;padding:22px 0 54px}.brand{display:flex;align-items:center;gap:10px;margin:5px 0 24px}.mark{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:linear-gradient(145deg,#247651,#56a97c);color:#fff;font-weight:950;box-shadow:0 10px 22px rgba(36,118,81,.18)}.brand strong{display:block;font-size:14px}.brand small{display:block;margin-top:3px;color:#718078;font-size:10px;font-weight:800;letter-spacing:.05em}.hero{padding:27px;border:1px solid #dce8e1;border-radius:25px;background:rgba(255,255,255,.94);box-shadow:0 18px 50px rgba(43,76,59,.08)}.eyebrow{margin:0 0 8px;color:#2f8f63;font-size:10px;font-weight:950;letter-spacing:.15em}.hero h1{margin:0;font-size:clamp(32px,8vw,48px);line-height:1.08;letter-spacing:-.055em}.hero p{margin:14px 0 0;color:#6f8077;line-height:1.7;font-size:13px}.step{display:flex;gap:6px;flex-wrap:wrap;margin-top:18px}.step span{padding:7px 10px;border-radius:999px;background:#eef7f2;color:#2f7858;font-size:10px;font-weight:850}.card{margin-top:14px;padding:22px;border:1px solid #dce8e1;border-radius:22px;background:#fff;box-shadow:0 10px 32px rgba(43,76,59,.06)}.card h2{margin:0 0 16px;font-size:18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.wide{grid-column:1/-1}label{display:block;color:#42564b;font-size:12px;font-weight:850}label small{display:block;margin-top:4px;color:#89968f;font-weight:600}.req{color:#c95045}input,select,textarea{width:100%;margin-top:6px;padding:13px;border:1px solid #ccd9d2;border-radius:12px;background:#fff;color:#1f3029;outline:none}input:focus,select:focus,textarea:focus{border-color:#58a57b;box-shadow:0 0 0 3px rgba(88,165,123,.12)}textarea{min-height:115px;resize:vertical}.checks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:7px}.checks label{display:flex;align-items:center;gap:7px;padding:10px;border:1px solid #dbe5df;border-radius:11px;background:#fafcfb;font-weight:750}.checks input{width:auto;margin:0}.privacy{margin-top:16px;padding:15px;border-radius:14px;background:#f6f9f7;color:#5f7067;font-size:11px;line-height:1.7}.privacy strong{display:block;margin-bottom:5px;color:#2d4639;font-size:12px}.privacy label{display:flex;gap:8px;align-items:flex-start;margin-top:9px;color:#263b31}.privacy input{width:auto;margin:3px 0 0}.submit{width:100%;min-height:52px;margin-top:16px;border:0;border-radius:14px;background:#245d43;color:#fff;font-weight:950;box-shadow:0 12px 24px rgba(36,93,67,.18)}.submit:disabled{opacity:.55;cursor:wait}.status{min-height:20px;margin-top:10px;text-align:center;color:#63756b;font-size:12px}.status.error{color:#b42318}.success{display:none;text-align:center;padding:34px 22px}.success.show{display:block}.success .ok{display:grid;place-items:center;width:62px;height:62px;margin:0 auto 15px;border-radius:50%;background:#e9f7ef;color:#21805a;font-size:28px;font-weight:950}.success h2{margin:0;font-size:25px}.success p{color:#64766d;line-height:1.7}.receipt{display:inline-block;margin:8px 0;padding:11px 15px;border-radius:12px;background:#20372c;color:#fff;font-weight:900;letter-spacing:.04em}.home{display:inline-flex;margin-top:8px;color:#2f7858;font-size:12px;font-weight:850;text-decoration:none}.hp{position:absolute!important;left:-9999px!important;width:1px!important;height:1px!important;opacity:0!important}.foot{margin-top:18px;text-align:center;color:#8a9891;font-size:10px;line-height:1.6}@media(max-width:560px){.wrap{width:min(100% - 18px,720px);padding-top:14px}.hero,.card{padding:19px}.grid{grid-template-columns:1fr}.wide{grid-column:auto}.checks{grid-template-columns:1fr 1fr}.hero h1{font-size:35px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="brand"><span class="mark">247</span><span><strong>이투스247학원</strong><small>COUNSELING &amp; REGISTRATION</small></span></div>
+  <section class="hero">
+    <p class="eyebrow">상담 · 등록 접수</p>
+    <h1>QR 간편 접수</h1>
+    <p>기본 정보를 남겨주시면 접수 내용을 확인한 뒤 학원에서 상담 안내를 드립니다. 회원가입 없이 접수할 수 있습니다.</p>
+    <div class="step"><span>① 접수 작성</span><span>② 담당자 확인</span><span>③ 상담 일정 안내</span><span>④ 등록 여부 결정</span></div>
+  </section>
+
+  <section id="formCard" class="card">
+    <h2>접수 정보</h2>
+    <form id="applyForm">
+      <div class="grid">
+        <label>접수자 <span class="req">*</span>
+          <select name="applicantType" required><option value="student">학생 본인</option><option value="guardian">보호자</option></select>
+        </label>
+        <label>학생 이름 <span class="req">*</span><input name="studentName" maxlength="40" autocomplete="name" required></label>
+        <label>학교<input name="school" maxlength="80" placeholder="예: OO고등학교"></label>
+        <label>학년·구분
+          <select name="grade"><option value="">선택</option><option>중3</option><option>고1</option><option>고2</option><option>고3</option><option>N수</option><option>검정고시</option><option>기타</option></select>
+        </label>
+        <label>주 연락처 <span class="req">*</span><input name="phone" inputmode="tel" autocomplete="tel" placeholder="010-0000-0000" required><small>상담 안내를 받을 번호</small></label>
+        <label>보호자 연락처<input name="guardianPhone" inputmode="tel" placeholder="선택 입력"></label>
+        <label>상담 희망 관 <span class="req">*</span>
+          <select name="campus" required><option value="undecided">아직 미정</option><option value="suseong1">수성1관</option><option value="suseong2">수성2관</option></select>
+        </label>
+        <label>희망 과정 <span class="req">*</span>
+          <select name="program" required><option value="">선택</option><option value="완전자율형">완전자율형</option><option value="M1 관리형">M1 관리형</option><option value="M1+M2 관리형">M1+M2 관리형</option><option value="단과수업">단과수업</option><option value="입시상담·기타">입시상담·기타</option></select>
+        </label>
+        <div class="wide"><label>관심 과목</label><div class="checks"><label><input type="checkbox" name="subjects" value="국어">국어</label><label><input type="checkbox" name="subjects" value="수학">수학</label><label><input type="checkbox" name="subjects" value="영어">영어</label><label><input type="checkbox" name="subjects" value="사탐">사탐</label><label><input type="checkbox" name="subjects" value="과탐">과탐</label><label><input type="checkbox" name="subjects" value="입시">입시</label></div></div>
+        <label class="wide">희망 상담일<input name="preferredDate" type="date"></label>
+        <label class="wide">문의 내용<textarea name="inquiry" maxlength="3000" placeholder="현재 학습상황, 원하는 관리 방식, 상담받고 싶은 내용을 자유롭게 적어주세요."></textarea></label>
+      </div>
+      <label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+      <div class="privacy">
+        <strong>개인정보 수집·이용 안내</strong>
+        수집 목적: 학원 상담 접수, 상담 일정 안내, 등록 관련 연락<br>
+        수집 항목: 학생 이름, 학교·학년, 연락처, 희망 관·과정·과목, 상담 희망일, 문의 내용<br>
+        보유 기간: 접수일로부터 최대 6개월. 등록한 경우 필요한 정보는 재원생 관리 정보로 전환하여 별도 관리합니다.<br>
+        동의를 거부할 수 있으나, 필수 정보 수집에 동의하지 않으면 상담 접수가 어렵습니다.
+        <label><input name="privacyAgree" type="checkbox" required> <span>위 개인정보 수집·이용에 동의합니다. <b class="req">[필수]</b></span></label>
+      </div>
+      <button id="submitBtn" class="submit" type="submit">접수하기</button>
+      <div id="status" class="status" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section id="success" class="card success">
+    <div class="ok">✓</div>
+    <h2>접수가 완료되었습니다.</h2>
+    <p>담당자가 내용을 확인한 뒤 연락드리겠습니다.<br>아래 접수번호를 보관해 주세요.</p>
+    <div id="receipt" class="receipt">-</div><br>
+    <a class="home" href="../">학원생활 도우미로 이동 →</a>
+  </section>
+  <p class="foot">QR에는 개인정보가 저장되지 않습니다. QR은 이 접수 페이지 주소로만 연결됩니다.</p>
+</main>
+<script>
+const API='https://my247-intake-api.etoos247test.workers.dev';
+const form=document.querySelector('#applyForm'),statusEl=document.querySelector('#status'),btn=document.querySelector('#submitBtn');
+const q=new URLSearchParams(location.search);
+if(q.get('campus')&&['suseong1','suseong2','undecided'].includes(q.get('campus')))form.campus.value=q.get('campus');
+if(q.get('program')){const o=[...form.program.options].find(x=>x.value===q.get('program'));if(o)form.program.value=o.value}
+form.addEventListener('submit',async e=>{e.preventDefault();statusEl.className='status';statusEl.textContent='접수 내용을 전송하고 있습니다.';btn.disabled=true;const f=new FormData(form),payload={applicantType:f.get('applicantType'),studentName:f.get('studentName'),school:f.get('school'),grade:f.get('grade'),phone:f.get('phone'),guardianPhone:f.get('guardianPhone'),campus:f.get('campus'),program:f.get('program'),subjects:f.getAll('subjects'),preferredDate:f.get('preferredDate'),inquiry:f.get('inquiry'),website:f.get('website'),privacyAgree:f.get('privacyAgree')==='on',source:(q.get('source')||'general-qr').slice(0,80)};try{const r=await fetch(API+'/api/applications',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}),d=await r.json();if(!r.ok)throw new Error(d.message||'접수 중 오류가 발생했습니다.');document.querySelector('#formCard').style.display='none';document.querySelector('#receipt').textContent=d.receiptNo;document.querySelector('#success').classList.add('show');scrollTo({top:0,behavior:'smooth'})}catch(err){statusEl.className='status error';statusEl.textContent=err.message;btn.disabled=false}});
+</script>
+</body>
+</html>
