@@ -1,23 +1,34 @@
 (()=>{
-function addCounselingLink(){
+function syncNavExtras(){
   const nav=document.getElementById('academyTopNav');
-  if(!nav||nav.querySelector('[data-counseling-link]'))return;
-  const link=document.createElement('a');
-  link.href='./counseling/';
-  link.dataset.counselingLink='1';
-  link.textContent='상담일지';
-  const daily=nav.querySelector('[href="#dailyTest"]');
-  if(daily)nav.insertBefore(link,daily);else nav.appendChild(link);
+  if(!nav)return;
+
+  if(!nav.querySelector('[data-counseling-link]')){
+    const link=document.createElement('a');
+    link.href='./counseling/';
+    link.dataset.counselingLink='1';
+    link.textContent='상담일지';
+    const daily=nav.querySelector('[href="#dailyTest"]');
+    if(daily)nav.insertBefore(link,daily);else nav.appendChild(link);
+  }
+
+  [...nav.querySelectorAll('a')].forEach(link=>{
+    if(link.textContent.trim()==='정시배치표'){
+      link.href='https://etoos247test.github.io/admission/regular/';
+      link.removeAttribute('target');
+      link.removeAttribute('rel');
+    }
+  });
 }
 
-addCounselingLink();
-setTimeout(addCounselingLink,80);
-setTimeout(addCounselingLink,220);
-setTimeout(addCounselingLink,700);
+syncNavExtras();
+setTimeout(syncNavExtras,80);
+setTimeout(syncNavExtras,220);
+setTimeout(syncNavExtras,700);
 
 const nav=document.getElementById('academyTopNav');
 if(nav&&'MutationObserver'in window){
-  new MutationObserver(()=>addCounselingLink()).observe(nav,{childList:true});
+  new MutationObserver(()=>syncNavExtras()).observe(nav,{childList:true,subtree:true});
 }
 
 if(!document.querySelector('link[data-home-motion]')){
