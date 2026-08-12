@@ -7,8 +7,32 @@
 <meta name="theme-color" content="#f7faf8">
 <meta http-equiv="Cache-Control" content="no-store">
 <title>이투스247학원 학원생활 도우미</title>
-<link rel="stylesheet" href="./my247.css?v=20260810a">
-<style>#staffMenu{grid-template-columns:repeat(3,1fr)}@media(max-width:900px){#staffMenu{grid-template-columns:1fr 1fr}}@media(max-width:600px){#staffMenu{grid-template-columns:1fr}}</style>
+<link rel="stylesheet" href="./my247.css?v=20260812b">
+<style>
+#staffMenu{grid-template-columns:repeat(3,1fr)}
+.login-grid{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}
+.master-card{border-color:rgba(24,79,58,.22)}
+.master-card .role-icon{background:#173f32;color:#fff}
+.master-card .google-login{background:#fff;color:#1f2937;border:1px solid #d8dee5;box-shadow:none}
+.master-card .google-login:hover{background:#f7f9fb}
+.master-card .master-apply{margin-top:8px;background:#eef5f1;color:#173f32;border:1px solid #cbded4;box-shadow:none}
+.id-help{margin:10px 0 0;font-size:.82rem!important;color:#66746d!important;font-weight:700}
+.legacy-master{margin-top:12px;border-top:1px solid #e6ece8;padding-top:10px}
+.legacy-master summary{cursor:pointer;font-size:.78rem;color:#7c8781}
+.legacy-master form{margin-top:10px;display:grid;gap:8px}
+.master-help{color:#66746d;line-height:1.6}
+.master-application-list{display:grid;gap:12px;margin-top:18px}
+.master-app-item{border:1px solid #e2e8e4;border-radius:16px;padding:16px;display:flex;justify-content:space-between;gap:16px;align-items:center}
+.master-app-person{display:flex;gap:12px;align-items:center;min-width:0}
+.master-app-person img{width:44px;height:44px;border-radius:50%;object-fit:cover}
+.master-app-person div{display:grid;gap:3px;min-width:0}
+.master-app-person span,.master-app-person small{color:#66746d;overflow-wrap:anywhere}
+.master-app-actions{display:flex;gap:8px;flex-shrink:0}
+@media(max-width:1050px){.login-grid{grid-template-columns:1fr 1fr}.master-card{grid-column:1/-1}}
+@media(max-width:900px){#staffMenu{grid-template-columns:1fr 1fr}}
+@media(max-width:680px){.login-grid{grid-template-columns:1fr}.master-card{grid-column:auto}.master-app-item{align-items:flex-start;flex-direction:column}.master-app-actions{width:100%}.master-app-actions button{flex:1}}
+@media(max-width:600px){#staffMenu{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 <div class="backdrop" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -27,27 +51,44 @@
     <div class="entry-copy">
       <p class="eyebrow">MY 247</p>
       <h1>이투스247학원<br><em>학원생활 도우미</em></h1>
-      <p class="lead">학원에서 부여한 ID로 로그인합니다. 학생과 교사의 시작 화면을 분리해 필요한 기능만 빠르게 사용할 수 있습니다.</p>
+      <p class="lead">마스터·교사·학생 로그인을 구분합니다. 마스터는 승인된 Google 계정으로, 교사와 학생은 학원에서 발급한 ID로 로그인합니다.</p>
       <div class="feature-row"><span>공지사항</span><span>시험일정</span><span>질의응답</span><span>입시탐색기</span></div>
     </div>
     <div class="login-grid">
+      <article class="login-card master-card">
+        <div class="role-icon">M</div><small>MASTER</small><h2>마스터 로그인</h2>
+        <p>승인된 마스터는 Google 계정으로 로그인합니다.</p>
+        <button id="masterGoogleLogin" class="google-login" type="button">Google로 마스터 로그인 <i>→</i></button>
+        <button id="masterApply" class="master-apply" type="button">마스터 신청</button>
+        <p class="id-help">마스터 신청은 Google 로그인으로 본인 확인 후 접수되며, 기존 마스터의 승인이 필요합니다.</p>
+        <details class="legacy-master">
+          <summary>기존 마스터 ID 로그인 · 전환용</summary>
+          <form id="legacyMasterLoginForm">
+            <input name="loginId" autocomplete="username" placeholder="기존 마스터 ID" required>
+            <input name="password" type="password" autocomplete="current-password" placeholder="비밀번호" minlength="5" required>
+            <button type="submit">기존 마스터 로그인</button>
+          </form>
+        </details>
+      </article>
+      <article class="login-card teacher-card">
+        <div class="role-icon">T</div><small>TEACHER</small><h2>교사 로그인</h2>
+        <p>학원에서 발급받은 교사 ID로 로그인합니다.</p>
+        <form id="teacherLoginForm">
+          <input name="loginId" autocomplete="username" placeholder="교사 ID" required>
+          <input name="password" type="password" autocomplete="current-password" placeholder="비밀번호" minlength="5" required>
+          <button type="submit">교사 로그인 <i>→</i></button>
+        </form>
+        <p class="id-help">ID는 학원데스크(마스터)에 신청하세요.</p>
+      </article>
       <article class="login-card student-card">
-        <div class="role-icon">S</div><small>STUDENT</small><h2>학생용</h2>
-        <p>학원에서 받은 학생 ID로 로그인합니다.</p>
-        <form class="login-form" data-mode="student">
+        <div class="role-icon">S</div><small>STUDENT</small><h2>학생 로그인</h2>
+        <p>학원에서 발급받은 학생 ID로 로그인합니다.</p>
+        <form id="studentLoginForm">
           <input name="loginId" autocomplete="username" placeholder="학생 ID · 예: M001" required>
           <input name="password" type="password" autocomplete="current-password" placeholder="비밀번호" minlength="5" required>
           <button type="submit">학생 로그인 <i>→</i></button>
         </form>
-      </article>
-      <article class="login-card teacher-card">
-        <div class="role-icon">T</div><small>TEACHER · MASTER</small><h2>교사(마스터)용</h2>
-        <p>교사 또는 마스터 ID로 로그인합니다.</p>
-        <form class="login-form" data-mode="staff">
-          <input name="loginId" autocomplete="username" placeholder="교사·마스터 ID" required>
-          <input name="password" type="password" autocomplete="current-password" placeholder="비밀번호" minlength="5" required>
-          <button type="submit">교사용 로그인 <i>→</i></button>
-        </form>
+        <p class="id-help">ID는 학원데스크(마스터)에 신청하세요.</p>
       </article>
     </div>
     <div id="entryStatus" class="entry-status">서버 연결을 확인하는 중입니다.</div>
@@ -84,5 +125,6 @@
 <div id="modal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-box"><button id="modalClose" class="modal-close" type="button">×</button><div id="modalBody"></div></div></div>
 <div id="toast" class="toast hidden"></div>
 <script src="./my247.js?v=20260810a"></script>
+<script src="./master-auth.js?v=20260812b"></script>
 </body>
 </html>
