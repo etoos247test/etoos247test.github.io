@@ -30,8 +30,24 @@ function start(){stop();if(notices.length>1)timer=setInterval(next,4200)}
 function stop(){if(timer){clearInterval(timer);timer=null}}
 if(viewport&&track){viewport.addEventListener('mouseenter',stop);viewport.addEventListener('mouseleave',start);viewport.addEventListener('focusin',stop);viewport.addEventListener('focusout',start)}
 more?.addEventListener('click',()=>go('publicNotices'));
-fetch(API+'/api/notices',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(d=>{notices=Array.isArray(d?.notices)?d.notices:[];renderNotices()}).catch(()=>{if(track)track.innerHTML='<div class="notice-empty">최근 공지사항을 준비 중입니다.</div>';if(noticeList)noticeList.innerHTML='<div class="public-empty">공지사항을 준비 중입니다.</div>'});
-fetch(API+'/api/schedules',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(d=>renderSchedules(Array.isArray(d?.schedules)?d.schedules:[])).catch(()=>{if(scheduleList)scheduleList.innerHTML='<div class="public-empty">시험일정을 준비 중입니다.</div>'});
+
+async function loadPublicData(){
+  let remote=null;
+  try{
+    const [nr,sr]=await Promise.all([
+      fetch(API+'/api/notices',{cache:'no-store'}),
+      fetch(API+'/api/schedules',{cache:'no-store'})
+    ]);
+    if(nr.ok&&sr.ok){const nd=await nr.json(),sd=await sr.json();remote={notices:Array.isArray(nd?.notices)?nd.notices:[],schedules:Array.isArray(sd?.schedules)?sd.schedules:[]}}
+  }catch{}
+  if(!remote){
+    try{const r=await fetch('./public-data.json?v=20260812a',{cache:'no-store'});if(r.ok)remote=await r.json()}catch{}
+  }
+  notices=Array.isArray(remote?.notices)?remote.notices:[];
+  renderNotices();
+  renderSchedules(Array.isArray(remote?.schedules)?remote.schedules:[]);
+}
+loadPublicData();
 
 function mondayOf(date){const d=new Date(date);d.setHours(0,0,0,0);const shift=(d.getDay()+6)%7;d.setDate(d.getDate()-shift);return d}
 function addDays(date,n){const d=new Date(date);d.setDate(d.getDate()+n);return d}
