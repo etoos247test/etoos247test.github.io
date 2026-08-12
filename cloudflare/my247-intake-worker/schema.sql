@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS core_applications (
   counsel_note TEXT NOT NULL DEFAULT '',
   student_user_id TEXT,
   privacy_agreed_at TEXT NOT NULL,
+  refund_policy_agreed_at TEXT NOT NULL,
+  refund_policy_version TEXT NOT NULL DEFAULT '2026-03-24',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (assigned_to) REFERENCES core_users(id),
