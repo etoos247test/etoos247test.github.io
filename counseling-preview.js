@@ -12,9 +12,23 @@ function syncNavExtras(){
     if(daily)nav.insertBefore(link,daily);else nav.appendChild(link);
   }
 
+  if(!nav.querySelector('[data-planner-link]')){
+    const link=document.createElement('a');
+    link.href='https://etoos247test.github.io/planner/';
+    link.dataset.plannerLink='1';
+    link.textContent='플래너';
+    const counseling=nav.querySelector('[data-counseling-link]');
+    if(counseling)nav.insertBefore(link,counseling);else nav.appendChild(link);
+  }
+
   [...nav.querySelectorAll('a')].forEach(link=>{
     if(link.textContent.trim()==='정시배치표'){
       link.href='https://etoos247test.github.io/admission/regular/';
+      link.removeAttribute('target');
+      link.removeAttribute('rel');
+    }
+    if(link.textContent.trim()==='플래너'){
+      link.href='https://etoos247test.github.io/planner/';
       link.removeAttribute('target');
       link.removeAttribute('rel');
     }
