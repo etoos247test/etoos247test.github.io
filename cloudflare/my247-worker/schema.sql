@@ -118,3 +118,26 @@ CREATE TABLE IF NOT EXISTS core_audit_logs (
   FOREIGN KEY (actor_id) REFERENCES core_users(id)
 );
 CREATE INDEX IF NOT EXISTS idx_core_audit_created ON core_audit_logs(created_at);
+
+-- RBAC extension: keep the legacy core_users.role values unchanged for compatibility.
+-- A 준마스터 is stored as role='teacher' plus account_type='submaster'.
+CREATE TABLE IF NOT EXISTS core_user_profiles (
+  user_id TEXT PRIMARY KEY,
+  account_type TEXT NOT NULL CHECK (account_type IN ('student','teacher','submaster')),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES core_users(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_core_user_profiles_type ON core_user_profiles(account_type);
+
+CREATE TABLE IF NOT EXISTS core_user_permissions (
+  user_id TEXT NOT NULL,
+  permission_key TEXT NOT NULL,
+  allowed INTEGER NOT NULL DEFAULT 1 CHECK (allowed IN (0,1)),
+  granted_by TEXT,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (user_id,permission_key),
+  FOREIGN KEY (user_id) REFERENCES core_users(id) ON DELETE CASCADE,
+  FOREIGN KEY (granted_by) REFERENCES core_users(id)
+);
+CREATE INDEX IF NOT EXISTS idx_core_user_permissions_key ON core_user_permissions(permission_key,allowed);
