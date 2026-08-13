@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'cloudflare/my247-worker/**'
+      - '.github/workflows/deploy-my247.yml'
 
 permissions:
   contents: read
@@ -32,3 +33,21 @@ jobs:
         run: printf '%s' '${{ secrets.MASTER_BOOTSTRAP_KEY }}' | npx --yes wrangler@latest secret put MASTER_BOOTSTRAP_KEY --config=cloudflare/my247-worker/wrangler.jsonc
       - name: Deploy MY247 Worker
         run: npx --yes wrangler@latest deploy --config=cloudflare/my247-worker/wrangler.jsonc
+      - name: Verify deployed API
+        run: |
+          set -euo pipefail
+          BASE='https://my247-api.etoos247test.workers.dev'
+
+          echo 'GET /health'
+          curl --retry 8 --retry-all-errors --retry-delay 2 --fail --silent --show-error "$BASE/health" | tee /tmp/health.json
+          node -e "const d=JSON.parse(require('fs').readFileSync('/tmp/health.json','utf8')); if(d.ok!==true) throw new Error('health check failed')"
+
+          echo 'GET /api/bootstrap/status'
+          curl --retry 8 --retry-all-errors --retry-delay 2 --fail --silent --show-error "$BASE/api/bootstrap/status" | tee /tmp/bootstrap.json
+          node -e "const d=JSON.parse(require('fs').readFileSync('/tmp/bootstrap.json','utf8')); if(typeof d.schemaReady!=='boolean'||typeof d.needsMaster!=='boolean') throw new Error('bootstrap status response invalid')"
+
+          echo 'GET /api/rbac/catalog without login (route/auth check)'
+          code=$(curl --retry 8 --retry-all-errors --retry-delay 2 --silent --show-error -o /tmp/catalog.json -w '%{http_code}' "$BASE/api/rbac/catalog")
+          cat /tmp/catalog.json
+          test "$code" = '401'
+          node -e "const d=JSON.parse(require('fs').readFileSync('/tmp/catalog.json','utf8')); if(d.message!=='로그인이 필요합니다.') throw new Error('RBAC route/auth response invalid')"
