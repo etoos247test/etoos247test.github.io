@@ -1,5 +1,5 @@
 /* Public homepage notice ticker + academy guide */
-.public-preview-mode .top-login,.public-preview-mode .master-access,.public-preview-mode .bootstrap-link{display:none!important}.public-preview-mode .entry-footline{justify-content:flex-start}.public-preview-mode .top-nav{margin-left:auto;margin-right:0}
+.public-preview-mode .master-access,.public-preview-mode .bootstrap-link{display:none!important}.public-preview-mode .entry-footline{justify-content:flex-start}.public-preview-mode .top-nav{margin-left:auto;margin-right:0}
 .notice-ticker{position:relative;z-index:3;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;min-height:62px;margin:0 0 26px;padding:0 18px;border-top:1px solid rgba(20,34,27,.18);border-bottom:1px solid rgba(20,34,27,.18);background:rgba(255,255,255,.46);backdrop-filter:blur(12px)}
 .notice-ticker-label{display:flex;align-items:center;gap:8px;color:#1e3429;font-size:11px;font-weight:950;white-space:nowrap}.notice-ticker-label i{width:7px;height:7px;border-radius:50%;background:#39785a;box-shadow:0 0 0 5px rgba(57,120,90,.09)}
 .notice-viewport{position:relative;height:28px;overflow:hidden;min-width:0}.notice-track{position:absolute;inset:0;transition:transform .48s cubic-bezier(.22,.75,.26,1)}
