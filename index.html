@@ -8,13 +8,14 @@
 <meta http-equiv="Cache-Control" content="no-store">
 <title>이투스247학원 학원생활 도우미</title>
 <link rel="stylesheet" href="./my247.css?v=20260812d">
-<link rel="stylesheet" href="./modern-home.css?v=20260813c">
+<link rel="stylesheet" href="./modern-home.css?v=20260813e">
 <link rel="stylesheet" href="./home-shell.css?v=20260812b">
 <link rel="stylesheet" href="./home-public.css?v=20260813d">
 <link rel="stylesheet" href="./counseling-preview.css?v=20260813a">
 <style>
 #staffMenu{grid-template-columns:repeat(3,1fr)}
 .id-help{margin:10px 0 0;font-size:.82rem!important;color:#66746d!important;font-weight:700}
+.temp-login-note{margin:12px 0 0!important;padding:10px 12px;border:1px dashed #c9d4cd;border-radius:8px;background:#f5f7f5;color:#596860!important;font-size:.78rem!important;line-height:1.65!important}.temp-login-note b{color:#243a2f}.login-extra-actions{display:flex;gap:10px;margin-top:18px;padding-top:18px;border-top:1px solid #dde3df}.login-extra-actions button{flex:1;min-height:45px;border-radius:4px;font-weight:900}.login-extra-actions .master-entry-btn{border:0;background:#24372d;color:#fff}.login-extra-actions .login-apply-btn{border:1px solid #ccd6cf;background:#fff;color:#263a30}
 .legacy-master{margin-top:12px;border-top:1px solid #e6ece8;padding-top:10px}
 .legacy-master summary{cursor:pointer;font-size:.78rem;color:#7c8781}
 .legacy-master form{margin-top:10px;display:grid;gap:8px}
@@ -27,7 +28,7 @@
 .master-app-person span,.master-app-person small{color:#66746d;overflow-wrap:anywhere}
 .master-app-actions{display:flex;gap:8px;flex-shrink:0}
 @media(max-width:900px){#staffMenu{grid-template-columns:1fr 1fr}}
-@media(max-width:680px){.master-app-item{align-items:flex-start;flex-direction:column}.master-app-actions{width:100%}.master-app-actions button{flex:1}}
+@media(max-width:680px){.master-app-item{align-items:flex-start;flex-direction:column}.master-app-actions{width:100%}.master-app-actions button{flex:1}.login-extra-actions{flex-direction:column}}
 @media(max-width:600px){#staffMenu{grid-template-columns:1fr}}
 </style>
 </head>
@@ -98,6 +99,7 @@
       <article class="login-card teacher-card">
         <div class="role-icon">T</div><small>TEACHER</small><h2>교사 로그인</h2>
         <p>학원에서 발급받은 교사 ID로 로그인합니다.</p>
+        <p class="temp-login-note"><b>임시 테스트 메모</b><br>ID: TTEST01<br>비밀번호: 24700</p>
         <form id="teacherLoginForm">
           <input name="loginId" autocomplete="username" placeholder="교사 ID" required>
           <input name="password" type="password" autocomplete="current-password" placeholder="비밀번호" minlength="5" required>
@@ -108,6 +110,7 @@
       <article class="login-card student-card">
         <div class="role-icon">S</div><small>STUDENT</small><h2>학생 로그인</h2>
         <p>학원에서 발급받은 학생 ID로 로그인합니다.</p>
+        <p class="temp-login-note"><b>임시 테스트 메모</b><br>ID: STEST01<br>비밀번호: 24700</p>
         <form id="studentLoginForm">
           <input name="loginId" autocomplete="username" placeholder="학생 ID · 예: M001" required>
           <input name="password" type="password" autocomplete="current-password" placeholder="비밀번호" minlength="5" required>
@@ -115,6 +118,10 @@
         </form>
         <p class="id-help">ID는 학원데스크에 신청하세요.</p>
       </article>
+    </div>
+    <div class="login-extra-actions">
+      <button id="loginMasterOpen" class="master-entry-btn" type="button">마스터 로그인</button>
+      <button id="loginApplyOpen" class="login-apply-btn" type="button">로그인 신청</button>
     </div>
   </div>
 </div>
@@ -152,6 +159,8 @@
   const close=id=>{$('#'+id)?.classList.add('hidden');if(document.querySelectorAll('.login-overlay:not(.hidden)').length===0)document.body.classList.remove('panel-open')};
   $('#loginLauncher')?.addEventListener('click',()=>open('loginPanel'));
   $('#masterAccess')?.addEventListener('click',()=>open('masterPanel'));
+  $('#loginMasterOpen')?.addEventListener('click',()=>{close('loginPanel');open('masterPanel')});
+  $('#loginApplyOpen')?.addEventListener('click',()=>{$('#modalBody').innerHTML='<h2>로그인 신청</h2><p>교사·학생 ID는 학원데스크 승인 후 발급합니다.</p><p class="master-help">현재 일반 계정 신청용 서버 접수 기능은 연결 전이며, 기존 로그인 인증 구조를 우회하지 않습니다.</p>';$('#modal')?.classList.remove('hidden')});
   document.querySelectorAll('[data-close-panel]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.closePanel)));
   document.querySelectorAll('.login-overlay').forEach(p=>p.addEventListener('click',e=>{if(e.target===p)close(p.id)}));
   document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.login-overlay:not(.hidden)').forEach(p=>close(p.id))});
