@@ -7,7 +7,7 @@ body{background:#f3f0e9;color:#151a17}
 .modern-topbar .brand>b{width:50px;height:50px;border-radius:50%;background:#15251e;box-shadow:none;font-size:16px;letter-spacing:-.03em}
 .modern-topbar .brand strong{font-size:14px;letter-spacing:-.02em}
 .modern-topbar .brand small{font-size:9px;letter-spacing:.15em;color:#78827c}
-.top-login{display:inline-flex;align-items:center;gap:22px;min-height:46px;padding:0 18px;border:1px solid rgba(19,27,23,.18);border-radius:999px;background:rgba(255,255,255,.62);backdrop-filter:blur(14px);color:#17201b;font-size:12px;font-weight:900;letter-spacing:.02em;transition:.2s}
+.top-login{position:fixed;top:22px;right:28px;z-index:180;display:inline-flex;align-items:center;gap:22px;min-height:46px;padding:0 18px;border:1px solid rgba(19,27,23,.18);border-radius:999px;background:rgba(255,255,255,.62);backdrop-filter:blur(14px);color:#17201b;font-size:12px;font-weight:900;letter-spacing:.02em;transition:.2s}
 .top-login:hover{transform:translateY(-2px);background:#fff;border-color:rgba(19,27,23,.34)}
 .top-login i{font-style:normal;font-size:16px}
 .modern-entry{position:relative;min-height:calc(100vh - 92px);width:min(1400px,calc(100% - 64px));padding:7vh 0 42px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
@@ -77,6 +77,6 @@ body{background:#f3f0e9;color:#151a17}
   .hero-logo-bg{top:39%;right:-18vw;opacity:.055}
   .basic-login-grid{grid-template-columns:1fr}
   .login-sheet .login-card{min-height:350px}
-  .top-login{gap:10px;padding:0 14px}
+  .top-login{top:14px;right:14px;gap:10px;padding:0 14px}
   .sheet-head h2{font-size:28px}
 }
