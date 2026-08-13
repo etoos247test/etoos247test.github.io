@@ -3,13 +3,11 @@ const $=s=>document.querySelector(s);
 const entry=$('#entryView');
 const dash=$('#dashboardView');
 const workspace=$('#workspaceView');
-const login=$('#loginLauncher');
 const master=$('#masterAccess');
 const bootstrap=$('#bootstrapOpen');
 const topbar=$('.modern-topbar')||$('.topbar');
 
 document.body.classList.add('public-preview-mode');
-login?.classList.add('hidden');
 master?.classList.add('hidden');
 bootstrap?.classList.add('hidden');
 $('#loginPanel')?.classList.add('hidden');
