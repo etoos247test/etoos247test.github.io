@@ -1,6 +1,7 @@
-/* Modern homepage layer — 2026-08-12 */
-body{background:#f3f0e9;color:#151a17}
-.modern-backdrop{background:linear-gradient(135deg,#f4f1ea 0%,#eeeae2 50%,#f7f5f0 100%)}
+/* Modern homepage layer — 2026-08-13 */
+html,body{overflow-x:hidden}
+body{background:linear-gradient(90deg,#dbe5df 0%,#e8e7df 7%,#f3f0e9 18%,#f3f0e9 82%,#e8e7df 93%,#dbe5df 100%);color:#151a17}
+.modern-backdrop{background:linear-gradient(90deg,#dbe5df 0%,#e9e8e1 8%,#f4f1ea 22%,#f2eee7 50%,#f4f1ea 78%,#e9e8e1 92%,#dbe5df 100%)}
 .modern-backdrop span{display:none}
 .modern-topbar{position:relative;z-index:30;width:min(1400px,calc(100% - 64px));min-height:92px}
 .modern-topbar .brand{gap:12px}
@@ -10,10 +11,10 @@ body{background:#f3f0e9;color:#151a17}
 .top-login{position:fixed;top:22px;right:28px;z-index:180;display:inline-flex;align-items:center;gap:22px;min-height:46px;padding:0 18px;border:1px solid rgba(19,27,23,.18);border-radius:999px;background:rgba(255,255,255,.62);backdrop-filter:blur(14px);color:#17201b;font-size:12px;font-weight:900;letter-spacing:.02em;transition:.2s}
 .top-login:hover{transform:translateY(-2px);background:#fff;border-color:rgba(19,27,23,.34)}
 .top-login i{font-style:normal;font-size:16px}
-.modern-entry{position:relative;min-height:calc(100vh - 92px);width:min(1400px,calc(100% - 64px));padding:7vh 0 42px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
-.hero-logo-bg{position:absolute;z-index:-1;right:-2vw;top:50%;transform:translateY(-54%);display:flex;align-items:flex-end;gap:1.4vw;white-space:nowrap;pointer-events:none;user-select:none;opacity:.082;color:#102018;line-height:.72;letter-spacing:-.095em}
-.hero-logo-bg span{font-size:clamp(110px,17vw,280px);font-weight:950}
-.hero-logo-bg strong{font-size:clamp(150px,22vw,355px);font-weight:950}
+.modern-entry{position:relative;min-height:calc(100vh - 92px);width:min(1400px,calc(100% - 64px));padding:7vh 0 42px;display:flex;flex-direction:column;justify-content:space-between;overflow:visible}
+.hero-logo-bg{position:absolute;z-index:-1;right:0;top:48%;width:100%;transform:translateY(-52%);display:flex;align-items:flex-end;justify-content:flex-end;gap:1vw;padding-right:.5vw;white-space:nowrap;pointer-events:none;user-select:none;opacity:.082;color:#102018;line-height:.78;letter-spacing:-.085em}
+.hero-logo-bg span{font-size:clamp(100px,14vw,230px);font-weight:950}
+.hero-logo-bg strong{font-size:clamp(135px,18vw,295px);font-weight:950}
 .modern-copy{max-width:1080px;margin:0 0 6vh}
 .modern-copy .eyebrow{margin-bottom:20px;color:#56645c;font-size:10px;letter-spacing:.24em}
 .modern-copy .hero-main-title{margin:0;font-size:clamp(72px,9.4vw,148px);line-height:.88;letter-spacing:-.082em;font-weight:950;color:#142019;white-space:nowrap}
@@ -61,7 +62,9 @@ body{background:#f3f0e9;color:#151a17}
   .modern-topbar,.modern-entry{width:min(100% - 34px,1400px)}
   .modern-topbar{min-height:78px}
   .modern-entry{min-height:calc(100vh - 78px);padding-top:6vh}
-  .hero-logo-bg{right:-10vw;top:45%;opacity:.065}
+  .hero-logo-bg{right:0;top:43%;width:100%;transform:translateY(-50%);padding-right:0;opacity:.065}
+  .hero-logo-bg span{font-size:clamp(82px,15vw,150px)}
+  .hero-logo-bg strong{font-size:clamp(108px,19vw,190px)}
   .modern-copy .hero-main-title{font-size:clamp(58px,12vw,92px);line-height:.93}
   .modern-copy .hero-slogan{font-size:clamp(28px,6vw,46px);margin-top:24px}
   .role-guide{grid-template-columns:1fr}
@@ -74,7 +77,9 @@ body{background:#f3f0e9;color:#151a17}
   .modern-copy .hero-main-title{font-size:clamp(52px,15vw,76px)}
   .modern-copy .hero-slogan{font-size:clamp(25px,8vw,38px)}
   .modern-copy .lead{font-size:13px}
-  .hero-logo-bg{top:39%;right:-18vw;opacity:.055}
+  .hero-logo-bg{top:37%;right:0;width:100%;transform:translateY(-50%);padding-right:0;opacity:.055}
+  .hero-logo-bg span{font-size:clamp(62px,15vw,104px)}
+  .hero-logo-bg strong{font-size:clamp(82px,19vw,132px)}
   .basic-login-grid{grid-template-columns:1fr}
   .login-sheet .login-card{min-height:350px}
   .top-login{top:14px;right:14px;gap:10px;padding:0 14px}
