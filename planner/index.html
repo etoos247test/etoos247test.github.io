@@ -20,7 +20,9 @@ html,body{margin:0;min-height:100%;font-family:system-ui,"Noto Sans KR",sans-ser
    './assets/app-20260813-1.txt',
    './assets/app-20260813-2.txt',
    './assets/app-20260813-3.txt',
-   './assets/app-20260813-4.txt',
+   './assets/app-20260813-4a.txt',
+   './assets/app-20260813-4b.txt',
+   './assets/app-20260813-4c.txt',
    './assets/app-20260813-5.txt'
   ];
   const parts=await Promise.all(files.map(u=>fetch(u,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(u);return r.text()})));
