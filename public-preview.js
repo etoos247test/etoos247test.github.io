@@ -1,20 +1,9 @@
 (()=>{
 const $=s=>document.querySelector(s);
 const entry=$('#entryView');
-const dash=$('#dashboardView');
-const workspace=$('#workspaceView');
-const master=$('#masterAccess');
-const bootstrap=$('#bootstrapOpen');
 const topbar=$('.modern-topbar')||$('.topbar');
 
 document.body.classList.add('public-preview-mode');
-master?.classList.add('hidden');
-bootstrap?.classList.add('hidden');
-$('#loginPanel')?.classList.add('hidden');
-$('#masterPanel')?.classList.add('hidden');
-entry?.classList.remove('hidden');
-dash?.classList.add('hidden');
-workspace?.classList.add('hidden');
 
 function go(id){const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
 
